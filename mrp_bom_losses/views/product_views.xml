@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Product Template -->
+        <record id="view_mrp_product_template_form_inherited" model="ir.ui.view">
+            <field name="name">product.form.mrp.inherited</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="stock.view_template_property_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='route_ids']" position="after">
+                    <field name="bom_ids" invisible="1"/>
+                    <field name="current_bom_id"
+                           options="{'no_open':True,'no_create':True}"
+                           attrs="{'invisible':[('type', 'not in', ['product', 'consu'])]}"
+                           domain="[('id', 'in', bom_ids)]"
+                        />
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

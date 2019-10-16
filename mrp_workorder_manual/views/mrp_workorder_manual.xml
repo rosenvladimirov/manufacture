@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="mrp_production_workcenter_form_view_inherit">
+        <field name="name">mrp.production.work.order.form</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workcenter_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group/field[@name='product_id']" position="before">
+                <field name="employee_id"/>
+            </xpath>
+            <xpath expr="//tree/field[@name='lot_id']" position="before">
+                <field name="split_lot_id" string="Lot/SN BIN"/>
+            </xpath>
+            <xpath expr="//tree/field[@name='user_id']" position="after">
+                <field name="employee_id"/>
+            </xpath>
+            <xpath expr="//group/field[@name='user_id']" position="after">
+                <field name="employee_id"/>
+            </xpath>
+            <xpath expr="//field[@name='active_move_line_ids']" position="attributes">
+                <attribute name="context">{'default_employee_id': employee_id}</attribute>
+            </xpath>
+            <xpath expr="//field[@name='active_move_line_ids']/tree" position="inside">
+                <field name="employee_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//group/field[@name='time_ids']" position="attributes">
+                <attribute name="context">{'default_workcenter_id': workcenter_id, 'default_employee_id': employee_id}</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_bom_form_view" model="ir.ui.view">
+        <field name="name">mrp.bom.form</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='code']" position="after">
+                <label for="ver_major" string="Version"/>
+                <div class="o_row">
+                    <field name="ver_major"/>.
+                    <field name="ver_minor"/>
+                </div>
+            </xpath>
+            <xpath expr='//tree/field[@name="product_qty"]' position="after">
+                <field name="type"/>
+                <field name="loss"/>
+                <field name="product_qty_real"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="mrp_bom_line_view_form" model="ir.ui.view">
+        <field name="name">mrp.bom.line.view.form</field>
+        <field name="model">mrp.bom.line</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_line_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr='//div[@class="o_row"]' position="after">
+                <label for="loss" string="Discount Qty"/>
+                <div class="o_row">
+                    <field name="type"/>
+                    <field name="loss"/>
+                    <field name="product_qty_real" readonly="1"/>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
