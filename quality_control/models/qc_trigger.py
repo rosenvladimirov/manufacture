@@ -23,3 +23,4 @@ class QcTrigger(models.Model):
         string='Selectable by partner', default=False, readonly=True,
         help='This technical field is to allow to filter by partner in'
         ' triggers')
+    times = fields.Integer('Check times', default=1, help="Times batten for quantity incomes Qty//Times == Qty/Times")

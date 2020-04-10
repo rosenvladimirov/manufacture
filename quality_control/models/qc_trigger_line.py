@@ -5,7 +5,7 @@
 # Copyright 2017 Simone Rubino - Agile Business Group
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-from odoo import fields, models
+from odoo import fields, models, api, _
 
 
 def _filter_trigger_lines(trigger_lines):
@@ -32,8 +32,9 @@ class QcTriggerLine(models.AbstractModel):
         help='If filled, the test will only be created when the action is done'
         ' for one of the specified partners. If empty, the test will always be'
         ' created.', domain="[('parent_id', '=', False)]")
+    quantity = fields.Integer("multiple of", default=1)
 
-    def get_trigger_line_for_product(self, trigger, product, partner=False):
+    def get_trigger_line_for_event(self, trigger, product, partner=False, qty=1):
         """Overridable method for getting trigger_line associated to a product.
         Each inherited model will complete this module to make the search by
         product, template or category.
@@ -51,15 +52,12 @@ class QcTriggerProductCategoryLine(models.Model):
 
     product_category = fields.Many2one(comodel_name="product.category")
 
-    def get_trigger_line_for_product(self, trigger, product, partner=False):
-        trigger_lines = super(
-            QcTriggerProductCategoryLine,
-            self).get_trigger_line_for_product(trigger, product,
-                                               partner=partner)
+    def get_trigger_line_for_event(self, trigger, product=False, partner=False, qty=1):
+        trigger_lines = super(QcTriggerProductCategoryLine,self).get_trigger_line_for_event(trigger, product=product, partner=partner, qty=qty)
         category = product.categ_id
         while category:
             for trigger_line in category.qc_triggers.filtered(
-                    lambda r: r.trigger == trigger and (
+                    lambda r: r.trigger == trigger and r.quantity//qty == r.quantity/qty and (
                     not r.partners or not partner or
                     partner.commercial_partner_id in r.partners)):
                 trigger_lines.add(trigger_line)
@@ -73,13 +71,10 @@ class QcTriggerProductTemplateLine(models.Model):
 
     product_template = fields.Many2one(comodel_name="product.template")
 
-    def get_trigger_line_for_product(self, trigger, product, partner=False):
-        trigger_lines = super(
-            QcTriggerProductTemplateLine,
-            self).get_trigger_line_for_product(trigger, product,
-                                               partner=partner)
+    def get_trigger_line_for_event(self, trigger, product=False, partner=False, qty=1):
+        trigger_lines = super(QcTriggerProductTemplateLine,self).get_trigger_line_for_event(trigger, product=product, partner=partner, qty=qty)
         for trigger_line in product.product_tmpl_id.qc_triggers.filtered(
-                lambda r: r.trigger == trigger and (
+                lambda r: r.trigger == trigger and r.quantity//qty == r.quantity/qty and (
                 not r.partners or not partner or
                 partner.commercial_partner_id in r.partners) and
                 r.test.active):
@@ -93,13 +88,10 @@ class QcTriggerProductLine(models.Model):
 
     product = fields.Many2one(comodel_name="product.product")
 
-    def get_trigger_line_for_product(self, trigger, product, partner=False):
-        trigger_lines = super(
-            QcTriggerProductLine,
-            self).get_trigger_line_for_product(trigger, product,
-                                               partner=partner)
+    def get_trigger_line_for_event(self, trigger, product=False, partner=False, qty=1):
+        trigger_lines = super(QcTriggerProductLine, self).get_trigger_line_for_event(trigger, product=product, partner=partner, qty=qty)
         for trigger_line in product.qc_triggers.filtered(
-                lambda r: r.trigger == trigger and (
+                lambda r: r.trigger == trigger and r.quantity//qty == r.quantity/qty and (
                 not r.partners or not partner or
                 partner.commercial_partner_id in r.partners) and
                 r.test.active):

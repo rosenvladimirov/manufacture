@@ -45,13 +45,13 @@
                            statusbar_colors='{"success": "blue", "failed": "red"}' />
                 </header>
                 <sheet>
-                    <div class="oe_right oe_button_box" name="buttons">
-                        <button class="oe_inline oe_stat_button"
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button"
                                 type="action"
                                 name="%(action_qc_inspection_set_test)d"
                                 icon="fa-bookmark-o"
                                 states="draft"
-                                string="Set test" />
+                                string="Set test"/>
                     </div>
                     <h1>
                         <label string="Inspection "/>

@@ -55,8 +55,8 @@ class StockPicking(models.Model):
                 partner = (self.partner_id
                            if qc_trigger.partner_selectable else False)
                 trigger_lines = trigger_lines.union(
-                    self.env[model].get_trigger_line_for_product(
-                        qc_trigger, operation.product_id, partner=partner))
+                    self.env[model].get_trigger_line_for_event(
+                        qc_trigger, operation.product_id, partner=partner, qty=operation.quantity_done))
             for trigger_line in _filter_trigger_lines(trigger_lines):
                 inspection_model._make_inspection(operation, trigger_line)
         return res

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Request link -->
+        <record id="req_link_quality_control_mrp" model="res.request.link">
+            <field name="name">Manufacture order</field>
+            <field name="object">mrp.workorder</field>
+        </record>
+    </data>
+</odoo>

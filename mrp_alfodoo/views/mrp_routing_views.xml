@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="mrp_routing_workcenter_form_alf_view" model="ir.ui.view">
+            <field name="name">mrp.routing.workcente.alf.form</field>
+            <field name="model">mrp.routing.workcenter</field>
+            <field name="inherit_id" ref="mrp.mrp_routing_workcenter_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook" position="inside">
+                    <page string="Alfresco Work sheet">
+                        <separator string="Alfresco works heet"/>
+                        <field name="worksheet_alfresco_document" widget="cmis_document"/>
+                    </page>
+                    <page string="Documentations">
+                        <field name="worksheet_alfresco_folder" widget="cmis_folder"/>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

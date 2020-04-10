@@ -147,7 +147,7 @@ class TestQualityControl(TransactionCase):
                       'qc.trigger.product_template_line',
                       'qc.trigger.product_line']:
             trigger_lines = trigger_lines.union(
-                self.env[model].get_trigger_line_for_product(
+                self.env[model].get_trigger_line_for_event(
                     self.qc_trigger, self.product))
         self.assertEqual(len(trigger_lines), 3)
         filtered_trigger_lines = _filter_trigger_lines(trigger_lines)
