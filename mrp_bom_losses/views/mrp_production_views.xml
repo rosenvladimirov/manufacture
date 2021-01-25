@@ -22,11 +22,11 @@
                 <field name="service_amount" attrs="{'readonly': [('state', 'in', ['done','cancel'])]}"/>
                 <field name="calculate_price"/>
             </field>
-            <xpath expr="//notebook" position="inside">
+            <xpath expr="//notebook/page[1]" position="after">
                 <page string="Moves by workorders">
                     <field name="move_consumed_ids"/>
                 </page>
-                <page string="Reserved/Consumed materials">
+                <page string="Details for Reserved/Consumed materials">
                     <field name="location_virtual_id" invisible="1"/>
                     <field name="location_src_id" invisible="1"/>
                     <field name="raw_move_line_ids" context="{'default_picking_id': id, 'default_location_id': location_src_id, 'default_location_dest_id': location_virtual_id}">
@@ -51,6 +51,27 @@
                     <field nolabel="1" name="acc_move_line_ids" readonly="1"/>
                 </page>
                 -->
+            </xpath>
+            <xpath expr="//notebook/page[1]" position="after">
+                <page string="Move for Finished Products">
+                    <field name="move_finished_ids" context="{'form_view_ref': 'mrp.view_stock_move_lots'}" attrs="{'readonly': [('is_locked', '=', True)], 'invisible': [('move_finished_ids', '=', [])]}">
+                        <tree delete="0" decoration-muted="is_done">
+                            <field name="product_id" required="1"/>
+                            <field name="name" invisible="1"/>
+                            <field name="unit_factor" invisible="1"/>
+                            <field name="product_uom" groups="product.group_uom"/>
+                            <field name="has_tracking" invisible="1"/>
+                            <field name="needs_lots" readonly="1" groups="stock.group_production_lot"/>
+                            <field name="is_done" invisible="1"/>
+                            <field name="sequence" invisible="1"/>
+                            <field name="location_id" invisible="1"/>
+                            <field name="location_dest_id" domain="[('id', 'child_of', parent.location_dest_id)]" invisible="1"/>
+                            <field name="state" invisible="1" force_save="1"/>
+                            <field name="reserved_availability" attrs="{'invisible': [('is_done', '=', True)]}" string="Reserved"/>
+                            <field name="quantity_done" string="Produced" readonly="1"/>
+                        </tree>
+                    </field>
+                </page>
             </xpath>
         </field>
     </record>

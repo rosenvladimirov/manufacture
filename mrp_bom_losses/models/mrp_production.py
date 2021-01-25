@@ -9,6 +9,9 @@ from odoo.addons import decimal_precision as dp
 from odoo.exceptions import AccessError, UserError
 from odoo.tools import float_compare
 
+import logging
+_logger = logging.getLogger(__name__)
+
 
 class MrpProduction(models.Model):
     _inherit = 'mrp.production'
@@ -88,6 +91,7 @@ class MrpProduction(models.Model):
             if planned_cost:
                 for move in production.move_raw_ids:
                     if move.product_id.type == 'product':
+                        coef = 0
                         if move.bom_line_id:
                             coef = 1+move.bom_line_id.loss/100
                         qty = move.product_qty + move.product_qty * coef
@@ -101,10 +105,15 @@ class MrpProduction(models.Model):
                     consumed_moves = production.move_raw_ids.filtered(lambda x: x.state == 'done')
                 for move in consumed_moves:
                     if move.product_id.type == 'product':
+                        price_unit_uom = move.product_id.standard_price*move.product_id.uom_id.factor/move.product_uom.factor
+                        if move.price_unit != price_unit_uom:
+                            move.write({'price_unit': price_unit_uom})
                         qty = move.quantity_done
+                        price_unit = move.price_unit
                         if move.product_uom != move.product_id.uom_id:
                             qty = move.product_uom._compute_quantity(move.quantity_done, move.product_id.uom_id)
-                        amount += abs(move.price_unit) * qty
+                        amount += abs(price_unit) * qty
+                        #_logger.info("PRICE %s::%s::%s:%s:%s:%s" % (self._context.get('rebuld_try'), self.name, abs(price_unit) * qty, abs(move.price_unit), qty, move.quantity_done))
                 product_qty = 0.0
                 for move in production.move_finished_ids:
                     product_qty += move.quantity_done
@@ -129,13 +138,13 @@ class MrpProduction(models.Model):
 
     def _cal_price(self, consumed_moves):
         super(MrpProduction, self)._cal_price(consumed_moves)
-        self.ensure_one()
-        production = self
-        self._calculate_amount(consumed_moves)  # refac calculul
-        price_unit = production.calculate_price
-        self.move_finished_ids.write({'price_unit': price_unit})
-        # functia standard nu permite si de aceea am facut o modificare in deltatech_purchase_price
-        self.move_finished_ids.product_price_update_before_done()
+        # self.ensure_one()
+        for production in self:
+            production._calculate_amount(consumed_moves)  # refac calculul
+            price_unit = production.calculate_price
+            production.move_finished_ids.write({'price_unit': price_unit})
+            # functia standard nu permite si de aceea am facut o modificare in deltatech_purchase_price
+            production.move_finished_ids.product_price_update_before_done()
         return True
 
     @api.multi
@@ -176,10 +185,14 @@ class MrpProduction(models.Model):
                         moves = move
                     else:
                         moves |= move
-            for move in moves:
-                ret = move.button_cancel()
-                if ret:
-                    move.unlink()
+            if moves:
+                for move in moves:
+                    if move.state == 'draft':
+                        move.unlink()
+                        continue
+                    ret = move.button_cancel()
+                    if ret:
+                        move.unlink()
 
     @api.multi
     def rebuild_account_move(self):
@@ -187,6 +200,8 @@ class MrpProduction(models.Model):
             production.unpost_inventory()
             production._cal_price(production.move_raw_ids.filtered(lambda x: x.state == 'done'))
             for move in production.move_raw_ids.filtered(lambda x: x.state == 'done'):
-                move.rebuild_account_move()
+                _logger.info("MOVE %s" % move.name)
+                move.with_context(dict(self._context, rebuld_try=True)).rebuild_account_move()
             for move in production.move_finished_ids.filtered(lambda x: x.state == 'done'):
-                move.rebuild_account_move()
+                _logger.info("MOVE %s" % move.name)
+                move.with_context(dict(self._context, rebuld_try=True)).rebuild_account_move()
