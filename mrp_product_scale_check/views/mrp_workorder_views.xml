@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="mrp_production_workcenter_form_view_inherit_scale">
+        <field name="name">mrp.production.work.order.form</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="barcode_mrp_workorder.mrp_production_workcenter_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']/button[@name='button_finish']" position="before">
+                <button name="weight_action"
+                        type="object"
+                        string="Scale"
+                        class="oe_stat_button"
+                        icon="fa-balance-scale"
+                       attrs="{'invisible': ['|', '|', '|', ('is_produced', '=', True), ('working_state', '=', 'blocked'), ('state', '!=', 'progress'), ('is_user_working', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="mrp_production_workcenter_form_view_inherit">
+        <field name="name">mrp.production.work.order.form</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workcenter_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <field name="product_id" position="before">
+                <field name="scale_id"/>
+                <field name="current_weight" readonly="1"/>
+                <field name="scale_done" attrs="{'readonly': [('current_weight', '=', 0.0)]}"/>
+            </field>
+        </field>
+    </record>
+</odoo>

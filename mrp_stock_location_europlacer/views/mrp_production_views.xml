@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="mrp_production_form_view" model="ir.ui.view">
+            <field name="name">mrp.production.form</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//notebook" position="inside">
+                    <page string="Concerned Pattern">
+                        <field name="concerned_pattern_ids" context="{'default_production_id': active_id}">
+                            <tree editable="bottom">
+                                <field name="production_id" invisible="1"/>
+                                <field name="sequence" readonly="1"/>
+                                <field name="right_concerned_pattern"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

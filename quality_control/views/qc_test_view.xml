@@ -6,6 +6,33 @@
     Copyright 2017 Simone Rubino - Agile Business Group
     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
 <odoo>
+    <record id="action_qc_inspection_per_test" model="ir.actions.act_window">
+        <field name="name">Quality inspections from picking</field>
+        <field name="res_model">qc.inspection</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('test', '=', active_id)]</field>
+    </record>
+
+    <record id="action_qc_inspection_per_test_done" model="ir.actions.act_window">
+        <field name="name">Quality inspection from picking done</field>
+        <field name="res_model">qc.inspection</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('test', '=', active_id), ('state', 'not in', ['draft', 'waiting'])]</field>
+    </record>
+
+    <record id="action_qc_inspection_per_test_passed" model="ir.actions.act_window">
+        <field name="name">Quality inspection from picking passed</field>
+        <field name="res_model">qc.inspection</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('test', '=', active_id), ('state', '=', 'success')]</field>
+    </record>
+
+    <record id="action_qc_inspection_per_test_failed" model="ir.actions.act_window">
+        <field name="name">Quality inspections from picking failed</field>
+        <field name="res_model">qc.inspection</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('test', '=', active_id), ('state', '=', 'failed')]</field>
+    </record>
 
     <record model="ir.ui.view" id="qc_test_form_view">
         <field name="name">qc.test.form</field>
@@ -13,6 +40,34 @@
         <field name="arch" type="xml">
             <form string="Test">
                 <sheet>
+                    <div class="oe_button_box" name="button_box" >
+                        <button class="oe_inline oe_stat_button"
+                                type="action"
+                                name="%(action_qc_inspection_per_test)d"
+                                icon="fa-list">
+                            <field name="created_inspections"
+                                   widget="statinfo"
+                                   string="inspections" />
+                        </button>
+                        <button class="oe_inline oe_stat_button"
+                                type="action"
+                                name="%(action_qc_inspection_per_test_done)d"
+                                icon="fa-pencil">
+                            <field name="done_inspections" widget="statinfo" />
+                        </button>
+                        <button class="oe_inline oe_stat_button"
+                                type="action"
+                                name="%(action_qc_inspection_per_test_passed)d"
+                                icon="fa-thumbs-o-up">
+                            <field name="passed_inspections" widget="statinfo" />
+                        </button>
+                        <button class="oe_inline oe_stat_button"
+                                type="action"
+                                name="%(action_qc_inspection_per_test_failed)d"
+                                icon="fa-thumbs-o-down">
+                            <field name="failed_inspections" widget="statinfo" />
+                        </button>
+                    </div>
                     <label for="name" class="oe_edit_only"/>
                     <h1>
                         <field name="name" class="oe_inline"/>
@@ -23,12 +78,14 @@
                             <field name="object_id"
                                    attrs="{'invisible': [('type','=','generic')]}"/>
                             <field name="active" />
+                            <field name="level_failed" readonly="1" force_save="1"/>
                         </group>
                         <group>
                             <field name="category" />
                             <field name="fill_correct_values" />
                             <field name="company_id" groups="base.group_multi_company"/>
                         </group>
+                        <field name="critical_description" nolabel="1" placeholder="Please write the critical message for operator."/>
                     </group>
                     <field name="test_lines" nolabel="1" >
                         <tree string="Questions">
@@ -56,6 +113,7 @@
                 <field name="type" />
                 <field name="object_id" />
                 <field name="company_id" groups="base.group_multi_company"/>
+                <field name="level_failed" readonly="1" force_save="1"/>
             </tree>
         </field>
     </record>

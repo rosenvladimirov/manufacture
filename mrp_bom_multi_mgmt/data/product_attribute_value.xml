@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <record id="mrp_bom_multi_mgmt.special_for_use_value" model="product.attribute.value">
+          <field name="name">999999 Special value for use all</field>
+          <field name="attribute_id" ref="mrp_bom_multi_mgmt.special_for_use"/>
+          <field name="sequence">999999</field>
+        </record>
+    </data>
+</odoo>

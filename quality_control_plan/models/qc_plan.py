@@ -76,6 +76,7 @@ class QcLevel(models.Model):
     # chek value type: absolute or percent of ingoing quantity
     chk_type = fields.Selection([('absolute', 'Absolute value'),
                                  ('percent', 'Percent'),
+                                 ('lot', 'Per package'),
                                  ],
                                 'Measure',
                                 default='absolute',

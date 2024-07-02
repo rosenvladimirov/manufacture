@@ -106,18 +106,25 @@ class MrpProduction(models.Model):
             values.pop('move_dest_ids', None)
         origin = self.origin or move.origin
         values['route_ids'] = move.product_id.route_ids
-        try:
-            self.env['procurement.group'].run(
-                move.product_id,
-                qty,
-                move.product_uom,
-                move.location_id,
-                origin,
-                origin,
-                values
-            )
-        except UserError as error:
-                errors.append(error.name)
+        # first found the locations with products
+        new_qty = qty
+        quants = self.env['stock.quant']._gather(move.product_id, move.location_id, lot_id=False, package_id=False, owner_id=False, strict=False)
+        for quant in quants:
+            available_quantity = sum(quants.mapped('quantity')) - sum(quants.mapped('reserved_quantity'))
+            if available_quantity > 0.0:
+                new_qty = new_qty - available_quantity < 0.0 and new_qty or new_qty - available_quantity
+                try:
+                    self.env['procurement.group'].run(
+                        move.product_id,
+                        new_qty,
+                        move.product_uom,
+                        quant.location_id,
+                        origin,
+                        origin,
+                        values
+                    )
+                except UserError as error:
+                    errors.append(error.name)
         if errors:
             raise UserError('\n'.join(errors))
         return True

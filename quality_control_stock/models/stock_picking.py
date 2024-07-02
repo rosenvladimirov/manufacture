@@ -3,9 +3,13 @@
 # Copyright 2019 Andrii Skrypka
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 from odoo.addons.quality_control.models.qc_trigger_line import\
     _filter_trigger_lines
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class StockPicking(models.Model):
@@ -42,21 +46,67 @@ class StockPicking(models.Model):
                 (picking.passed_inspections + picking.failed_inspections)
 
     @api.multi
+    def _create_inspection(self):
+        inspection_model = self.env['qc.inspection']
+        inspections = inspection_model
+        for operation in self.move_lines:
+            for detailed_line in operation.move_line_ids:
+                qc_trigger = self.env['qc.trigger'].search(
+                    [('picking_type_id', '=', self.picking_type_id.id)])
+                trigger_lines = set()
+                for model in ['qc.trigger.product_category_line',
+                              'qc.trigger.product_template_line',
+                              'qc.trigger.product_line']:
+                    partner = (self.partner_id
+                               if qc_trigger.partner_selectable else False)
+                    trigger_lines = trigger_lines.union(
+                        self.env[model].get_trigger_line_for_product(
+                            qc_trigger, detailed_line.product_id, partner=partner))
+                # for trigger_line in _filter_trigger_lines(trigger_lines):
+                #     inspection_model._make_inspection(detailed_line, trigger_line)
+
+                for trigger_line in _filter_trigger_lines(trigger_lines):
+                    plan_id, qty_checked = self.env['qc.inspection'].\
+                        get_plan_solutions(operation.quantity_done, operation.product_id, False, trigger_line)
+                    # _logger.info("PLAN %s->%s" % (plan_id, qty_checked))
+                    if plan_id:
+                        for level in plan_id.plan_ids:
+                            if level.qty_checked != 0:
+                                if level.chk_type == 'percent':
+                                    coefficient = detailed_line.qty_done/operation.quantity_done
+                                    for inx in range(0, int(qty_checked*coefficient)+1):
+                                        inspection = inspection_model._make_inspection(detailed_line, trigger_line)
+                                        inspection.plan_id = plan_id
+                                        inspection.qty_checked = detailed_line.qty_done*coefficient
+                                        inspection.qty = detailed_line.qty_done
+                                        inspections |= inspection
+                                        # inspection.lot_id = detailed_line.lot_id
+                                elif level.chk_type == 'lot':
+                                    for inx in range(0, int(level.qty_checked)):
+                                        values = {
+                                            'plan_id': plan_id.id,
+                                            'qty_checked': detailed_line.qty_done,
+                                            'qty': detailed_line.qty_done,
+                                        }
+                                        inspection = inspection_model.\
+                                            _make_inspection(detailed_line, trigger_line, add_values=values)
+                                        inspections |= inspection
+                                else:
+                                    qty_checked = level.qty_checked
+                                    coefficient = detailed_line.qty_done/operation.quantity_done
+                                    for inx in range(0, int(qty_checked*coefficient)+1):
+                                        inspection = inspection_model._make_inspection(detailed_line, trigger_line)
+                                        inspection.plan_id = plan_id
+                                        inspection.qty_checked = detailed_line.qty_done*coefficient
+                                        inspection.qty = detailed_line.qty_done
+                                        inspections |= inspection
+                    else:
+                        inspections |= inspection_model._make_inspection(self, trigger_line)
+        if inspections:
+            self.env.user.notify_warning(_('The Inspection is created. Please confirm it.'), sticky=True)
+
+    @api.multi
     def action_done(self):
         res = super(StockPicking, self).action_done()
-        inspection_model = self.env['qc.inspection']
-        for operation in self.move_lines:
-            qc_trigger = self.env['qc.trigger'].search(
-                [('picking_type_id', '=', self.picking_type_id.id)])
-            trigger_lines = set()
-            for model in ['qc.trigger.product_category_line',
-                          'qc.trigger.product_template_line',
-                          'qc.trigger.product_line']:
-                partner = (self.partner_id
-                           if qc_trigger.partner_selectable else False)
-                trigger_lines = trigger_lines.union(
-                    self.env[model].get_trigger_line_for_product(
-                        qc_trigger, operation.product_id, partner=partner))
-            for trigger_line in _filter_trigger_lines(trigger_lines):
-                inspection_model._make_inspection(operation, trigger_line)
+        self._create_inspection()
         return res

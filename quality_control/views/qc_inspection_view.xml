@@ -44,14 +44,23 @@
                            statusbar_visible="draft,waiting,success"
                            statusbar_colors='{"success": "blue", "failed": "red"}' />
                 </header>
+                <field name="critical_msg" invisible="1"/>
+                <div class="alert alert-danger" role="alert" style="margin-bottom:0px;" attrs="{'invisible': [('critical_msg','=',False)]}">
+                    <field name="critical_description" readonly="1"/>
+                </div>
                 <sheet>
-                    <div class="oe_right oe_button_box" name="buttons">
-                        <button class="oe_inline oe_stat_button"
+                    <div class="oe_button_box" name="button_box">
+                        <button class="oe_stat_button"
                                 type="action"
                                 name="%(action_qc_inspection_set_test)d"
                                 icon="fa-bookmark-o"
                                 states="draft"
                                 string="Set test" />
+                        <button name="toggle_active" type="object"
+                                class="oe_stat_button" icon="fa-archive">
+                            <field name="active" widget="boolean_button"
+                                options='{"terminology": "archive"}'/>
+                        </button>
                     </div>
                     <h1>
                         <label string="Inspection "/>
@@ -69,6 +78,7 @@
                             <field name="date" />
                             <field name="success" />
                             <field name="auto_generated" />
+                            <field name="level_failed" readonly="1"/>
                         </group>
                     </group>
                     <notebook>
@@ -89,7 +99,7 @@
                                     <field name="min_value" invisible="1"/>
                                     <field name="max_value" invisible="1"/>
                                     <field name="valid_values" />
-                                    <field name="success" />
+                                    <field name="success"/>
                                 </tree>
                             </field>
                         </page>

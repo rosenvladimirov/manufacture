@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+  <record id="mrp_workorder_auto_form_view" model="ir.ui.view">
+      <field name="name">mrp.workorder.auto.view</field>
+      <field name="model">mrp.workorder.auto</field>
+      <field name="arch" type="xml">
+          <form string="Add series in Work order">
+              <group>
+                  <field name="workorder_id" readonly="1"/>
+                  <field name="production_id" invisible="1"/>
+                  <field name="import_workorder_id" domain="[('production_id', '=', production_id)]"/>
+              </group>
+              <group>
+                  <button name="generate_lots" string="Generate Lots" type="object" class="oe_link"/>
+              </group>
+              <field name="lot_ids" nolablel="1"/>
+              <footer>
+                  <button name="generate_auto" string="Load lots" type="object" class="oe_highlight"/>
+                  <button special="cancel" string="Cancel" class="oe_link"/>
+              </footer>
+          </form>
+      </field>
+  </record>
+
+  <record id="act_open_wizard_mrp_workorder_auto" model="ir.actions.act_window">
+      <field name="name">Add lots in work order</field>
+      <field name="res_model">mrp.workorder.auto</field>
+      <field name="view_type">form</field>
+      <field name="view_mode">form</field>
+      <field name="view_id" ref="mrp_workorder_auto_form_view"/>
+      <field name="target">new</field>
+      <field name="context">{'default_workorder_id': active_id}</field>
+      <field name="binding_model_id" ref="mrp.model_mrp_workorder" />
+  </record>
+
+</odoo>

@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_bom_form_multi_view" model="ir.ui.view">
+        <field name="name">mrp.bom.multi.form</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <field name="split_bom_line_ids" invisible="1"/>
+                <field name="id" invisible="1"/>
+                <button name="%(action_mrp_semi_product_component)d"
+                        icon="fa-battery-full"
+                        class="oe_stat_button"
+                        string="Populate semi-product"
+                        type="action"
+                        context="{'default_bom_id': id}"
+                        attrs="{'invisible': [('child_bom_line_ids', '!=', [])]}"/>
+                <button name="merge_back_child_product"
+                        icon="fa-window-restore"
+                        class="oe_stat_button"
+                        string="From semi-product"
+                        type="object"
+                        attrs="{'invisible': [('child_bom_line_ids', '=', [])]}"/>
+                <button name="split_to_child_product"
+                        icon="fa-columns"
+                        class="oe_stat_button"
+                        string="To semi-product"
+                        type="object"
+                        attrs="{'invisible': [('split_bom_line_ids', '=', [])]}"/>
+                <button name="sort_by_operation"
+                        icon="fa-sort-numeric-asc"
+                        class="oe_stat_button"
+                        string="Sort by operation"
+                        type="object"
+                        attrs="{'invisible': [('routing_id', '=', False)]}"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Components" attrs="{'invisible': [('child_bom_line_ids', '=', [])]}">
+                    <field name="child_bom_line_ids" widget="one2many_list">
+                        <tree string="Child product Components" editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="product_id" context="{'default_type': 'product'}"/>
+                            <field name="has_attachments" invisible="1"/>
+                            <button name="action_see_attachments" type="object" icon="fa-files-o" attrs="{'invisible': [('has_attachments', '=', False)]}"/>
+                            <button name="action_see_attachments" type="object" icon="fa-file" attrs="{'invisible': [('has_attachments', '=', True)]}"/>
+                            <field name="product_qty"/>
+                            <field name="product_uom_id" options="{'no_open':True,'no_create':True}" groups="product.group_uom"/>
+                            <field name="attribute_value_ids" widget="many2many_tags" options="{'no_create': True}" domain="[('product_ids.product_tmpl_id', '=', parent.product_tmpl_id)]" groups="product.group_product_variant"/>
+                            <field name="operation_id" groups="mrp.group_mrp_routings" domain="[('routing_id', '=', parent.routing_id)]" options="{'no_quick_create':True,'no_create_edit':True}"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+            <xpath expr='//tree/field[@name="operation_id"]' position="after">
+                <field name="child_product_tmpl_id"/>
+                <field name="child_product_id" domain="[('product_tmpl_id', '=', child_product_tmpl_id)]"/>
+                <field name="child_bom_id" invisible="1"/>
+            </xpath>
+            <xpath expr='//tree' position="inside">
+                 <button name="transfer_variants"
+                         icon="fa-clone"
+                         type="object"/>
+            </xpath>
+            <xpath expr='//tree' position="attributes">
+                <field attribute="limit">300</field>
+            </xpath>
+            <field name="company_id" position="after">
+                <field name="product_brand_id"/>
+                <field name="partner_id"/>
+            </field>
+            <xpath expr="//tree/field[@name='product_id']" position="after">
+                <field name="product_tmpl_id" invisible="1"/>
+                <field name="mrp_multi_bom_id" options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,}"
+                       domain="[('product_tmpl_id', '=', product_tmpl_id)]"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="mrp_bom_line_multi_view_form" model="ir.ui.view">
+        <field name="name">mrp.bom.line.multi.view.form</field>
+        <field name="model">mrp.bom.line</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_line_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr='//field[@name="product_id"]' position="before">
+<!--                <field name="bom_id"/>-->
+                <field name="child_bom_line_id"/>
+            </xpath>
+            <xpath expr='//field[@name="product_id"]' position="after">
+                <field name="product_tmpl_id" invisible="1"/>
+                <field name="mrp_multi_bom_id" options="{'no_quick_create':True,'no_create_edit':True,'no_open': True,}"
+                       domain="[('product_tmpl_id', '=', product_tmpl_id)]"/>
+                <field name="child_product_tmpl_id"/>
+                <field name="child_product_id" domain="[('product_tmpl_id', '=', child_product_tmpl_id)]"/>
+                <field name="child_bom_id" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="mrp_bom_component_multi_tree_view" model="ir.ui.view">
+        <field name="name">mrp.bom.component.multi.tree</field>
+        <field name="model">mrp.bom.line</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_component_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="attribute_value_ids" position="after">
+                <field name="operation_id"/>
+                <field name="child_product_tmpl_id"/>
+                <field name="child_product_id" domain="[('product_tmpl_id', '=', child_product_tmpl_id)]"/>
+                <field name="child_bom_id" invisible="1"/>
+            </field>
+            <field name="product_id" position="after">
+                <field name="product_tmpl_id" invisible="1"/>
+                <field name="mrp_multi_bom_id" domain="[('product_tmpl_id', '=', product_tmpl_id)]"/>
+            </field>
+        </field>
+    </record>
+    <record id="mrp_bom_tree_view" model="ir.ui.view">
+        <field name="name">mrp.bom.tree</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_tree_view"/>
+        <field name="arch" type="xml">
+            <field name="product_tmpl_id" position="before">
+                <field name="partner_id"/>
+                <field name="product_brand_id"/>
+            </field>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="qc_inspection_kanban_view">
+        <field name="name">qc.inspection.kanban</field>
+        <field name="model">qc.inspection</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_small_column o_mrp_workorder_kanban" create="0">
+                <field name="name" />
+                <field name="user" />
+                <field name="test" />
+                <field name="qty" />
+                <field name="product_id" />
+                <field name="success" />
+                <field name="state" />
+                <field name="color"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="#{kanban_color(record.color.raw_value)} oe_kanban_card oe_kanban_global_click">
+                            <div class="oe_kanban_content">
+                                <strong><span><t t-esc="record.name.value"/></span></strong>
+                                <div class="row">
+                                    <div class="col-xs-7 o_kanban_primary_left">
+                                        <span><t t-esc="record.product_id.value"/></span>
+                                    </div>
+                                    <div class="col-xs-5 o_kanban_primary_right">
+                                        <span><t t-esc="record.user.value"/></span>
+                                        <span><t t-esc="record.qty.value"/></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record model="ir.actions.act_window" id="quality_control.action_qc_inspection">
+        <field name="name">Inspections</field>
+        <field name="res_model">qc.inspection</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form,kanban</field>
+    </record>
+</odoo>

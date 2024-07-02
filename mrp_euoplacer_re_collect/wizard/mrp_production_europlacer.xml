@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+  <record id="mrp_production_europlacer_form_view" model="ir.ui.view">
+      <field name="name">mrp.production.europlacer.view</field>
+      <field name="model">mrp.production.europlacer</field>
+      <field name="arch" type="xml">
+          <form string="Re collect europlacer files">
+              <group>
+                  <field name="rule"/>
+                  <field name="overwrite"/>
+                  <field name="path"/>
+                  <field name="production_ids" widget="many2many_tags" invisible="1"/>
+              </group>
+              <footer>
+                  <button name="action_fs" string="Go" type="object" class="oe_highlight"/>
+                  <button special="cancel" string="Cancel" class="oe_link"/>
+              </footer>
+          </form>
+      </field>
+  </record>
+
+  <record id="act_open_wizard_mrp_production_europlacer" model="ir.actions.act_window">
+      <field name="name">Re-collect europlacer files</field>
+      <field name="res_model">mrp.production.europlacer</field>
+      <field name="view_type">form</field>
+      <field name="view_mode">form</field>
+      <field name="view_id" ref="mrp_production_europlacer_form_view"/>
+      <field name="target">new</field>
+<!--      <field name="context">{'default_production_ids': active_ids}</field>-->
+      <field name="binding_model_id" ref="mrp.model_mrp_production" />
+  </record>
+
+</odoo>

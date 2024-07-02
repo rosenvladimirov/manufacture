@@ -1,0 +1,2 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mrp.workorder_trusted_lots_user,mrp_workorder_trusted_lots_users,model_mrp_workorder_trusted_lots,mrp.group_mrp_user,1,1,1,1

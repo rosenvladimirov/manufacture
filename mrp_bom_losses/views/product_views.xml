@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Product Template -->
+        <record id="view_mrp_product_template_form_inherited" model="ir.ui.view">
+            <field name="name">product.form.mrp.inherited</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="stock.view_template_property_form"/>
+            <field name="arch" type="xml">
+                <group name="operations" position="inside">
+                    <field name="own_mrp_component" attrs="{'invisible': [('purchase_ok', '=', False)]}"/>
+                    <field name="own_mrp_produced" attrs="{'invisible': [('sale_ok', '=', False)]}"/>
+                </group>
+            </field>
+        </record>
+    </data>
+</odoo>

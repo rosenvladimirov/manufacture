@@ -8,6 +8,11 @@
 from odoo import api, exceptions, fields, models, _
 from odoo.tools import formatLang
 import odoo.addons.decimal_precision as dp
+from odoo.addons.quality_control.models.qc_trigger_line import _filter_trigger_lines
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class QcInspection(models.Model):
@@ -33,6 +38,44 @@ class QcInspection(models.Model):
             else:
                 i.product_id = False
 
+    @api.multi
+    @api.depends('inspection_lines', 'inspection_lines.qualitative_value')
+    def _compute_critical_msg(self):
+        for record in self:
+            trigger_lines = record._get_local_qc_triggers()
+            level_failed = failed_inspections = done_inspections = 0.0
+            for trigger_line in sorted(trigger_lines, key=lambda r: str(r.level_failed * 100), reverse=False):
+                failed_inspections += trigger_line.test.failed_inspections
+                done_inspections += trigger_line.test.done_inspections
+            if done_inspections:
+                level_failed = failed_inspections / done_inspections
+
+            _logger.info("ALL TRIGERS %s:%s %s" % (trigger_lines, record.test, record.product_id.product_tmpl_id.display_name))
+            for line in trigger_lines:
+                _logger.info("TRIGER %s >= %s" % (record.test.level_failed, line.level_failed))
+
+                if level_failed >= line.level_failed:
+                    record.critical_msg = True
+                    if not record.critical_description:
+                        record.critical_description = record.test.critical_description
+                    break
+
+            # qc_trigger = record.product_id.product_tmpl_id.qc_triggers
+            # trigger_lines = set()
+            # for model in ['qc.trigger.product_category_line',
+            #               'qc.trigger.product_template_line',
+            #               'qc.trigger.product_line']:
+            #     trigger_lines = trigger_lines.union(
+            #         self.env[model].get_trigger_line_for_product(
+            #             qc_trigger, record.product_id, partner=False))
+            # _logger.info("ALL TRIGERS %s:%s" % (qc_trigger, trigger_lines))
+            #
+            # for test in _filter_trigger_lines(trigger_lines):
+            #     _logger.info("TEST %s" % test.name)
+            #     if record.test != test:
+            #         record.critical_msg = True
+            #         record.critical_description = test.critical_description
+
     name = fields.Char(
         string='Inspection number', required=True, default='/',
         readonly=True, states={'draft': [('readonly', False)]}, copy=False)
@@ -50,6 +93,10 @@ class QcInspection(models.Model):
     qty = fields.Float(string="Quantity", default=1.0)
     test = fields.Many2one(
         comodel_name='qc.test', string='Test', readonly=True)
+    critical_msg = fields.Boolean('Critical level', compute='_compute_critical_msg')
+    level_failed = fields.Float('Critical level', related='test.level_failed')
+    active = fields.Boolean('Active', default=True,
+                            help="If unchecked, it will allow you to hide the inspection without removing it.")
     inspection_lines = fields.One2many(
         comodel_name='qc.inspection.line', inverse_name='inspection_id',
         string='Inspection lines', readonly=True,
@@ -84,6 +131,25 @@ class QcInspection(models.Model):
     user = fields.Many2one(
         comodel_name='res.users', string='Responsible',
         track_visibility='always', default=lambda self: self.env.user)
+    critical_description = fields.Text('Message for critical')
+
+    @api.multi
+    def _get_local_qc_triggers(self, qc_trigger_domain=False, force_object_id=False):
+        trigger_lines = set()
+        self.ensure_one()
+        if self.object_id and qc_trigger_domain:
+            object_id = force_object_id or self.object_id
+            qc_trigger = self.env['qc.trigger'].search(qc_trigger_domain)
+            if 'product_id' in object_id._fields:
+                for model in ['qc.trigger.product_category_line',
+                              'qc.trigger.product_template_line',
+                              'qc.trigger.product_line']:
+                    partner = (object_id.partner_id
+                               if qc_trigger.partner_selectable else False)
+                    trigger_lines = trigger_lines.union(
+                        self.env[model].get_trigger_line_for_product(
+                            qc_trigger, object_id.product_id, partner=partner))
+        return trigger_lines
 
     @api.model
     def create(self, vals):
@@ -95,6 +161,9 @@ class QcInspection(models.Model):
     @api.multi
     def unlink(self):
         for inspection in self:
+            _logger.info("UNLINK %s:%s:%s" % (self._context, inspection.state, inspection.auto_generated))
+            if self._context.get('force_unlink', False):
+                super(QcInspection, self).unlink()
             if inspection.auto_generated:
                 raise exceptions.UserError(
                     _("You cannot remove an auto-generated inspection."))
@@ -161,14 +230,16 @@ class QcInspection(models.Model):
                 trigger_line.test, force_fill=force_fill)
 
     @api.multi
-    def _make_inspection(self, object_ref, trigger_line):
+    def _make_inspection(self, object_ref, trigger_line, add_values=False):
         """Overridable hook method for creating inspection from test.
         :param object_ref: Object instance
         :param trigger_line: Trigger line instance
         :return: Inspection object
         """
-        inspection = self.create(self._prepare_inspection_header(
-            object_ref, trigger_line))
+        values = self._prepare_inspection_header(object_ref, trigger_line)
+        if add_values:
+            values.update(add_values)
+        inspection = self.create(values)
         inspection.set_test(trigger_line)
         return inspection
 
@@ -180,8 +251,7 @@ class QcInspection(models.Model):
         :return: List of values for creating the inspection
         """
         return {
-            'object_id': object_ref and '%s,%s' % (object_ref._name,
-                                                   object_ref.id) or False,
+            'object_id': object_ref and '%s,%s' % (object_ref._name, object_ref.id) or False,
             'state': 'ready',
             'test': trigger_line.test.id,
             'user': trigger_line.user.id,
@@ -227,6 +297,14 @@ class QcInspection(models.Model):
 class QcInspectionLine(models.Model):
     _name = 'qc.inspection.line'
     _description = "Quality control inspection line"
+
+    # @api.multi
+    # @api.depends('qualitative_value')
+    # def _compute_has_msg(self):
+    #     for record in self:
+    #         msg = record._get_critical_msg()
+    #         if msg.get(record):
+    #             record.inspection_id.critical_msg = msg[record]
 
     @api.depends('question_type', 'uom_id', 'test_uom_id', 'max_value',
                  'min_value', 'quantitative_value', 'qualitative_value',
@@ -303,3 +381,4 @@ class QcInspectionLine(models.Model):
                                compute="_compute_valid_values")
     success = fields.Boolean(
         compute="_compute_quality_test_check", string="Success?", store=True)
+

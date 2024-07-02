@@ -1,0 +1,7 @@
+"id","name","model_id:id","group_id:id","perm_read","perm_write","perm_create","perm_unlink"
+"access_mrp_technical_documents_user","mrp_technical_documents_user","model_mrp_technical_documents","mrp.group_mrp_user","1","0","0","0"
+"access_mrp_technical_documents_routing","mrp_technical_documents_routing","model_mrp_technical_documents","mrp.group_mrp_routings","1","0","0","0"
+"access_mrp_technical_documents_manager","mrp_technical_documents_manager","model_mrp_technical_documents","mrp.group_mrp_manager","1","1","1","1"
+"access_technical_documents_type_user","technical_documents_type_user","model_technical_documents_type","mrp.group_mrp_user","1","0","0","0"
+"access_technical_documents_type_routing","technical_documents_type_routing","model_technical_documents_type","mrp.group_mrp_routings","1","0","0","0"
+"access_technical_documents_type_manager","technical_documents_type_manager","model_technical_documents_type","mrp.group_mrp_manager","1","1","1","1"

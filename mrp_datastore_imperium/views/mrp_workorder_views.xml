@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="mrp_production_workcenter_form_view_inherit">
+        <field name="name">mrp.production.work.order.form</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workcenter_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+		        <field name="id" invisible="1"/>
+                <button name="%(mrp_datastore_imperium.action_mrp_import_imperium_wizard)d"
+                        type="action"
+                        string="Import From Imperium"
+                        class="oe_stat_button"
+                        icon="fa-cloud-download"
+                        context="{'default_workorder_id': id, 'default_production_id': production_id}"
+                        attrs="{'invisible': ['|', '|', '|', ('is_produced', '=', True), ('working_state', '=', 'blocked'), ('state', '!=', 'progress'), ('is_user_working', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

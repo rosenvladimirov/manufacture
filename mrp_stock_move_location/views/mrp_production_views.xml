@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="mrp_production_form_view" model="ir.ui.view">
+            <field name="name">mrp.production.form</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+            <field name="arch" type="xml">
+                <field name="company_id" position="before">
+                    <field name="picking_move_ids" widget="many2many_tags" options="{'open_view': True}" attrs="{'invisible': [('picking_move_ids', '=', [])]}" readonly="1"/>
+                </field>
+                <field name="origin" position="after">
+                    <field name="try_reservation" invisible="1"/>
+                </field>
+                <xpath expr="//notebook" position="inside">
+                    <page string="Transferred special" attrs="{'invisible': [('stock_move_lines_ids', '=', [])]}">
+                      <field name="stock_move_lines_ids"/>
+                    </page>
+                </xpath>
+                <xpath expr="//header" position="inside">
+                    <button type="action"
+                            name="%(mrp_stock_move_location.wiz_mrp_stock_move_location_action)d"
+                            string="Transfer materials" class="btn-primary"
+                            attrs="{'invisible': [('try_reservation', '=', False)]}"
+                            context="{'default_merge_qty': False, 'default_create_order_point': False, 'default_destination_location_id': location_src_id}"/>
+                </xpath>
+            </field>
+        </record>
+        <record id="mrp_production_tree_view" model="ir.ui.view">
+            <field name="name">mrp.production.tree</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+            <field name="arch" type="xml">
+                <field name="state" position="before">
+                    <field name="picking_move_ids" widget="many2many_tags"/>
+                </field>
+            </field>
+        </record>
+    </data>
+</odoo>

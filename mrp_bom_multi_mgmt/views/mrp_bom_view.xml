@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_bom_form_multi_mgmt_view" model="ir.ui.view">
+        <field name="name">mrp.bom.multi.form</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <field name="id" invisible="1"/>
+                <button name="%(mrp_bom_multi_mgmt.action_bom_manage_variant)d"
+                        icon="fa-cubes"
+                        class="oe_stat_button"
+                        string="Add component"
+                        type="action"
+                        context="{'default_mrp_product_tmpl_id': product_tmpl_id, 'default_bom_id': id or active_id, 'default_bom_line_ids': bom_line_ids, 'default_routing_id': routing_id}"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>

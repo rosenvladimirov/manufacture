@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="mrp_production_workcenter_form_view_inherit">
+        <field name="name">mrp.production.work.order.form</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workcenter_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <!--
+            <xpath expr="//field[@name='active_move_line_ids']/tree/field[@name='lot_id']" position="attributes">
+                <attribute name="domain">[('product_id', '=', product_id), ('id', 'in', )]</attribute>
+            </xpath>
+            <xpath expr="//field[@name='final_lot_id']" position="after">
+                <field name="final_component" readonly="1"/>
+            </xpath>
+            -->
+            <xpath expr="//field[@name='active_move_line_ids']/tree/field[@name='qty_done']" position="before">
+                <field name="progress" widget="progressbar" options="{'current_value': 'used_special_qty', 'max_value': 'special_qty', 'editable': false}"/>
+            </xpath>
+<!--            moved in barcode_mrp_workorder -->
+<!--            <xpath expr="//div[@name='button_box']" position="inside">-->
+<!--                <button name="action_open_wizard_view_stock_picking_add_product"-->
+<!--                        type="object"-->
+<!--                        string="Add product"-->
+<!--                        class="oe_stat_button"-->
+<!--                        icon="fa fa-rocket"-->
+<!--                        context="{'default_workorder_id': active_id}"-->
+<!--                        attrs="{'invisible': ['|', '|', '|', ('is_produced', '=', True), ('working_state', '=', 'blocked'), ('state', '!=', 'progress'), ('is_user_working', '=', False)]}"/>-->
+<!--            </xpath>-->
+            <xpath expr="//notebook" position="inside">
+                <page name="overview" string="Production overview">
+                    <separator name="finished" string="Finished products" attrs="{'invisible': [('finished_move_line_ids', '=', [])]}"/>
+                    <field name="finished_move_line_ids" nolabel="1" attrs="{'readonly': True, 'invisible': [('finished_move_line_ids', '=', [])]}">
+                        <tree>
+                            <field name="product_id" invisible="1"/>
+                            <field name="lot_id" groups="stock.group_production_lot" domain="[('product_id', '=', product_id)]" context="{'default_product_id': product_id}" attrs="{'invisible': [('lots_visible', '=', False)]}"/>
+                            <field name="product_uom_id" groups="product.group_uom"/>
+                            <field name="qty_done"/>
+                            <field name="lots_visible" invisible="1"/>
+                        </tree>
+                    </field>
+                    <separator name="raws" string="Consumed components" attrs="{'readonly': True, 'invisible': [('production_move_raw_ids', '=', [])]}"/>
+                    <field name="production_move_raw_ids" nolabel="1" attrs="{'readonly': True, 'invisible': [('production_move_raw_ids', '=', [])]}">
+                        <tree delete="0" >
+                            <field name="product_id"/>
+                            <field name="product_uom" />
+                            <field name="needs_lots"/>
+                            <field name="location_dest_id"/>
+                            <field name="bom_product_qty" string="BOM Consume"/>
+                            <field name="product_uom_qty" string="To Consume"/>
+                            <field name="reserved_availability" string="Reserved"/>
+                            <field name="bom_unit_factor" string="From BOM"/>
+                            <field name="quantity_done" string="Consumed"/>
+                            <field name="state" invisible="1" force_save="1"/>
+                        </tree>
+                    </field>
+                </page>
+                <!--
+                <page string="Holded lots">
+                    <field name="split_lot_ids" readonly="1">
+                        <tree>
+                            <field name="product_id"/>
+                            <field name="lot_id"/>
+                        </tree>
+                    </field>
+                </page>
+                -->
+            </xpath>
+        </field>
+    </record>
+</odoo>

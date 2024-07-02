@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="mrp_production_workcenter_form_view_inherit">
+        <field name="name">mrp.production.work.order.form</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp_bom_losses.mrp_production_workcenter_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='overview']/field[@name='finished_move_line_ids']/tree/field[@name='lot_id']" position="after">
+                <field name="lot_ref" groups="stock.group_production_lot"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

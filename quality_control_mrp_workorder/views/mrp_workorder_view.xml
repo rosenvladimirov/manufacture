@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2018 Simone Rubino - Agile Business Group
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+    <record id="action_qc_inspection_per_production_workorder" model="ir.actions.act_window">
+        <field name="name">Quality inspections from production work order</field>
+        <field name="res_model">qc.inspection</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('workorder_id', '=', active_id)]</field>
+    </record>
+    <record id="quality_control_mrp.action_qc_inspection_per_production" model="ir.actions.act_window">
+        <field name="name">Quality inspections from production order</field>
+        <field name="res_model">qc.inspection</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('production_id', '=', active_id), ('workorder_id', '=', False)]</field>
+    </record>
+
+    <record model="ir.ui.view" id="mrp_production_workcenter_form_view_inherit">
+        <field name="name">mrp.production.work.order.form</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workcenter_form_view_inherit"/>
+        <field name="groups_id" eval="[(4, ref('quality_control.group_quality_control_user'))]"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button"
+                        type="action"
+                        name="%(action_qc_inspection_per_production_workorder)d"
+                        icon="fa-bookmark-o">
+                    <field name="created_inspections"
+                           widget="statinfo"
+                           string="inspections"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

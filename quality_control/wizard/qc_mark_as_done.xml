@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_wiz_quality_control_confirm" model="ir.ui.view">
+        <field name="name">wiz.quality.control.confirm.form</field>
+        <field name="model">wiz.quality.control.confirm</field>
+        <field name="arch" type="xml">
+            <form>
+            <sheet>
+                <p>
+                    Mass processing of select Inspections.
+                </p>
+                <group>
+                    <field name="del_inspection"/>
+                    <field name="inspection_ids" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_confirms" string="Confirm" type="object" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-default"/>
+                </footer>
+            </sheet>
+            </form>
+        </field>
+    </record>
+
+   <act_window name="Confirm the Inspection"
+        res_model="wiz.quality.control.confirm"
+        src_model="qc.inspection"
+        view_mode="form"
+        target="new"
+        key2="client_action_multi"
+        id="iz_quality_control_confirm_action"
+        view_id="view_wiz_quality_control_confirm"/>
+
+</odoo>

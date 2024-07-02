@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="wizard_mrp_regenerate_sub_levels" model="ir.ui.view">
+        <field name="name">Generate sub levels by sales</field>
+        <field name="model">wizard.mrp.regenerate.sub.levels</field>
+        <field name="inherit_id" ref="mrp_bom_losses.wizard_mrp_regenerate_sub_levels"/>
+        <field name="arch" type="xml">
+            <xpath expr="group[2]" position="after">
+                <group colspan="4" string="Sales">
+                    <field name="sale_order_ids" nolabel="1"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <act_window name="Generate sub levels"
+        res_model="wizard.mrp.regenerate.sub.levels"
+        src_model="sale.order"
+        view_mode="form"
+        target="new"
+        key2="client_action_multi"
+        id="action_wizard_sale_mrp_regenerate_sub_levels"
+        view_id="wizard_mrp_regenerate_sub_levels"/>
+
+</odoo>

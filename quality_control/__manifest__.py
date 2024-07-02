@@ -16,12 +16,14 @@
     "website": "https://github.com/OCA/manufacture/tree/10.0/quality_control",
     "depends": [
         "product",
+        "web_notify",
     ],
     "data": [
         "data/quality_control_data.xml",
         "security/quality_control_security.xml",
         "security/ir.model.access.csv",
         "wizard/qc_test_wizard_view.xml",
+        "wizard/qc_mark_as_done.xml",
         "views/qc_menus.xml",
         "views/qc_inspection_view.xml",
         "views/qc_test_category_view.xml",

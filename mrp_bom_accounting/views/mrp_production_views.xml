@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_production_form_view" model="ir.ui.view">
+        <field name="name">mrp.production.form</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <field name="has_account_move" invisible="1"/>
+                <button name="%(action_mrp_account_moves)d" type="action" string="Account Moves"
+                        class="oe_stat_button" icon="fa-list" groups="account.group_account_user"
+                        attrs="{'invisible': [('state', 'not in', ('progress', 'done'))]}"/>
+                <button name="rebuild_account_move"
+                        icon="fa fa-book"
+                        class="oe_stat_button"
+                        string="Rebuild Acc. Entries"
+                        type="object"
+                        attrs="{'invisible': [('has_account_move', '=', True)]}"/>
+            </xpath>
+            <xpath expr="//notebook" position="inside">
+                <page string="Reserved/Consumed materials">
+                    <field name="location_virtual_id" invisible="1"/>
+                    <field name="location_src_id" invisible="1"/>
+                    <field name="raw_move_line_ids" context="{'default_picking_id': id, 'default_location_id': location_src_id, 'default_location_dest_id': location_virtual_id}">
+                        <tree editable="bottom" decoration-danger="qty_done&gt;product_uom_qty and state!='done'" decoration-success="qty_done==product_uom_qty and state!='done'">
+                            <field name="product_id" required="1" attrs="{'readonly': ['|', ('state', '=', 'done'), ('move_id', '!=', False)]}"/>
+                            <field name="move_id" invisible="1"/>
+                            <field name="product_uom_id" force_save="1" attrs="{'readonly': [('state', '!=', 'draft')]}" groups="product.group_uom"/>
+                            <field name="location_id" groups="stock.group_stock_multi_locations,stock.group_tracking_lot" domain="[('id', 'child_of', parent.location_src_id)]"/>
+                            <field name="location_dest_id" groups="stock.group_stock_multi_locations,stock.group_tracking_lot" domain="[('id', 'child_of', parent.location_dest_id)]"/>
+                            <field name="lots_visible" invisible="1"/>
+                            <field name="lot_id" groups="stock.group_production_lot" attrs="{'invisible': [('lots_visible', '=', False)]}" domain="[('product_id', '=', product_id)]"/>
+                            <field name="is_initial_demand_editable" invisible="1"/>
+                            <field name="product_uom_qty" readonly="1"/>
+                            <field name="is_locked" invisible="1"/>
+                            <field name="state" invisible="1"/>
+                            <field name="qty_done" attrs="{'readonly': ['|', ('state', 'in', ('done', 'cancel')), ('is_locked', '=', True)]}" force_save="1"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_stock_move_lots" model="ir.ui.view">
+        <field name="name">stock.move.lots.form</field>
+        <field name="model">stock.move</field>
+        <field name="inherit_id" ref="mrp.view_stock_move_lots"/>
+        <field name="arch" type="xml">
+            <field name="is_done" position="before">
+                <field name="operation_ids" invisible="1"/>
+                <field name="operation_id" domain="[('id', 'in', operation_ids)]"/>
+            </field>
+        </field>
+    </record>
+</odoo>

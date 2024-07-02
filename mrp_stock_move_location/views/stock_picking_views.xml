@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_picking_form" model="ir.ui.view">
+            <field name="name">stock.picking.form</field>
+            <field name="model">stock.picking</field>
+            <field name="inherit_id" ref="stock.view_picking_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header/button[@name='action_assign']" position="before">
+                    <button name="mrp_action_assign" attrs="{'invisible': [('production_ids', '=', [])]}" string="MRP Check Availability" type="object" class="oe_highlight" groups="base.group_user" context="{'force_pass_picking': True}"/>
+                </xpath>
+                <xpath expr="//notebook" position="inside">
+                    <page string="Production Orders">
+                        <field name="production_ids" widget="many2many_tags" options="{'open_view': True}"/>
+                        <div colspan="2" col="2">
+                            <button name="update_productions" string="Assign Productions" type="object" attrs="{'invisible': [('move_line_exist', '=', False)]}"
+                                class="oe_link"/>
+                        </div>
+                    </page>
+                </xpath>
+<!--                <field name="owner_id" position="before">-->
+<!--                    <field name="production_ids" widget="many2many_tags" options="{'open_view': True}"/>-->
+<!--                    <div colspan="2" col="2">-->
+<!--                        <button name="update_productions" string="Assign Productions" type="object" attrs="{'invisible': ['|',('move_line_exist', '=', False),('state', 'not in', ('draft','assigned','confirmed'))]}"-->
+<!--                            class="oe_link"/>-->
+<!--                    </div>-->
+<!--                </field>-->
+                <xpath expr="//field[@name='move_line_ids']/tree/field[@name='qty_done']" position="after">
+                    <field name="production_ids" widget="many2many_tags" invisible="1"/>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

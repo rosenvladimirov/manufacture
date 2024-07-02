@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_wiz_mrp_workorder_alternatives" model="ir.ui.view">
+        <field name="name">wiz.mrp.workorder.alternatives.form</field>
+        <field name="model">wiz.mrp.workorder.alternatives</field>
+        <field name="arch" type="xml">
+            <form>
+            <sheet>
+                <group>
+                    <field name="workorder_ids" widget="many2many_tags" invisible="1"/>
+                </group>
+                <field name="alternatives_line">
+                    <tree editable="bottom">
+                        <field name="wiz_alternatives" invisible="1"/>
+                        <field name="stock_move_line_id" invisible="1" force_save="1"/>
+                        <field name="product_id" readonly="1"/>
+                        <field name="product_uom_id" readonly="1"/>
+                        <field name="skip_alternative"/>
+                    </tree>
+                </field>
+                <footer>
+                    <button name="action_alternatives" string="Go" type="object" class="btn-primary"/>
+                    <button special="cancel" string="Cancel" class="btn-default"/>
+                </footer>
+            </sheet>
+            </form>
+        </field>
+    </record>
+
+   <act_window name="Alternatives on work order"
+        res_model="wiz.mrp.workorder.alternatives"
+        src_model="mrp.workorder"
+        view_mode="form"
+        target="new"
+        key2="client_action_multi"
+        id="wiz_mrp_workorder_alternatives_action"
+        view_id="view_wiz_mrp_workorder_alternatives"/>
+
+</odoo>

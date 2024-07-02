@@ -18,6 +18,7 @@
     "depends": [
         "quality_control",
         "stock",
+        "quality_control_plan",
     ],
     "data": [
         "security/ir.model.access.csv",
@@ -25,6 +26,7 @@
         "views/qc_inspection_view.xml",
         "views/stock_picking_view.xml",
         "views/stock_production_lot_view.xml",
+        "wizard/qc_mark_as_done.xml"
     ],
     "post_init_hook": "post_init_hook",
     "installable": True,

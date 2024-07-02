@@ -20,6 +20,7 @@
                             <field name="test" />
                             <field name="user" />
                             <field name="partners" widget="many2many_tags" />
+                            <field name="level_failed"/>
                         </tree>
                     </field>
                 </group>

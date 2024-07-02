@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_production_form_view" model="ir.ui.view">
+        <field name="name">mrp.production.form</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                <field name="has_account_move" invisible="1"/>
+                <field name="production_line_ids" invisible="1"/>
+                <button name="open_view_consumptions"
+                        icon="fa fa-pie-chart"
+                        class="oe_stat_button"
+                        string="Consumption analytics"
+                        type="object"
+                        attrs="{'invisible': [('production_line_ids', '=', [])]}"/>
+                <button name="%(action_mrp_account_moves)d" type="action" string="Account Moves"
+                        class="oe_stat_button" icon="fa-list" groups="account.group_account_user"
+                        attrs="{'invisible': [('state', 'not in', ('done'))]}"/>
+                <button name="rebuild_account_move"
+                        icon="fa fa-book"
+                        class="oe_stat_button"
+                        string="Rebuild Acc. Entries"
+                        type="object"
+                        context="{'force_only_production': True}"
+                        attrs="{'invisible': [('has_account_move', '=', True)]}"/>
+            </xpath>
+            <field name="routing_id" position="after">
+                <field name="sub_production_toggle" widget="boolean_toggle"/>
+                <label for="sub_production" attrs="{'invisible': ['|', ('state', 'in', ('done','cancel')), ('id', '=', False)]}"/>
+                <div class="o_row" attrs="{'invisible': ['|', ('state', 'in', ('done','cancel')), ('id', '=', False)]}">
+                  <button type="object" name="update_procurement_for_moves" string="Update" class="oe_link" attrs="{'invisible': ['|', ('state', 'in', ('done','cancel')), ('id', '=', False)]}"/>
+                  <field name="sub_production" widget="radio" options="{'horizontal': true}" invisible="1"/>
+                </div>
+            </field>
+            <field name="origin" position="after">
+                <field name="analytic_account_id"/>
+            </field>
+            <field name="availability" position="after">
+                <field name="amount"/>
+                <field name="service_amount" attrs="{'readonly': [('state', 'in', ['done','cancel'])]}"/>
+                <field name="calculate_price"/>
+                <field name="own_amount"/>
+                <field name="own_calculate_price"/>
+            </field>
+            <field name="bom_id" position="before">
+                <field name="progress" widget="progressbar"/>
+            </field>
+            <xpath expr="//notebook/page[1]" position="after">
+                <page string="Moves by workorders">
+                    <field name="move_consumed_ids"/>
+                </page>
+                <page string="Details for Reserved/Consumed materials">
+                    <field name="location_virtual_id" invisible="1"/>
+                    <field name="location_src_id" invisible="1"/>
+                    <separator name="raw" string="Moves for Raw materials"/>
+                    <field name="raw_move_line_ids" nolabel="1" context="{'default_picking_id': id, 'default_location_id': location_src_id, 'default_location_dest_id': location_virtual_id}">
+                        <tree editable="bottom" decoration-danger="qty_done&gt;product_uom_qty and state!='done'" decoration-success="qty_done==product_uom_qty and state!='done'">
+                            <field name="product_id" required="1" attrs="{'readonly': ['|', ('state', '=', 'done'), ('move_id', '!=', False)]}"/>
+                            <field name="move_id" invisible="1"/>
+                            <field name="product_uom_id" force_save="1" attrs="{'readonly': [('state', '!=', 'draft')]}" groups="product.group_uom"/>
+                            <field name="location_id" groups="stock.group_stock_multi_locations,stock.group_tracking_lot" domain="[('id', 'child_of', parent.location_src_id)]"/>
+                            <field name="location_dest_id" groups="stock.group_stock_multi_locations,stock.group_tracking_lot" domain="[('id', 'child_of', parent.location_dest_id)]"/>
+                            <field name="lots_visible" invisible="1"/>
+                            <field name="lot_id" groups="stock.group_production_lot" attrs="{'readonly': ['|', ('state', 'in', ('done', 'cancel')), ('is_locked', '=', True)], 'invisible': [('lots_visible', '=', False)]}" domain="[('product_id', '=', product_id)]"/>
+                            <field name="is_initial_demand_editable" invisible="1"/>
+                            <field name="product_uom_qty" readonly="1"/>
+                            <field name="is_locked" invisible="1"/>
+                            <field name="state" invisible="1"/>
+                            <field name="qty_done" attrs="{'readonly': ['|', ('state', 'in', ('done', 'cancel')), ('is_locked', '=', True)]}" force_save="1"/>
+                        </tree>
+                    </field>
+                    <separator name="raw_lot" string="Reserved lots for Raw materials"/>
+                    <field name="reserved_lot_ids" nolabel="1" readonly="1">
+                        <tree>
+                            <field name="name"/>
+                            <field name="ref"/>
+                            <field name="product_id"/>
+                            <field name="create_date"/>
+                            <field name="product_qty"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+            <xpath expr="//field[@name='finished_move_line_ids']" position="before">
+                <separator name="move_finish" string="Moves for finished product"/>
+                <field name="move_finished_ids" context="{'form_view_ref': 'mrp.view_stock_move_lots'}" attrs="{'readonly': [('is_locked', '=', True)], 'invisible': [('move_finished_ids', '=', [])]}">
+                    <tree delete="0" decoration-muted="is_done">
+                        <field name="product_id" required="1"/>
+                        <field name="name" invisible="1"/>
+                        <field name="unit_factor" invisible="1"/>
+                        <field name="product_uom" groups="product.group_uom"/>
+                        <field name="has_tracking" invisible="1"/>
+                        <field name="needs_lots" readonly="1" groups="stock.group_production_lot"/>
+                        <field name="is_done" invisible="1"/>
+                        <field name="sequence" invisible="1"/>
+                        <field name="location_id" invisible="1"/>
+                        <field name="location_dest_id" domain="[('id', 'child_of', parent.location_dest_id)]" invisible="1"/>
+                        <field name="state" invisible="1" force_save="1"/>
+                        <field name="reserved_availability" attrs="{'invisible': [('is_done', '=', True)]}" string="Reserved"/>
+                        <field name="quantity_done" string="Produced" readonly="1"/>
+                    </tree>
+                </field>
+                <separator name="finish_product" string="Finished products"/>
+            </xpath>
+        </field>
+    </record>
+    <record id="view_stock_move_lots" model="ir.ui.view">
+        <field name="name">stock.move.lots.form</field>
+        <field name="model">stock.move</field>
+        <field name="inherit_id" ref="mrp.view_stock_move_lots"/>
+        <field name="arch" type="xml">
+            <field name="is_done" position="before">
+                <field name="operation_ids" invisible="1"/>
+                <field name="operation_id" domain="[('id', 'in', operation_ids)]"/>
+            </field>
+            <xpath expr="//group/field[@name='workorder_id']" position="attributes">
+                <attribute name="domain">[('production_id','=', raw_material_production_id)]</attribute>
+                <attribute name="invisible">0</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -46,6 +46,44 @@ class QcTest(models.Model):
         comodel_name='res.company', string='Company',
         default=lambda self: self.env['res.company']._company_default_get(
             'qc.test'))
+    level_failed = fields.Float(
+        compute="_compute_count_inspections", string='Inspections failed level',
+        digits=dp.get_precision('Inspections failed level'),
+        store=True)
+    critical_description = fields.Text('Message for critical')
+
+    qc_inspections_ids = fields.One2many(
+        comodel_name='qc.inspection', inverse_name='test', copy=False,
+        string='Inspections', help="Inspections related to this lot.")
+    created_inspections = fields.Integer(
+        compute="_compute_count_inspections", string="Created inspections")
+    done_inspections = fields.Integer(
+        compute="_compute_count_inspections", string="Done inspections")
+    passed_inspections = fields.Integer(
+        compute="_compute_count_inspections", string="Inspections OK")
+    failed_inspections = fields.Integer(
+        compute="_compute_count_inspections", string="Inspections failed")
+
+    @api.depends('qc_inspections_ids', 'qc_inspections_ids.state')
+    def _compute_count_inspections(self):
+        data = self.env['qc.inspection'].read_group([
+            ('test', 'in', self.ids),
+        ], ['test', 'state', 'active'], ['test', 'state', 'active'], lazy=False)
+        test_data = {}
+        for d in data:
+            test_data.setdefault(d['test'][0], {}).setdefault(d['state'], 0)
+            test_data[d['test'][0]][d['state']] += d['__count']
+        for test in self:
+            count_data = test_data.get(test.id, {})
+            test.created_inspections = sum(count_data.values())
+            test.passed_inspections = count_data.get('success', 0)
+            test.failed_inspections = count_data.get('failed', 0)
+            test.done_inspections = \
+                (test.passed_inspections + test.failed_inspections)
+            if test.done_inspections > 0:
+                test.level_failed = test.failed_inspections / test.done_inspections
+            else:
+                test.level_failed = 0.0
 
 
 class QcTestQuestion(models.Model):

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="wizard_mrp_regenerate_sub_levels" model="ir.ui.view">
+        <field name="name">Generate sub levels</field>
+        <field name="model">wizard.mrp.regenerate.sub.levels</field>
+        <field name="arch" type="xml">
+            <form string="Generate sub levels in production">
+                <group name="help" colspan="4">
+                    <div>
+                        <p>Choice productions and push on <b>Generate</b> and extension will be executed on server.</p>
+                    </div>
+                </group>
+                <group colspan="4" string="Productions">
+                    <field name="production_ids" nolabel="1" colspan="4" domain="[('sub_production', '=', 'normal')]"/>
+                </group>
+                <footer>
+                    <button name="action_regenerate_sub_levels" class="btn-primary" string="Generate" type="object"/>
+                    <button special="cancel" string="Cancel" class="btn-default"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+   <act_window name="Generate sub levels"
+        res_model="wizard.mrp.regenerate.sub.levels"
+        src_model="mrp.production"
+        view_mode="form"
+        target="new"
+        key2="client_action_multi"
+        id="action_wizard_mrp_regenerate_sub_levels"
+        view_id="wizard_mrp_regenerate_sub_levels"/>
+
+</odoo>

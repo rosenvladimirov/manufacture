@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_wiz_mrp_split_production" model="ir.ui.view">
+        <field name="name">wiz.mrp.split.production.form</field>
+        <field name="model">wiz.mrp.split.production</field>
+        <field name="arch" type="xml">
+            <form string="Manage production order">
+                <header>
+                    <field name="state" widget="statusbar" readonly="0" clickable="True"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box"/>
+                    <group>
+                        <field name="sale_id" options="{'no_create': True}" attrs="{'invisible': [('state', 'not in', ['split', 'location'])]}"/>
+                        <field name="mrp_product_tmpl_id" colspan="4"
+                               options="{'no_create': True}"
+                               attrs="{'invisible': [('state', '!=', 'split')]}"
+                               domain="[('sale_ok', '=', True)]"/>
+                    </group>
+                    <group>
+                        <field name="mrp_product_attribute_ids"
+                               nolabel="1" colspan="2"
+                               attrs="{'invisible': [('state', '!=', 'split'), '|', ('id','!=',False), ('mrp_product_attribute_ids', '=', [])]}">
+                            <tree create="0" delete="0" editable="1">
+                                <field name="attribute_id" />
+                                <field name="possible_value_ids" widget="many2many_tags" invisible="1"/>
+                                <field name="product_tmpl_id" invisible="1"/>
+                                <field name="value_id"
+                                       context="{'show_attribute': False, 'default_attribute_id': attribute_id, 'template_for_attribute_value': product_tmpl_id}"
+                                />
+                                <field name="system_all"/>
+                                <field name="type_attribute" invisible="1"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group name="main">
+                        <field name="split_to" attrs="{'invisible': [('state', '!=', 'split')]}"/>
+                        <field name="picking_type_id" attrs="{'invisible': [('state', 'not in', ['split', 'location'])]}" options="{'no_create': True}"/>
+                        <field name="location_src_id"  domain="[('usage','=','internal')]" attrs="{'invisible': [('state', 'not in', ['split', 'location'])]}" options="{'no_create': True}"/>
+                        <field name="location_dest_id"  domain="[('usage','=','internal')]" attrs="{'invisible': [('state', 'not in', ['split', 'location'])]}" options="{'no_create': True}"/>
+                        <field name="date_planned_start" attrs="{'invisible': [('state', '!=', 'dates')]}"/>
+                        <field name="date_planned_finished" attrs="{'invisible': [('state', '!=', 'dates')]}"/>
+                        <field name="force_mark_as_done" attrs="{'invisible': [('state', '!=', 'produce')]}"/>
+                        <field name="force_un_reserve_done" attrs="{'invisible': [('state', '!=', 'produce')]}"/>
+                    </group>
+                    <group string="Productions" invisible="1">
+                        <field name="production_ids" widget="many2many_tags" nolabel="1" invisible="1"/>
+                    </group>
+                    <group name="lines">
+                        <field name="production_line_ids" nolabel="1" widget="one2many_list" mode="tree,kanban">
+                            <tree string="Production for operations" editable="bottom">
+                                <field name="production_split_wizard_id" invisible="1"/>
+                                <field name="sequence" widget="handle"/>
+                                <field name="production_id" domain="[('state', '=', 'confirmed')]" options="{'no_create': True}"/>
+                                <field name="bom_ids" invisible="1"/>
+                                <field name="bom_id" domain="[('id', 'in', bom_ids)]" options="{'no_create': True}"/>
+                                <field name="product_id" readonly="1"/>
+                                <field name="product_qty" readonly="1"/>
+                                <field name="split_to"/>
+                                <field name="part"/>
+                                <field name="rest"/>
+                                <field name="picking_type_id" options="{'no_create': True}"/>
+                                <field name="location_src_id" domain="[('usage','=','internal')]" options="{'no_create': True}"/>
+                                <field name="location_dest_id" domain="[('usage','=','internal')]" options="{'no_create': True}"/>
+                                <field name="date_planned_start"/>
+                                <field name="date_planned_finished"/>
+                            </tree>
+                            <kanban class="o_kanban_mobile">
+                                <templates>
+                                    <field name="production_id"/>
+                                    <field name="product_qty"/>
+                                    <t t-name="kanban-box">
+                                        <div t-attf-class="oe_kanban_global_click">
+                                            <div class="o_kanban_record_body">
+                                                <field name="production_id"/>
+                                            </div>
+                                            <div class="o_kanban_record_bottom">
+                                                <div class="oe_kanban_bottom_right">
+                                                    <span><field name="product_qty"/></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </templates>
+                            </kanban>
+                        </field>
+                    </group>
+                    <group class="oe_subtotal_footer oe_right" colspan="2" name="totals">
+                        <field name="rest"/>
+                        <field name="part"/>
+                    </group>
+                    <div class="oe_clear"/>
+                    <footer>
+                        <button name="action_split_production" string="Split production"
+                                type="object" class="btn-primary" attrs="{'invisible': [('state', '!=', 'split')]}"/>
+                        <button name="action_backorder_production" string="Back order"
+                                type="object" class="btn-primary" attrs="{'invisible': [('state', '!=', 'backorder')]}"/>
+                        <button name="action_produce_production" string="Produce production"
+                                type="object" class="btn-primary" attrs="{'invisible': [('state', '!=', 'produce')]}"/>
+                        <button name="action_cancel_production" string="Cancel production"
+                                type="object" class="btn-primary" attrs="{'invisible': [('state', '!=', 'cancel')]}"/>
+                        <button name="action_delete_production" string="Delete production"
+                                type="object" class="btn-primary" attrs="{'invisible': [('state', '!=', 'delete')]}"/>
+                        <button name="action_bom_change" string="BOM change"
+                                type="object" class="btn-primary" attrs="{'invisible': [('state', '!=', 'bom')]}"/>
+                        <button name="action_dates_production" string="Dates change"
+                                type="object" class="btn-primary" attrs="{'invisible': [('state', '!=', 'dates')]}"/>
+                        <button name="action_change_location_production" string="Location change"
+                                type="object" class="btn-primary" attrs="{'invisible': [('state', '!=', 'location')]}"/>
+                        <button name="action_reserve_production" string="UN-Reserve"
+                                type="object" class="btn-primary" attrs="{'invisible': [('state', '!=', 'reserve')]}"/>
+                        <button name="action_change_plan_production" string="Plane"
+                                type="object" class="btn-primary" attrs="{'invisible': [('state', '!=', 'plan')]}"/>
+                        <button special="cancel" string="Cancel" class="btn-default"/>
+                    </footer>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+  <record id="action_wiz_mrp_split_production" model="ir.actions.act_window">
+      <field name="name">Manage Production orders</field>
+      <field name="res_model">wiz.mrp.split.production</field>
+      <field name="view_type">form</field>
+      <field name="view_mode">form</field>
+      <field name="view_id" ref="view_wiz_mrp_split_production"/>
+      <field name="target">new</field>
+  </record>
+
+   <act_window name="Operations with production orders"
+        res_model="wiz.mrp.split.production"
+        src_model="mrp.production"
+        view_mode="form"
+        target="new"
+        key2="client_action_multi"
+        id="view_wiz_mrp_split_production_action"
+        view_id="view_wiz_mrp_split_production"/>
+
+    <menuitem action="action_wiz_mrp_split_production"
+        id="menu_mrp_production_action"
+        parent="mrp.menu_mrp_manufacturing"
+        sequence="1"/>
+</odoo>

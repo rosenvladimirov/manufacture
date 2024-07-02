@@ -1,0 +1,340 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* mrp_split_production
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 11.0-20201204\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-05-12 10:01+0000\n"
+"PO-Revision-Date: 2022-05-12 10:01+0000\n"
+"Last-Translator: <>\n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_attribute_id
+msgid "Attribute"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.ui.view,arch_db:mrp_split_production.view_wiz_mrp_split_production
+msgid "BOM change"
+msgstr ""
+
+#. module: mrp_split_production
+#: code:addons/mrp_split_production/wizard/mpr_production_split.py:74
+#, python-format
+msgid "BOM update"
+msgstr ""
+
+#. module: mrp_split_production
+#: code:addons/mrp_split_production/wizard/mpr_production_split.py:72
+#: model:ir.ui.view,arch_db:mrp_split_production.view_wiz_mrp_split_production
+#, python-format
+msgid "Back order"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_bom_id
+msgid "Bom"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_bom_ids
+msgid "Boms"
+msgstr ""
+
+#. module: mrp_split_production
+#: code:addons/mrp_split_production/wizard/mpr_production_split.py:76
+#: model:ir.ui.view,arch_db:mrp_split_production.view_wiz_mrp_split_production
+#, python-format
+msgid "Cancel"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.ui.view,arch_db:mrp_split_production.view_wiz_mrp_split_production
+msgid "Cancel production"
+msgstr ""
+
+#. module: mrp_split_production
+#: code:addons/mrp_split_production/wizard/mpr_production_split.py:73
+#, python-format
+msgid "Change locations"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_create_uid
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_create_uid
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_create_uid
+msgid "Created by"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_create_date
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_create_date
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_create_date
+msgid "Created on"
+msgstr ""
+
+#. module: mrp_split_production
+#: code:addons/mrp_split_production/wizard/mpr_production_split.py:75
+#: model:ir.ui.view,arch_db:mrp_split_production.view_wiz_mrp_split_production
+#, python-format
+msgid "Dates change"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_date_planned_finished
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_date_planned_finished
+msgid "Deadline End"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_date_planned_start
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_date_planned_start
+msgid "Deadline Start"
+msgstr ""
+
+#. module: mrp_split_production
+#: code:addons/mrp_split_production/wizard/mpr_production_split.py:77
+#, python-format
+msgid "Delete"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.ui.view,arch_db:mrp_split_production.view_wiz_mrp_split_production
+msgid "Delete production"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_location_dest_id
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_location_dest_id
+msgid "Destination production location"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_display_name
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_display_name
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_id
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_id
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_id
+msgid "ID"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute___last_update
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production___last_update
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line___last_update
+msgid "Last Modified on"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_write_uid
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_write_uid
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_write_date
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_write_date
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.ui.view,arch_db:mrp_split_production.view_wiz_mrp_split_production
+msgid "Location change"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_production_split_wizard_id
+msgid "MRP production Wizard"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_production_line_ids
+msgid "MRP production lines"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.actions.act_window,name:mrp_split_production.action_wiz_mrp_split_production
+#: model:ir.ui.menu,name:mrp_split_production.menu_mrp_production_action
+msgid "Manage Production orders"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.ui.view,arch_db:mrp_split_production.view_wiz_mrp_split_production
+msgid "Manage production order"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model,name:mrp_split_production.model_mrp_production
+msgid "Manufacturing Order"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.actions.act_window,name:mrp_split_production.view_wiz_mrp_split_production_action
+msgid "Operations with production orders"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_mrp_production_oring_product_qty
+msgid "Origin Quantity To Produce"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_oring_product_qty
+msgid "Oring Quantity To Produce"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_part
+msgid "Part size"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_possible_value_ids
+msgid "Possible Value"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_product_tmpl_id
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_mrp_product_tmpl_id
+msgid "Product Template"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_mrp_product_attribute_ids
+msgid "Product Template configurator Attributes"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_product_id
+msgid "Product to produce"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_production_id
+msgid "Production"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_state
+msgid "Production do"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.ui.view,arch_db:mrp_split_production.view_wiz_mrp_split_production
+msgid "Production for operations"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_production_ids
+#: model:ir.ui.view,arch_db:mrp_split_production.view_wiz_mrp_split_production
+msgid "Productions"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_product_qty
+msgid "Quantity To Produce"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_rest
+msgid "Res of parts"
+msgstr ""
+
+#. module: mrp_split_production
+#: code:addons/mrp_split_production/wizard/mpr_production_split.py:71
+#, python-format
+msgid "Restore"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_sale_id
+msgid "Sale order"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_sequence
+msgid "Sequence"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_location_src_id
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_location_src_id
+msgid "Source material location"
+msgstr ""
+
+#. module: mrp_split_production
+#: code:addons/mrp_split_production/wizard/mpr_production_split.py:70
+#, python-format
+msgid "Split"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.ui.view,arch_db:mrp_split_production.view_wiz_mrp_split_production
+msgid "Split production"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model,name:mrp_split_production.model_template_split_configurator_attribute
+msgid "Split production Product template configurator Attributes"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_split_manage_variant_id
+msgid "Split production manage variant wizard"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_line_split_to
+#: model:ir.model.fields,field_description:mrp_split_production.field_wiz_mrp_split_production_split_to
+msgid "Split to parts"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_type_attribute
+msgid "Type"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_system_all
+msgid "Use for all"
+msgstr ""
+
+#. module: mrp_split_production
+#: selection:template.split.configurator.attribute,type_attribute:0
+msgid "Use in column"
+msgstr ""
+
+#. module: mrp_split_production
+#: selection:template.split.configurator.attribute,type_attribute:0
+msgid "Use in rows"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model.fields,field_description:mrp_split_production.field_template_split_configurator_attribute_value_id
+msgid "Value"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model,name:mrp_split_production.model_wiz_mrp_split_production
+msgid "Wizard for split production"
+msgstr ""
+
+#. module: mrp_split_production
+#: model:ir.model,name:mrp_split_production.model_wiz_mrp_split_production_line
+msgid "wiz.mrp.split.production.line"
+msgstr ""
+

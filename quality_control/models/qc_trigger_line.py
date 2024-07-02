@@ -6,15 +6,30 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 from odoo import fields, models
+from odoo.addons import decimal_precision as dp
+
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 def _filter_trigger_lines(trigger_lines):
     filtered_trigger_lines = []
     unique_tests = []
-    for trigger_line in trigger_lines:
-        if trigger_line.test not in unique_tests:
-            filtered_trigger_lines.append(trigger_line)
-            unique_tests.append(trigger_line.test)
+    level_failed = failed_inspections = done_inspections = 0.0
+    for trigger_line in sorted(trigger_lines, key=lambda r: str(r.level_failed*100), reverse=False):
+        failed_inspections += trigger_line.test.failed_inspections
+        done_inspections += trigger_line.test.done_inspections
+    if done_inspections:
+        level_failed = failed_inspections / done_inspections
+
+    for trigger_line in sorted(trigger_lines, key=lambda r: str(r.level_failed*100), reverse=True):
+        _logger.info('TEST LINE %s > %s' % (level_failed, trigger_line.test.level_failed))
+        if level_failed >= trigger_line.level_failed:
+            if trigger_line.test not in unique_tests:
+                filtered_trigger_lines.append(trigger_line)
+                unique_tests.append(trigger_line.test)
+                break
     return filtered_trigger_lines
 
 
@@ -32,6 +47,9 @@ class QcTriggerLine(models.AbstractModel):
         help='If filled, the test will only be created when the action is done'
         ' for one of the specified partners. If empty, the test will always be'
         ' created.', domain="[('parent_id', '=', False)]")
+    level_failed = fields.Float(
+        string='Inspections failed level',
+        digits=dp.get_precision('Inspections failed level'))
 
     def get_trigger_line_for_product(self, trigger, product, partner=False):
         """Overridable method for getting trigger_line associated to a product.

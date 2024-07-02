@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="mrp_production_workcenter_form_view_inherit">
+        <field name="name">mrp.production.work.order.form</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="barcode_mrp_workorder.mrp_production_workcenter_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <button name="toggle_work_component" position="attributes">
+                <attribute name="attrs">{'invisible': [('toggle_block', '=', True)]}</attribute>
+            </button>
+            <xpath expr="//group/group[1]" position="inside">
+                <field name="toggle_block" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

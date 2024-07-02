@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+  <record id="view_wiz_sale_stock_move_location" model="ir.ui.view">
+    <field name="name">wiz.wiz.sale.stock.move.location.form</field>
+    <field name="model">wiz.sale.stock.move.location</field>
+    <field name="arch" type="xml">
+      <form>
+        <sheet>
+            <div class="oe_button_box" name="button_box"/>
+            <div>
+                <label for="edit_locations">
+                    Edit Locations
+                </label>
+                <field name="edit_locations" widget="boolean_toggle"/>
+            </div>
+            <group name="picking_type">
+                <field name="picking_type_id" options="{'no_create': True}"/>
+            </group>
+            <group name="main">
+                <field name="origin_location_disable" invisible="1"/>
+                <field name="filter_location_id" attrs="{'readonly': [('origin_location_disable', '=', True)]}"/>
+                <field name="origin_location_id" attrs="{'readonly': [('origin_location_disable', '=', True)]}"/>
+                <field name="destination_location_disable" invisible="True"/>
+                <field name="destination_location_id" attrs="{'readonly': [('destination_location_disable', '=', True)]}"/>
+                <field name="destination_owner_disable" force_save="1" invisible="True"/>
+                <field name="owner_id" force_save="1" attrs="{'readonly': [('destination_owner_disable', '=', True)]}"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="create_order_point"/>
+            </group>
+            <group string="Filter by group">
+                <field name="product_type_ids" widget="many2many_tags" nolabel="1"/>
+            </group>
+            <group name="product_templates" string="Product templates" invisible="1">
+                <field name="product_tmpl_ids" widget="many2many_tags" nolabel="1" invisible="1"/>
+            </group>
+            <group name="products" string="Products" invisible="1">
+                <field name="product_ids" widget="many2many_tags" nolabel="1" invisible="1"/>
+            </group>
+            <group name="boms" string="Boms" invisible="1">
+                <field name="bom_ids" widget="many2many_tags" nolabel="1" invisible="1" readonly="1"/>
+                <field name="bom_line_ids" nolabel="1" invisible="1"/>
+            </group>
+            <group name="origin" invisible="1">
+                <field name="stock_move_location_line_ids" invisible="1" nolabel="1" mode="tree,kanban">
+                    <tree string="Inventory Details" editable="bottom" decoration-info="product_uom_qty != max_quantity"
+                        decoration-danger="(product_uom_qty &lt; 0) or (product_uom_qty > max_quantity)">
+<!--                        <field name="move_location_wizard_id" invisible="1" force_save="1"/>-->
+                        <field name="product_type_id" invisible="1" force_save="1"/>
+                        <field name="product_id"  domain="[('type','=','product')]"/>
+                        <field name="product_uom" string="UoM" groups="product.group_uom"/>
+                        <field name="location_id" readonly="1" force_save="1"/>
+                        <field name="location_dest_id" readonly="1" force_save="1"/>
+                        <field name="owner_id" readonly="1" force_save="1"/>
+                        <field name="package_id" options="{'no_create': True}"/>
+                        <field name="lot_id" domain="[('id', 'in', lot_ids)]" context="{'default_product_id': product_id}"
+                             groups="stock.group_production_lot" options="{'no_create': True}"/>
+                        <field name="product_uom_qty" force_save="1"/>
+                        <field name="all_wh_total_quantity" readonly="1" force_save="1"/>
+                        <field name="transfers_quantity" readonly="1" force_save="1"/>
+                        <field name="exclude_product_uom_qty" force_save="1"/>
+                        <field name="real_product_uom_qty"/>
+                        <field name="analytic_account_id" invisible="1" force_save="1"/>
+                        <field name="purchase_ids" invisible="1" widget="many2many_tags" force_save="1"/>
+                        <field name="lot_ids" invisible="1"/>
+                        <field name="custom" invisible="1" />
+                        <field name="max_quantity" attrs="{'readonly': [('custom', '!=', True)]}" force_save="1"/>
+                        <field name="bom_line_id" invisible="1"/>
+                        <field name="sale_order_line_id" invisible="1" force_save="1"/>
+                        <field name="sale_order_ids" readonly="1" widget="many2many_tags" force_save="1"/>
+                    </tree>
+                    <kanban class="o_kanban_mobile">
+                        <templates>
+                            <t t-name="kanban-box">
+                                <div t-attf-class="oe_kanban_global_click">
+                                    <div class="o_kanban_record_body">
+                                        <field name="product_id"/>
+                                        <field name="product_uom"/>
+                                        <field name="lot_id" groups="stock.group_production_lot"/>
+                                        <field name="location_id"/>
+                                        <field name="location_dest_id"/>
+                                        <field name="product_uom_qty"/>
+                                    </div>
+                                    <div class="o_kanban_record_bottom">
+                                        <div class="oe_kanban_bottom_right">
+                                            <span><field name="product_uom_qty"/></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </templates>
+                    </kanban>
+                </field>
+            </group>
+            <group name="lines">
+<!--                domain="['|', ('parent.product_type_ids', '=', []), ('product_type_id', 'in', parent.product_type_ids)]"-->
+                <field name="filtered_move_location_line_ids" nolabel="1" mode="tree,kanban">
+                    <tree string="Inventory Details" editable="bottom" decoration-info="product_uom_qty != max_quantity"
+                        decoration-danger="(product_uom_qty &lt; 0) or (product_uom_qty > max_quantity)">
+                        <field name="product_type_id" invisible="1" force_save="1"/>
+                        <field name="product_id"  domain="[('type','=','product')]"/>
+                        <field name="product_uom" string="UoM" groups="product.group_uom"/>
+                        <field name="location_id" readonly="1" force_save="1"/>
+                        <field name="location_dest_id" readonly="1" force_save="1"/>
+                        <field name="filter_location_id" readonly="1" force_save="1"/>
+                        <field name="owner_id" readonly="1" force_save="1"/>
+                        <field name="package_id" options="{'no_create': True}"/>
+                        <field name="lot_id" domain="[('id', 'in', lot_ids)]" context="{'default_product_id': product_id}"
+                             groups="stock.group_production_lot" options="{'no_create': True}"/>
+                        <field name="product_uom_qty" force_save="1"/>
+                        <field name="all_wh_total_quantity" readonly="1" force_save="1"/>
+                        <field name="transfers_quantity" readonly="1" force_save="1"/>
+                        <field name="exclude_product_uom_qty" force_save="1"/>
+                        <field name="real_product_uom_qty"/>
+                        <field name="analytic_account_id" invisible="1" force_save="1"/>
+                        <field name="purchase_ids" invisible="1" widget="many2many_tags" force_save="1"/>
+                        <field name="lot_ids" invisible="1"/>
+                        <field name="custom" invisible="1" />
+                        <field name="max_quantity" attrs="{'readonly': [('custom', '!=', True)]}" force_save="1"/>
+                        <field name="bom_line_id" invisible="1"/>
+                        <field name="sale_order_line_id" invisible="1" force_save="1"/>
+                        <field name="sale_order_ids" invisible="1" widget="many2many_tags" force_save="1"/>
+                    </tree>
+                    <kanban class="o_kanban_mobile">
+                        <templates>
+                            <t t-name="kanban-box">
+                                <div t-attf-class="oe_kanban_global_click">
+                                    <div class="o_kanban_record_body">
+                                        <field name="product_id"/>
+                                        <field name="product_uom"/>
+                                        <field name="lot_id" groups="stock.group_production_lot"/>
+                                        <field name="location_id"/>
+                                        <field name="location_dest_id"/>
+                                        <field name="product_uom_qty"/>
+                                    </div>
+                                    <div class="o_kanban_record_bottom">
+                                        <div class="oe_kanban_bottom_right">
+                                            <span><field name="product_uom_qty"/></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </t>
+                        </templates>
+                    </kanban>
+                </field>
+            </group>
+            <group name="sale_orders">
+                <field name="sale_order_line_ids" nolabel="1" widget="one2many_list">
+                    <tree string="Sale order lines">
+                        <field name="move_location_wizard_id" invisible="1"/>
+                        <field name="sale_order_line_id"/>
+                        <field name="product_id" invisible="1"/>
+                        <field name="product_uom_qty"/>
+                    </tree>
+                </field>
+            </group>
+            <group string="Productions" invisible="1">
+                <field name="production_ids" widget="many2many_tags" nolabel="1" invisible="1"/>
+            </group>
+            <footer>
+                <button name="action_move_location" string="Planned Transfer" type="object" class="btn-primary" context="{'planned': True}"/>
+                <button special="cancel" string="Cancel" class="btn-default"/>
+            </footer>
+        </sheet>
+      </form>
+    </field>
+  </record>
+
+   <act_window name="Create stock move on Sale Order base"
+        res_model="wiz.sale.stock.move.location"
+        src_model="sale.order"
+        view_mode="form"
+        target="new"
+        key2="client_action_multi"
+        id="wiz_sale_stock_move_location_action"
+        view_id="view_wiz_sale_stock_move_location"/>
+
+</odoo>

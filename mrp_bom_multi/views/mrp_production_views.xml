@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Manufacturing Order -->
+        <record id="mrp_production_tree_view" model="ir.ui.view">
+            <field name="name">mrp.production.tree</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+            <field name="arch" type="xml">
+                <field name="name" position="before">
+                    <field name="partner_id"/>
+                    <field name="product_brand_id"/>
+                </field>
+                <field name="product_id" position="before">
+                    <field name="product_tmpl_id" invisible="1"/>
+                </field>
+            </field>
+        </record>
+        <record id="action_product_sale_list_mo" model="ir.actions.act_window">
+            <field name="name">Sales Order Lines</field>
+            <field name="res_model">sale.order.line</field>
+            <field name="view_mode">tree</field>
+            <field name="limit">300</field>
+            <field name="search_view_id" ref="sale.view_sales_order_line_filter"/>
+        </record>
+        <record id="mrp_production_form_view" model="ir.ui.view">
+            <field name="name">mrp.production.form</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[@name='button_box']" position="inside">
+                    <button name="%(mrp_bom_multi.action_product_sale_list_mo)d" type="action"
+                            class="oe_stat_button"
+                            string="Sale Order lines"
+                            context="{'search_default_order_id': sale_id}"
+                            icon="fa-usd">
+                    </button>
+                </xpath>
+                <field name="origin" position="after">
+                    <field name="sale_id" readonly="1"/>
+                    <field name="sale_line_ids" widget="many2many_tags" options="{'open_view': True}" readonly="1"/>
+                    <field name="location_ids" invisible="1"/>
+                </field>
+                <xpath expr="//notebook" position="inside">
+                    <page string="Merged procurements" attrs="{'invisible': [('merge_pickings_ids', '=', [])]}">
+                        <field name="merge_pickings_ids" readonly="1">
+                            <tree>
+                                <field name="picking_id"/>
+                                <field name="stock_move_id"/>
+                                <field name="sale_id"/>
+                                <field name="product_qty"/>
+                            </tree>
+                        </field>
+                    </page>
+                </xpath>
+            </field>
+        </record>
+        <record id="view_mrp_production_filter" model="ir.ui.view">
+            <field name="name">mrp.production.select</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.view_mrp_production_filter"/>
+            <field name="arch" type="xml">
+		<!--
+                <field name="name" position="replace">
+                    <field name="name" string="Production"
+                           filter_domain="['|','|',('name','ilike',self),('origin','ilike',self),('sale_id','iLike',self)]"/>
+                </field>
+		-->
+                <field name="name" position="after">
+                    <field name="sale_id" string="Sales" filter_domain="[('sale_id','ilike',self)]"/>
+                    <field name="product_tmpl_id" string="Product Template" filter_domain="[('product_tmpl_id','ilike',self)]"/>
+                </field>
+                <xpath expr="//group" position="inside">
+                    <filter string="Location for materials" domain="[]" context="{'group_by':'location_src_id'}"/>
+                    <filter string="Location for productions" domain="[]" context="{'group_by':'location_dest_id'}"/>
+                    <filter string="Sale" domain="[]" context="{'group_by':'sale_id'}"/>
+                    <filter string="Product Template" domain="[]" context="{'group_by':'product_tmpl_id'}"/>
+                </xpath>
+            </field>
+        </record>
+        <record id="view_mrp_production_timeline" model="ir.ui.view">
+            <field name="name">mrp.production.timeline</field>
+            <field name="model">mrp.production</field>
+            <field name="arch" type="xml">
+                <timeline date_start="date_planned_start" date_stop="date_finished" default_group_by="location_src_id" event_open_popup="true" colors="#ec7063: workorder_ids == []; #2ecb71: kanban_state == 'done';">
+                    <field name="product_id"/>
+                    <field name="origin"/>
+                    <field name="location_ids"/>
+                    <field name="location_src_id"/>
+                    <field name="location_dest_id"/>
+                    <templates>
+                        <t t-name="timeline-item">
+                            <div class="o_project_timeline_item">
+                                <img t-if="record.product_id" t-attf-src="/web/image/product.product/#{record.product_id[0]}/image/24x24" t-att-title="record.product_id[1]" width="24" height="24" class="mr8"/>
+                                <span name="display_name">
+                                    <t t-esc="record.display_name"/>
+                                </span>
+                                <small name="origin" class="text-muted ml4">
+                                    <t t-esc="record.origin and record.origin or ''"/>
+                                </small>
+                            </div>
+                        </t>
+                    </templates>
+                </timeline>
+            </field>
+        </record>
+        <record id="mrp.mrp_production_action_waiting" model="ir.actions.act_window">
+            <field name="view_mode">tree,form,kanban,calendar,timeline,pivot,graph</field>
+        </record>
+        <record id="mrp.mrp_production_action" model="ir.actions.act_window">
+            <field name="view_mode">tree,kanban,form,calendar,timeline,pivot,graph</field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_merge_mrp_production_wizard" model="ir.ui.view">
+        <field name="name">merge.mrp.production.form</field>
+        <field name="model">merge.mrp.production</field>
+        <field name="arch" type="xml">
+             <form string="Merge manufacture orders">
+                <strong>This is merge manufacture orders...</strong>
+                <footer>
+                    <button name="action_merge_mrp_production" string="Merge MO" type="object"
+                    class="btn-primary"/>
+                    <button string="Cancel" class="btn-default" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <act_window 
+        id="action_merge_mrp_production_wizard"
+        multi="True"
+        key2="client_action_multi" 
+        name="Merge manufacture orders"
+        res_model="merge.mrp.production"
+        src_model="mrp.production"
+        view_mode="form" 
+        target="new" 
+        view_type="form"
+        view_id="view_merge_mrp_production_wizard" />
+
+</odoo>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ # Part of Odoo. See LICENSE file for full copyright and licensing details.
+  -->
+
+<odoo>
+    <record id="view_template_property_form" model="ir.ui.view">
+        <field name="name">product.template.dexagroup.common.form</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="stock.view_template_property_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='traceability']/field[@name='tracking']" position="after">
+                <field name="use_ref"/>
+            </xpath>
+            <xpath expr="//group[@name='stock_property']" position="before">
+                <group colspan="4" name="populate" string="Populate lot/sn on" groups="stock.group_stock_user">
+                    <field name="product_populate_ids" nolabel="1" colspan="2" context="{'default_product_id': active_id}">
+                        <tree editable="top">
+                            <field name="product_id" invisible="1"/>
+                            <field name="name" readonly="1"/>
+                            <field name="product_populate_id"/>
+                        </tree>
+                    </field>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

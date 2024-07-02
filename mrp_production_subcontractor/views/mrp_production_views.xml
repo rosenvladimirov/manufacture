@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_production_form_view" model="ir.ui.view">
+        <field name="name">mrp.production.form</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp_bom_losses.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <field name="reserved_lot_ids" position="after">
+                <separator name="raw_service" string="Additional service" groups="account.group_account_manager"/>
+                <field name="extra_product_ids" groups="account.group_account_manager">
+                    <tree string="Additional service">
+                        <field name="display_name"/>
+                        <field name="standard_price"/>
+                    </tree>
+                </field>
+            </field>
+        </field>
+    </record>
+</odoo>

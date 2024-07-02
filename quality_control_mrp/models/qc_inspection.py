@@ -9,6 +9,15 @@ class QcInspection(models.Model):
     _inherit = 'qc.inspection'
 
     @api.multi
+    def _get_local_qc_triggers(self, qc_trigger_domain=False):
+        self.ensure_one()
+        object_id = self.object_id
+        if object_id and object_id._name == 'mrp.production':
+            qc_trigger = self.env.ref('quality_control_mrp.qc_trigger_mrp')
+            return super(QcInspection, self)._get_local_qc_triggers(('id', '=', qc_trigger.id))
+        return super(QcInspection, self)._get_local_qc_triggers(qc_trigger_domain=qc_trigger_domain)
+
+    @api.multi
     def _prepare_inspection_header(self, object_ref, trigger_line):
         res = super(QcInspection, self)._prepare_inspection_header(
             object_ref, trigger_line)

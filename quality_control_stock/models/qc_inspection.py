@@ -4,6 +4,10 @@
 
 from odoo import api, fields, models
 
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 class QcInspection(models.Model):
     _inherit = 'qc.inspection'
@@ -57,9 +61,23 @@ class QcInspection(models.Model):
     def onchange_object_id(self):
         if self.object_id:
             if self.object_id._name == 'stock.move':
-                self.qty = self.object_id.product_qty
+                self.qty = self.object_id.quantity_done
             elif self.object_id._name == 'stock.move.line':
-                self.qty = self.object_id.product_qty
+                self.qty = self.object_id.qty_done
+
+    @api.multi
+    def _get_local_qc_triggers(self, qc_trigger_domain=False):
+        self.ensure_one()
+        object_id = self.object_id
+        _logger.info("OBJECT %s" % object_id)
+        if object_id and object_id._name == 'stock.picking':
+            return super(QcInspection, self).\
+                _get_local_qc_triggers([('picking_type_id', '=', object_id.picking_type_id.id)])
+        elif object_id and object_id._name in ('stock.move', 'stock.move.line'):
+            return super(QcInspection, self).\
+                _get_local_qc_triggers([('picking_type_id', '=', object_id.picking_id.picking_type_id.id)],
+                                       object_id.picking_id)
+        return super(QcInspection, self)._get_local_qc_triggers(qc_trigger_domain=qc_trigger_domain)
 
     @api.multi
     def _prepare_inspection_header(self, object_ref, trigger_line):
@@ -67,9 +85,24 @@ class QcInspection(models.Model):
             object_ref, trigger_line)
         # Fill qty when coming from pack operations
         if object_ref and object_ref._name == 'stock.move.line':
-            res['qty'] = object_ref.product_qty
+            res['qty'] = object_ref.move_id.quantity_done
+            res['qty_checked'] = object_ref.qty_done
+            res['product_id'] = object_ref.product_id.id
+            res['lot_id'] = object_ref.lot_id and object_ref.lot_id.id or False
         if object_ref and object_ref._name == 'stock.move':
-            res['qty'] = object_ref.product_uom_qty
+            res['qty'] = object_ref.quantity_done
+            res['qty_checked'] = object_ref.quantity_done
+            res['product_id'] = object_ref.product_id.id
+
+        if object_ref and 'product_id' in object_ref._fields:
+            if object_ref._name in ('stock.move', 'stock.move.line'):
+                if object_ref.picking_id.picking_type_code == 'incoming':
+                    res['internal_notes'] = object_ref.product_id.description_pickingin
+                elif object_ref.picking_id.picking_type_code == 'internal':
+                    res['internal_notes'] = object_ref.product_id.description_picking
+                elif object_ref.picking_id.picking_type_code == 'outgoing':
+                    res['internal_notes'] = object_ref.product_id.description_pickingout
+        _logger.info('VALUES %s' % res)
         return res
 
     picking_id = fields.Many2one(

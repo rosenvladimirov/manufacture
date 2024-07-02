@@ -6,6 +6,11 @@
     Copyright 2017 Simone Rubino - Agile Business Group
     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
 <odoo>
+    <record forcecreate="True" id="decimal_failed_inspections" model="decimal.precision">
+        <field name="name">Inspections failed level</field>
+        <field name="digits">2</field>
+    </record>
+
     <data noupdate="1">
         <record id="qc_test_template_category_generic" model="qc.test.category">
             <field name="name">Generic</field>

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record model="ir.ui.view" id="mrp_production_workorder_form_view_inherit">
+        <field name="name">mrp.production.work.order.form</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.mrp_production_workcenter_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='final_lot_id']" position="after">
+                <field name="buffered_qty_remaining" attrs="{'invisible': [('use_buffering', '=', False)]}"/>
+            </xpath>
+            <xpath expr="//notebook/page[1]" position="before">
+                <field name="use_buffering" invisible="1"/>
+                <page string="Buffered Production" attrs="{'invisible': [('use_buffering', '=', False)]}">
+                    <group>
+                        <group>
+                            <field name="buffered_qty_producing" string="Buffered Qty"/>
+                            <field name="buffered_final_lot_id" groups="stock.group_production_lot"/>
+                        </group>
+                    </group>
+                    <field name="buffered_move_line_ids" attrs="{'invisible': ['|', ('use_buffering', '=', False), ('buffered_move_line_ids', '=', [])]}" force_save="1">
+                        <tree editable="bottom" create="0" delete="1">
+                            <field name="product_id"/>
+                            <field name="product_uom_qty" readonly="1" invisible="1" string="To Consume"/>
+                            <field name="lot_id" domain="[('product_id', '=', product_id)]" context="{'default_product_id': product_id}"/>
+                            <field name="qty_done"/>
+                            <field name="product_uom_id" invisible="1"/>
+                            <field name="location_id" invisible="1"/>
+                            <field name="location_dest_id" invisible="1"/>
+                            <field name="move_id" invisible="1"/>
+                            <field name="done_wo" invisible="1"/>
+                        </tree>
+                    </field>
+                </page>
+                <page string="Buffered data" attrs="{'invisible': ['|', ('use_buffering', '=', False), ('buffer_product_ids', '=', [])]}">
+                    <field name="buffer_product_ids" force_save="1">
+                        <tree editable="bottom" create="0" delete="1">
+                            <field name="final_product_id" invisible="1"/>
+                            <field name="final_lot_id" domain="[('product_id', '=', final_product_id)]" context="{'default_product_id': final_product_id}"/>
+                            <field name="qty_producing"/>
+                            <field name="product_id"/>
+                            <field name="lot_id" domain="[('product_id', '=', product_id)]" context="{'default_product_id': product_id}"/>
+                            <field name="qty_done"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="mrp_production_workcenter_form_view_inherit">
+        <field name="name">mrp.production.work.order.form</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="barcode_mrp_workorder.mrp_production_workcenter_form_view_inherit"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='button_empty_bins']" position="before">
+                <button name="toggle_use_buffering"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa fa-shopping-cart"
+                        style="color: #008784 !important;">
+                    <field name="use_buffering" widget="boolean_button" options='{"terminology": {"string_true": "Buffering", "hover_true": "BUFFERING", "string_false": "Non buffering", "hover_false": "NON BUFFERING"}}'/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

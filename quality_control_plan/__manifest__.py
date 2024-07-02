@@ -20,7 +20,6 @@
         'mgmtsystem',
         'mgmtsystem_nonconformity',
         'quality_control',
-        'quality_control_stock',
         ],
     "data": [
         'security/ir.model.access.csv',

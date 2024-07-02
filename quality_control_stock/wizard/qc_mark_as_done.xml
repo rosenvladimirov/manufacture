@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_wiz_quality_control_confirm" model="ir.ui.view">
+        <field name="name">wiz.quality.control.confirm.form</field>
+        <field name="model">wiz.quality.control.confirm</field>
+        <field name="inherit_id" ref="quality_control.view_wiz_quality_control_confirm" />
+        <field name="arch" type="xml">
+            <field name="del_inspection" position="after">
+                <field name="recreate_inspection"/>
+            </field>
+            <xpath expr="//footer/button[@name='action_confirms']" position="before">
+                <button name="action_recreate" string="Re-generate" type="object" class="btn-primary" attrs="{'invisible': [('recreate_inspection', '=', False)]}"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

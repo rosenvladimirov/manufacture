@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_production_subcontractor_form" model="ir.ui.view">
+        <field name="name">mrp.production.subcontractor.form</field>
+        <field name="model">mrp.production.subcontractor</field>
+        <field name="arch" type="xml">
+            <form string="Production given Subcontractor">
+                <sheet string="Production given Subcontractor">
+                    <div class="oe_button_box" name="button_box">
+                    </div>
+                    <label for="name"/>
+                    <h1>
+                        <field name="name"/>
+                    </h1>
+                    <group>
+                        <group>
+                            <field name="partner_id"/>
+                            <field name="location_src_id" domain="[('usage', '=', 'internal')]"/>
+                            <field name="location_dest_id" domain="[('usage', '=', 'internal')]"/>
+                        </group>
+                        <group>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                            <field name="production_ids" invisible="1"/>
+                            <field name="finished_production_ids" invisible="1"/>
+                            <field name="purchase_ids" invisible="1"/>
+                            <field name="invoice_ids" invisible="1"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Done services">
+                            <field name="service_lines" context="{'default_partner_id': partner_id}" domain="[('partner_id', '=', partner_id)]">
+                                <tree string="Subcontractor Services Lines">
+                                    <field name="partner_id"/>
+                                    <field name="procurement_group_id" invisible="1"/>
+                                    <field name="product_id" options="{'create': 0, 'create_edit': 0}" domain="[('type', 'in', ['service', 'consu'])]"/>
+                                    <field name="product_uom" options="{'create': 0, 'create_edit': 0}"/>
+                                    <field name="qty_produced" readonly="1" sum="Total Produced quantity"/>
+                                    <field name="product_qty" sum="Total quantity"/>
+                                    <field name="production_id" domain="[('id', 'in', parent.production_ids)]"
+                                           options="{'create': 0, 'create_edit': 0}"/>
+                                    <field name="final_product_id" readonly="1"/>
+                                    <field name="subcontract_id" invisible="1"/>
+                                </tree>
+                                <form string="Subcontractor Services Lines">
+                                    <sheet>
+                                        <group>
+                                            <group>
+                                                <field name="parent_id" invisible="1"/>
+                                                <field name="partner_id" options="{'create': 0, 'create_edit': 0}" invisible="1"/>
+                                                <field name="product_id" options="{'create': 0, 'create_edit': 0}" domain="[('type', 'in', ['service', 'consu'])]"/>
+                                                <field name="product_uom" options="{'create': 0, 'create_edit': 0}"/>
+                                                <field name="qty_produced" readonly="1"/>
+                                                <field name="product_qty"/>
+                                            </group>
+                                            <group>
+                                                <field name="production_id" options="{'create': 0, 'create_edit': 0}" domain="[('id', 'in', parent.production_ids)]"/>
+                                                <field name="final_product_id" readonly="1"/>
+                                                <field name="subcontract_id" invisible="1"/>
+                                                <field name="procurement_group_id" invisible="1"/>
+                                            </group>
+                                            <group colspan="2" string="Su Subcontractor">
+                                                <field name="child_id" nolabel="1" context="{'default_parent_id': active_id, 'default_qty_produced': qty_produced, 'default_production_id': production_id, 'default_final_product_id': final_product_id, 'default_subcontract_id': subcontract_id, 'default_procurement_group_id': procurement_group_id}">
+                                                    <tree string="Su Subcontractor" editable="top">
+                                                        <field name="parent_id" invisible="1"/>
+                                                        <field name="partner_id" options="{'create': 0, 'create_edit': 0}"/>
+                                                        <field name="product_id" options="{'create': 0, 'create_edit': 0}" domain="[('type', 'in', ['service', 'consu'])]"/>
+                                                        <field name="product_uom" options="{'create': 0, 'create_edit': 0}"/>
+                                                        <field name="qty_produced" readonly="1"/>
+                                                        <field name="product_qty"/>
+                                                        <field name="production_id" invisible="1"/>
+                                                        <field name="final_product_id" readonly="1"/>
+                                                        <field name="subcontract_id" invisible="1"/>
+                                                        <field name="procurement_group_id" invisible="1"/>
+                                                    </tree>
+                                                </field>
+                                            </group>
+                                            <group colspan="2">
+                                                <field name="comment_template2_id" string="Load a template" context="{'default_position': 'after_lines'}" domain="[('position','=','after_lines')]"/>
+                                                <field name="note2" nolabel="1" colspan="2"/>
+                                            </group>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                            <div class="o_form_statusbar" style="border-bottom: 0px;" name="button_box_sale">
+                                <div class="o_statusbar_buttons" name="buttons_subcontractor">
+                                    <button class="btn btn-sm btn-default oe_highlight oe_edit_only"
+                                        name="action_add_services"
+                                        type="object" string="Add service"/>
+                                    <button class="btn btn-sm btn-default oe_highlight oe_read_only"
+                                        name="action_compute_services"
+                                        type="object" string="Compute service"/>
+                                </div>
+                            </div>
+                        </page>
+                        <page string="Ordered production">
+                            <field name="production_ids" nolabel="1" widget="many2many_tags"/>
+                            <field name="production_lines">
+                                <tree string="Ordered production">
+                                    <field name="subcontract_id" invisible="1"/>
+                                    <field name="production_id"/>
+                                    <field name="product_id"/>
+                                    <field name="bom_id"/>
+                                    <field name="location_src_id"/>
+                                    <field name="location_dest_id"/>
+                                    <field name="date_planned_start"/>
+                                    <field name="date_planned_finished"/>
+                                    <field name="product_qty" sum="Total quantity"/>
+                                    <field name="state"/>
+                                </tree>
+                                <form string="Ordered production">
+                                    <sheet>
+                                        <group>
+                                            <group>
+                                                <field name="production_id"/>
+                                                <field name="bom_id"/>
+                                                <field name="product_qty"/>
+                                                <field name="state"/>
+                                            </group>
+                                            <group>
+                                                <field name="location_src_id"/>
+                                                <field name="location_dest_id"/>
+                                                <field name="date_planned_start"/>
+                                                <field name="date_planned_finished"/>
+                                            </group>
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                            <div class="o_form_statusbar" style="border-bottom: 0px;" name="button_box_sale">
+                                <div class="o_statusbar_buttons" name="buttons_subcontractor_production">
+                                    <button class="btn btn-sm btn-default oe_highlight oe_read_only"
+                                        name="action_change_location"
+                                        type="object" string="Change locations"/>
+                                </div>
+                            </div>
+                        </page>
+                        <page name="services" string="Available services">
+                            <field name="service_product_lines">
+                                <tree string="List of services" editable="top">
+                                    <field name="product_id" options="{'create': 0, 'create_edit': 0}"/>
+                                    <field name="product_tmpl_id" options="{'create': 0, 'create_edit': 0}"/>
+                                    <field name="price"/>
+                                    <field name="currency_id"/>
+                                    <field name="subcontract_id" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Product Template">
+                            <field name="product_tmpl_ids"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_mrp_production_subcontractor_filter" model="ir.ui.view">
+        <field name="name">mrp.production.subcontractor.select</field>
+        <field name="model">mrp.production.subcontractor</field>
+        <field name="arch" type="xml">
+            <search string="Search Subcontractor Productions">
+                <field name="partner_id" string="Subcontractor"/>
+                <group expand="0" string="Group By">
+                    <filter string="Subcontractor" domain="[]" context="{'group_by':'partner_id'}"/>
+                    <filter string="Production Location" domain="[]" context="{'group_by':'location_dest_id'}"/>
+                    <filter string="Date From" domain="[]" context="{'group_by':'date_from'}"/>
+                    <filter string="Date To" domain="[]" context="{'group_by':'date_to'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+    <record id="mrp_production_subcontractor_tree" model="ir.ui.view">
+        <field name="name">mrp.production.subcontractor.tree</field>
+        <field name="model">mrp.production.subcontractor</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="partner_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="location_dest_id"/>
+                <field name="production_ids" widget="many2many_tags"/>
+                <field name="purchase_ids" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_mrp_production_subcontractor" model="ir.actions.act_window">
+        <field name="name">Production given Subcontractor</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.production.subcontractor</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_mrp_production_subcontractor_filter"/>
+        <field name="help" type="html">
+          <p class="oe_view_nocontent_create">
+            Click to create a Subcontractor Production management.
+          </p><p>
+            The Subcontractor Production management contains the production orders,
+            purchase service and invoices for it.
+          </p>
+        </field>
+    </record>
+    <menuitem action="action_mrp_production_subcontractor" id="menu_mrp_production_subcontractor"
+        parent="mrp.menu_mrp_manufacturing"
+        sequence="2"/>
+</odoo>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_mrp_semi_product_component_form" model="ir.ui.view">
+            <field name="name">mrp.semi.product.component.form</field>
+            <field name="model">mrp.semi.product.component</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <field name="bom_id" invisible="0" readonly="1"/>
+                        <field name="help_split"/>
+                        <field name="product_tmpl_id" attrs="{'invisible': [('help_split', '=', True)]}"/>
+                        <field name="product_id" attrs="{'invisible': [('help_split', '=', True)]}"
+                               domain="[('product_tmpl_id', '=', product_tmpl_id)]"/>
+                        <field name="auto_split"/>
+                    </group>
+                    <group string="Auto create semi-products" attrs="{'invisible': [('help_split', '=', False)]}">
+                        <field name="variant_line_ids"
+                               nolabel="1"
+                               attrs="{'invisible': [('help_split', '=', False)]}"
+                               widget="x2many_2d_matrix"
+                               field_x_axis="value_x"
+                               field_y_axis="value_y"
+                               field_value = "used"
+                               x_axis_clickable="0"
+                               y_axis_clickable="0">
+                            <tree>
+                                <field name="value_x"/>
+                                <field name="value_y"/>
+                                <field name="used"/>
+                            </tree>
+                        </field>
+                    </group>
+                    <group string="Operations" attrs="{'invisible': [('help_split', '=', True)]}">
+                        <field name="operation_ids" nolabel="1" widget="many2many_tags"
+                               attrs="{'invisible': [('help_split', '=', True)]}"/>
+                    </group>
+                    <footer>
+                        <button name="populate_semi_products" type="object" string="Populate" class="btn-primary" barcode_trigger="validate"/>
+                        <button string="Cancel" class="btn-default" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+      <record id="action_mrp_semi_product_component" model="ir.actions.act_window">
+              <field name="name">Populate semi product</field>
+              <field name="res_model">mrp.semi.product.component</field>
+              <field name="view_type">form</field>
+              <field name="view_mode">form</field>
+              <field name="view_id" ref="view_mrp_semi_product_component_form"/>
+              <field name="target">new</field>
+      </record>
+    </data>
+</odoo>

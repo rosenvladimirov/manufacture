@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<odoo>
+
+    <record id="view_mrp_import_imperium_wizard" model="ir.ui.view">
+        <field name="name">Impoort from imperium</field>
+        <field name="model">mrp.import.imperium</field>
+        <field name="arch" type="xml">
+            <form string="Choice or Scan for repair">
+<!--                <field name="_barcode_scanned" widget="barcode_handler"/>-->
+                <group>
+                    <field name="production_id" options="{'no_create': True}"/>
+                    <field name="workorder_id" options="{'no_create': True}"/>
+                    <field name="date"/>
+                    <field name="batch_number" readonly="1"/>
+                    <field name="process_order_number" readonly="1"/>
+                    <field name="pack_size" readonly="1"/>
+                    <field name="formula_number" readonly="1"/>
+                    <field name="produced_qty" readonly="1"/>
+                    <field name="company_id" groups="base.group_multi_company"/>
+                    <field name="server_url" invisible="1"/>
+                </group>
+                <field name="import_lines">
+                    <tree editable="button">
+                        <field name="product_id"/>
+                        <field name="lot_id"/>
+                        <field name="material_actual"/>
+                        <field name="uom_id"/>
+                        <field name="wiz_id" invisible="1"/>
+                    </tree>
+                </field>
+                <footer>
+                    <button name="action_import_imperium" string="Collect" type="object" class="oe_highlight"
+                            attrs="{'invisible': [('import_lines', '!=', [])] }"/>
+                    <button name="action_fill_workorder" string="Populate" type="object"  class="oe_highlight"
+                            attrs="{'invisible': [('import_lines', '=', [])] }"/>
+                    <button string="Cancel" class="oe_link" special="cancel" />
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_mrp_import_imperium_wizard" model="ir.actions.act_window">
+        <field name="name">Import from Imperioum</field>
+        <field name="type">ir.actions.act_window</field>
+        <field name="res_model">mrp.import.imperium</field>
+        <field name="view_type">form</field>
+        <field name="view_id" ref="view_mrp_import_imperium_wizard"/>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

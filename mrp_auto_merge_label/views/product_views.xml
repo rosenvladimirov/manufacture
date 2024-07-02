@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="product_normal_form_view" model="ir.ui.view">
+            <field name="name">product.product.form</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="product.product_normal_form_view"/>
+            <field name="arch" type="xml">
+                <field name="barcode" position="after">
+                    <field name="ref_lot"/>
+                    <field name="print_label_id"/>
+                </field>
+            </field>
+        </record>
+        <record id="product_template_form_view" model="ir.ui.view">
+            <field name="name">product.template.product.form</field>
+            <field name="model">product.template</field>
+            <field name="inherit_id" ref="product.product_template_form_view"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[@name='packaging']" position="before">
+                    <group name="pair" string="Label pair products" colspan="4">
+                        <field name="ref_lot_pair_ids" nolabel="1" placeholder="Add the pair product."/>
+                    </group>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

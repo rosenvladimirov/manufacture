@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!--  Process Production order -->
+        <record id="view_mrp_workorder_process_wizard" model="ir.ui.view">
+            <field name="name">Process production order</field>
+            <field name="model">wiz.mrp.workorder.process</field>
+            <field name="arch" type="xml">
+                <form string="Process production order">
+                    <group>
+                        <field name="product_qty"/>
+                        <field name="force_mark_as_done"/>
+                        <field name="force_un_reserve_done"/>
+                        <field name="mo_id" invisible="1"/>
+                    </group>
+                    <field name="production_line_ids" nolabel="1">
+                        <tree editable="bottom" create="0">
+                            <field name="workorder_id" readonly="0" invisible="1"/>
+                            <field name="work_order_name" readonly="1"/>
+                            <field name="state" readonly="1"/>
+                            <field name="qty_produced" readonly="1"/>
+                            <field name="qty_producing" readonly="1"/>
+                            <field name="product_tracking" invisible="1"/>
+                            <field name="production_process_wizard_id" invisible="1"/>
+                            <field name="product_qty"/>
+                        </tree>
+                    </field>
+                    <footer>
+                        <button name="action_process_workorder" string="Process" type="object" class="btn-primary"/>
+                        <button string="Cancel" class="btn-default" special="cancel" />
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_wiz_mrp_workorder_process" model="ir.actions.act_window">
+            <field name="name">Process production order</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">wiz.mrp.workorder.process</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+        </record>
+
+<!--        <act_window name="Process production order"-->
+<!--            res_model="wiz.mrp.workorder.process"-->
+<!--            src_model="mrp.production"-->
+<!--            view_mode="form"-->
+<!--            target="new"-->
+<!--            key2="client_action_multi"-->
+<!--            id="action_orderpoint_generator_sale"/>-->
+
+    </data>
+</odoo>
