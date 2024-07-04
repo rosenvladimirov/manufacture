@@ -37,10 +37,15 @@ class MrpWorkOrderAuto(models.TransientModel):
     def generate_lots(self):
         lot_obj = self.env['stock.production.lot']
         for record in self:
-            for line in record.production_id.move_raw_ids.mapped('move_line_ids').\
-                    filtered(lambda r: r.workorder_id.id == record.import_workorder_id.id):
-                lot_id = line.lot_produced_id
-                self.lot_ids |= lot_id
+            trust_lots = record.workorder_id.production_finished_move_line_ids.mapped('lot_id')
+            check_lots = record.import_workorder_id.production_finished_move_line_ids.mapped('lot_id')
+            # _logger.info(f"Trust lots {trust_lots}\nCheck lots {check_lots}")
+            check_lots |= record.production_id.move_raw_ids.mapped('move_line_ids').\
+                filtered(lambda r: r.workorder_id.id == record.import_workorder_id.id).mapped('lot_produced_id')
+            for lot_id in check_lots:
+                # _logger.info(f"Lot {lot_id.id} {lot_id.name not in trust_lots.mapped('name')} not in {trust_lots.mapped('name')}")
+                if lot_id.id not in trust_lots.ids:
+                    self.lot_ids |= lot_id
         return {
             'type': 'ir.actions.do_nothing'
         }

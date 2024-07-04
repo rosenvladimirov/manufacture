@@ -14,6 +14,7 @@
         'stock',
         'mrp_bom_losses',
         'barcode_mrp_workorder',
+        'mec_mrp'
     ],
     'data': [
         'wizard/mrp_workorder_auto.xml'
