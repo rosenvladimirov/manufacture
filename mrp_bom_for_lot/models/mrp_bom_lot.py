@@ -116,16 +116,18 @@ class MrpBomLot(models.Model):
         self.line_ids = [(5, 0, 0)]  # Изтриване на съществуващите редове
         self._load_master_bom_lines()
 
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
+        # Изпращане на съобщение през bus за refresh
+        self.env['bus.bus']._sendone(
+            self.env.user.partner_id,
+            'mail.message/inbox',
+            {
+                'type': 'success',
+                'tag': 'display_notification',
                 'title': 'Successfully',
                 'message': 'The lines are loaded from the master BOM',
-                'type': 'success',
-                'sticky': False,
             }
-        }
+        )
+
 
     def action_confirm(self):
         """Потвърждаване на BOM"""

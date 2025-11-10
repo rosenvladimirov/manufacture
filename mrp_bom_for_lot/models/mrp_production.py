@@ -35,6 +35,8 @@ class MrpProduction(models.Model):
                     }
                 }
 
+
+
     def action_load_lot_bom(self):
         """Зареждане на количествата от BOM за лот"""
         self.ensure_one()
@@ -61,13 +63,13 @@ class MrpProduction(models.Model):
         # Маркиране на BOM за лот като използван
         self.bom_lot_id.state = 'done'
 
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': _('Successfully'),
-                'message': _('The quantities are adjusted according to the BOM for the lot'),
+        # Изпращане на съобщение през bus за refresh
+        self.env['bus.bus']._sendone(
+            self.env.user.partner_id,
+            'mail.message/inbox',
+            {
                 'type': 'success',
-                'sticky': False,
+                'message': _('The quantities are adjusted according to the BOM for the lot'),
+                'title': _('Successfully'),
             }
-        }
+        )

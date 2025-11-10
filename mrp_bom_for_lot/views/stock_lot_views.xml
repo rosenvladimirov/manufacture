@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_production_lot_form_inherit_bom" model="ir.ui.view">
+        <field name="name">stock.production.lot.form.inherit.bom</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_bom_lots"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-list-alt">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">BOM</span>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,6 +1,9 @@
 {
     'name': 'BOM за Лот/Сериен Номер',
     'version': '18.0.1.0.1',
+    'author': 'Rosen Vladimirov, Odoo Community Association (OCA)',
+    'website': 'https://github.com/rosenvladimirov/manufacture',
+    'license': 'AGPL-3',
     'category': 'Manufacturing',
     'summary': 'BOM management by lot/serial number with stages',
     'description': """
@@ -18,6 +21,7 @@ Lot/serial number specific BOM creation and management module.
         'views/mrp_production_views.xml',
         'views/mrp_bom_stage_views.xml',
         'views/mrp_bom_views.xml',
+        'views/stock_lot_views.xml',
     ],
     'assets': {
         'web.assets_backend': [

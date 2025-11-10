@@ -5,7 +5,7 @@
         <field name="name">mrp.bom.lot.tree</field>
         <field name="model">mrp.bom.lot</field>
         <field name="arch" type="xml">
-            <list string="BOM for Lot/Serial number">
+            <list string="BOM for Lot/Serial number" create="true" multi_edit="1" open_form_view="1">
                 <field name="name"/>
                 <field name="product_tmpl_id"/>
                 <field name="product_id"/>
@@ -118,7 +118,7 @@
                         domain="[('state', '=', 'confirmed')]"/>
                 <filter string="Used" name="done"
                         domain="[('state', '=', 'done')]"/>
-                <group expand="0" string="Групиране по">
+                <group expand="0" string="Grouping by">
                     <filter string="Product" name="group_product"
                             context="{'group_by': 'product_id'}"/>
                     <filter string="Lot/Serial number" name="group_lot"
