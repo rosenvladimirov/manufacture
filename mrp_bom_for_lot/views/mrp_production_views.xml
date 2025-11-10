@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Extend MO form view -->
+    <record id="view_mrp_production_form_inherit_lot_bom" model="ir.ui.view">
+        <field name="name">mrp.production.form.inherit.lot.bom</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Добавяне на бутон в header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_load_lot_bom" string="Зареди BOM за лот"
+                        type="object" class="btn-primary"
+                        invisible="state not in ['draft', 'confirmed'] or not bom_lot_id"
+                        groups="mrp.group_mrp_user"/>
+            </xpath>
+
+            <!-- Добавяне на полета след lot_producing_id -->
+            <xpath expr="//field[@name='lot_producing_id']" position="after">
+                <field name="bom_lot_id"
+                       domain="[('product_id', '=', product_id), ('state', '=', 'confirmed')]"
+                       options="{'no_create': True}"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

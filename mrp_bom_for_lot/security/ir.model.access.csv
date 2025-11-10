@@ -1,0 +1,7 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mrp_bom_stage_user,mrp.bom.stage.user,model_mrp_bom_stage,mrp.group_mrp_user,1,1,1,0
+access_mrp_bom_stage_manager,mrp.bom.stage.manager,model_mrp_bom_stage,mrp.group_mrp_manager,1,1,1,1
+access_mrp_bom_lot_user,mrp.bom.lot.user,model_mrp_bom_lot,mrp.group_mrp_user,1,1,1,0
+access_mrp_bom_lot_manager,mrp.bom.lot.manager,model_mrp_bom_lot,mrp.group_mrp_manager,1,1,1,1
+access_mrp_bom_lot_line_user,mrp.bom.lot.line.user,model_mrp_bom_lot_line,mrp.group_mrp_user,1,1,1,0
+access_mrp_bom_lot_line_manager,mrp.bom.lot.line.manager,model_mrp_bom_lot_line,mrp.group_mrp_manager,1,1,1,1
