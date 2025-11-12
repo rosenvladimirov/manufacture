@@ -30,7 +30,7 @@ class MrpProduction(models.Model):
                     'warning': {
                         'title': _('BOM for lot found'),
                         'message': _('Found a BOM specific to this lot. '
-                                     'Use the "Load Lot BOM" button'
+                                     'Use the "Load Lot BOM" button '
                                      'to apply the adjusted amounts.')
                     }
                 }

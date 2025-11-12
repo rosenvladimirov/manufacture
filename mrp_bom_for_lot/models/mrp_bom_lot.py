@@ -77,18 +77,19 @@ class MrpBomLot(models.Model):
         default=lambda self: self.env.company
     )
 
-    @api.model
-    def create(self, vals):
-        if vals.get('name', '/') == '/':
-            vals['name'] = self.env['ir.sequence'].next_by_code('mrp.bom.lot') or '/'
-        return super(MrpBomLot, self).create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('name', '/') == '/':
+                vals['name'] = self.env['ir.sequence'].next_by_code('mrp.bom.lot') or '/'
+        return super(MrpBomLot, self).create(vals_list)
 
     @api.onchange('master_bom_id')
     def _onchange_master_bom_id(self):
         """Зареждане на компонентите от главния BOM"""
         if self.master_bom_id:
-            self.product_tmpl_id = self.master_bom_id.product_tmpl_id
-            self.product_id = self.master_bom_id.product_id
+            # self.product_tmpl_id = self.master_bom_id.product_tmpl_id
+            # self.product_id = self.master_bom_id.product_id
             self._load_master_bom_lines()
 
     def _load_master_bom_lines(self):

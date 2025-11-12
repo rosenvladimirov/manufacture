@@ -76,15 +76,15 @@
                                    readonly="state != 'draft'">
                                 <list editable="bottom">
                                     <field name="sequence" widget="handle"/>
-                                    <field name="master_bom_line_id" invisible="1"/>
-                                    <field name="product_id" readonly="1"/>
-                                    <field name="master_product_qty" readonly="1"/>
+                                    <field name="master_bom_line_id" column_invisible="1" force_save="1"/>
+                                    <field name="product_id" readonly="1" force_save="1"/>
+                                    <field name="master_product_qty" readonly="1" force_save="1"/>
                                     <field name="product_qty"/>
                                     <field name="qty_difference"
                                            decoration-danger="qty_difference != 0"
                                            decoration-success="qty_difference == 0"/>
-                                    <field name="product_uom_id" readonly="1"/>
-                                    <field name="stage_id"/>
+                                    <field name="product_uom_id" readonly="1" force_save="1"/>
+                                    <field name="stage_id" column_invisible="1"/>
                                     <field name="notes"/>
                                 </list>
                             </field>
