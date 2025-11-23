@@ -17,7 +17,7 @@ class MrpBomLotLine(models.Model):
     master_bom_line_id = fields.Many2one(
         'mrp.bom.line',
         string='Original line from BOM',
-        required=True,
+        required=False,
         ondelete='restrict'
     )
     product_id = fields.Many2one(
@@ -72,7 +72,8 @@ class MrpBomLotLine(models.Model):
     def _check_master_bom_line(self):
         """Проверка, че редът е от главния BOM"""
         for line in self:
-            if line.master_bom_line_id.bom_id != line.bom_lot_id.master_bom_id:
+            # Ако има master_bom_line_id, проверяваме дали е от правилния BOM
+            if line.master_bom_line_id and line.master_bom_line_id.bom_id != line.bom_lot_id.master_bom_id:
                 raise ValidationError(
                     'The line must be from the master BOM of this lot BOM!'
                 )

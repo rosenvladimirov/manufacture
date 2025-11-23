@@ -22,10 +22,11 @@ class MrpProduction(models.Model):
                 ('lot_id', '=', self.lot_producing_id.id),
                 ('product_id', '=', self.product_id.id),
                 ('state', '=', 'confirmed')
-            ], limit=1)
+            ], order='write_date desc', limit=1)
 
             if bom_lot:
                 self.bom_lot_id = bom_lot
+                self.qty_producing = bom_lot.product_qty
                 return {
                     'warning': {
                         'title': _('BOM for lot found'),

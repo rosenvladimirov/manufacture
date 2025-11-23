@@ -1,9 +1,11 @@
 
-from odoo import models
+from odoo import models, fields
 
 
 class StockLot(models.Model):
     _inherit = 'stock.lot'
+
+    final_quantity = fields.Float(string='Final Quantity')
 
     def action_view_bom_lots(self):
         """Action за показване на BOM-овете за лота"""

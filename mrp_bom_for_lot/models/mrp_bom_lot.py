@@ -129,13 +129,59 @@ class MrpBomLot(models.Model):
             }
         )
 
-
     def action_confirm(self):
         """Потвърждаване на BOM"""
         self.ensure_one()
         if not self.line_ids:
             raise UserError('You cannot validate a BOM without components!')
+
+        # Проверка за разлики и добавяне на нови редове в master BOM
+        self._sync_new_products_to_master_bom()
+
         self.state = 'confirmed'
+
+    def _sync_new_products_to_master_bom(self):
+        """Синхронизира нови продукти от lot BOM към master BOM"""
+        self.ensure_one()
+
+        if not self.master_bom_id:
+            return
+
+        # Вземаме всички product_id от master BOM
+        master_product_ids = self.master_bom_id.bom_line_ids.mapped('product_id.id')
+
+        # Вземаме всички product_id от текущия lot BOM
+        lot_product_ids = self.line_ids.mapped('product_id.id')
+
+        # Намираме продуктите, които са в lot BOM, но не са в master BOM
+        new_product_ids = set(lot_product_ids) - set(master_product_ids)
+
+        if not new_product_ids:
+            return
+
+        # Добавяме новите продукти в master BOM с lot_dynamic = True
+        for line in self.line_ids.filtered(lambda l: l.product_id.id in new_product_ids):
+            self.master_bom_id.bom_line_ids.create({
+                'bom_id': self.master_bom_id.id,
+                'product_id': line.product_id.id,
+                'product_qty': line.product_qty,
+                'product_uom_id': line.product_uom_id.id,
+                'lot_dynamic': True,
+                'sequence': line.sequence,
+            })
+
+        # Изпращане на съобщение за успешна синхронизация
+        if new_product_ids:
+            self.env['bus.bus']._sendone(
+                self.env.user.partner_id,
+                'mail.message/inbox',
+                {
+                    'type': 'info',
+                    'tag': 'display_notification',
+                    'title': 'Синхронизация',
+                    'message': f'{len(new_product_ids)} нови компонента са добавени в master BOM като динамични',
+                }
+            )
 
     def action_cancel(self):
         """Отказ на BOM"""
