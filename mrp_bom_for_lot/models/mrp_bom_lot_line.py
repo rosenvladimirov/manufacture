@@ -35,11 +35,7 @@ class MrpBomLotLine(models.Model):
         string='Unit of measure',
         required=True
     )
-    stage_id = fields.Many2one(
-        'mrp.bom.stage',
-        string='Stage',
-        help='Stage of production in which the component is used'
-    )
+
     sequence = fields.Integer(string='Последователност', default=10)
     notes = fields.Char(string='Бележки')
 

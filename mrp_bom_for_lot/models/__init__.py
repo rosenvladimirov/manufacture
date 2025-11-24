@@ -1,4 +1,3 @@
-from . import mrp_bom_stage
 from . import mrp_bom_lot
 from . import mrp_bom_lot_line
 from . import mrp_bom

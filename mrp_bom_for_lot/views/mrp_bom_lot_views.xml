@@ -84,7 +84,6 @@
                                            decoration-danger="qty_difference != 0"
                                            decoration-success="qty_difference == 0"/>
                                     <field name="product_uom_id" readonly="1" force_save="1"/>
-                                    <field name="stage_id" column_invisible="1"/>
                                     <field name="notes"/>
                                 </list>
                             </field>

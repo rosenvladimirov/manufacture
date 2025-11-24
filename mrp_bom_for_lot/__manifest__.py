@@ -13,13 +13,17 @@ Lot/serial number specific BOM creation and management module.
 - 6 named stages + 1 common stage
 - Automatic loading when starting MO
     """,
-    'depends': ['mrp', 'stock', 'product', 'markdown_viewer_locale'],
+    'depends': [
+        'mrp',
+        'stock',
+        'product',
+        'markdown_viewer_locale'
+    ],
     'data': [
         'data/ir_sequence_data.xml',
         'security/ir.model.access.csv',
         'views/mrp_bom_lot_views.xml',
         'views/mrp_production_views.xml',
-        'views/mrp_bom_stage_views.xml',
         'views/mrp_bom_views.xml',
         'views/stock_lot_views.xml',
     ],
