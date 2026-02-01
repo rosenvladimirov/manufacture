@@ -8,16 +8,16 @@
         <field name="arch" type="xml">
             <!-- Добавяне на бутон в header -->
             <xpath expr="//header" position="inside">
-                <button name="action_load_lot_bom" string="Зареди BOM за лот"
+                <button name="action_load_lot_bom" string="Load BOM for lot"
                         type="object" class="btn-primary"
-                        invisible="state not in ['draft', 'confirmed'] or not bom_lot_id"
+                        invisible="state not in ['progress', 'confirmed'] or not bom_lot_id"
                         groups="mrp.group_mrp_user"/>
             </xpath>
 
             <!-- Добавяне на полета след lot_producing_id -->
             <xpath expr="//field[@name='lot_producing_id']" position="after">
                 <field name="bom_lot_id"
-                       domain="[('product_id', '=', product_id), ('state', '=', 'confirmed')]"
+                       domain="[('product_id', '=', product_id)]"
                        options="{'no_create': True}"/>
             </xpath>
         </field>

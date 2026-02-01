@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates id="template" xml:space="preserve">
+    <t
+        t-name="mrp_bom_line_distribution.BomOverviewTable"
+        t-inherit="mrp.BomOverviewTable"
+        t-inherit-mode="extension"
+        owl="1"
+    >
+        <xpath expr="//thead/tr/th[1]/following-sibling::th[1]" position="after">
+            <th class="text-end">Coeff %</th>
+            <th class="text-end">Base Qty</th>
+            <th class="text-end">Qty w/ Coeff</th>
+        </xpath>
+    </t>
+    <t
+        t-name="mrp_bom_line_distribution.BomOverviewLine"
+        t-inherit="mrp.BomOverviewLine"
+        t-inherit-mode="extension"
+        owl="1"
+    >
+        <xpath expr="//tr/td[2]" position="after">
+            <td class="text-end">
+                <t t-if="data.type == 'component'">
+                    <t t-if="!data.is_distribution_master">
+                        <t t-if="distEditingState.value">
+                            <input
+                                t-ref="distInput"
+                                class="o_mrp_bom_distribution_input form-control form-control-sm text-end d-inline-block"
+                                type="text"
+                                inputmode="decimal"
+                                maxlength="6"
+                                t-att-data-base-qty="data.distribution_base_qty || data.quantity"
+                                t-on-click.stop=""
+                                t-on-input.stop="onDistributionInput"
+                                t-on-change.stop="onDistributionInput"
+                                t-on-blur.stop="onDistributionBlur"
+                                t-att-value="distributionPercentDisplay"
+                                style="width: 4.5rem;"
+                            />
+                        </t>
+                        <t t-else="">
+                            <span class="d-inline-flex align-items-center">
+                                <a
+                                    href="#"
+                                    role="button"
+                                    class="fa fa-pencil me-1 text-muted"
+                                    t-on-click.stop="onDistributionEditClick"
+                                    title="Edit coefficient"
+                                />
+                                <span t-esc="formatFloat(distributionPercentDisplay, {'digits': [false, 2]})"/>
+                                <span class="ms-1">%</span>
+                            </span>
+                        </t>
+                    </t>
+                    <t t-else="">
+                        <span t-esc="formatFloat(distributionPercentDisplay, {'digits': [false, 2]})"/>
+                        <span class="ms-1">%</span>
+                    </t>
+                </t>
+            </td>
+            <td class="text-end">
+                <t t-if="data.type == 'component'">
+                    <t t-esc="formatFloat(data.distribution_base_qty || 0, {'digits': [false, precision]})" />
+                </t>
+            </td>
+            <td class="text-end" t-att-data-dist-qty="data.qty_with_distribution">
+                <t t-if="data.type == 'component'">
+                    <t t-esc="formatFloat(distributionQtyDisplay, {'digits': [false, precision]})" />
+                </t>
+            </td>
+        </xpath>
+    </t>
+</templates>

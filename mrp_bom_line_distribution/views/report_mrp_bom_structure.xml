@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  ~ Copyright 2026 vladimirov.rosen@gmail.com
+  ~ License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
+  -->
+<odoo>
+    <template id="report_mrp_bom_distribution" inherit_id="mrp.report_mrp_bom">
+        <xpath expr="//thead/tr/th[1]/following-sibling::th[1]" position="after">
+            <th class="text-end">Coeff %</th>
+            <th class="text-end">Base Qty</th>
+            <th class="text-end">Qty w/ Coeff</th>
+        </xpath>
+        <xpath expr="//tbody/tr[1]/td[2]" position="after">
+            <td class="text-end" />
+            <td class="text-end" />
+            <td class="text-end" />
+        </xpath>
+        <xpath expr="//tfoot/tr/td[last()]" position="after">
+            <td />
+            <td />
+            <td />
+        </xpath>
+    </template>
+    <template id="report_mrp_bom_pdf_line_distribution" inherit_id="mrp.report_mrp_bom_pdf_line">
+        <xpath expr="//td[2]" position="after">
+            <td class="text-end">
+                <t t-if="l.get('type') == 'component'">
+                    <span>
+                        <t t-esc="(l.get('distribution_coefficient') or 0.0) * 100" />
+                        %
+                    </span>
+                </t>
+            </td>
+            <td class="text-end">
+                <t t-if="l.get('type') == 'component'">
+                    <span
+                        t-esc="l.get('distribution_base_qty') or 0.0"
+                        t-options='{"widget": "float", "decimal_precision": "Product Unit of Measure"}'
+                    />
+                </t>
+            </td>
+            <td class="text-end">
+                <t t-if="l.get('type') == 'component'">
+                    <span
+                        t-esc="l.get('qty_with_distribution') or l.get('quantity')"
+                        t-options='{"widget": "float", "decimal_precision": "Product Unit of Measure"}'
+                    />
+                </t>
+            </td>
+        </xpath>
+    </template>
+</odoo>

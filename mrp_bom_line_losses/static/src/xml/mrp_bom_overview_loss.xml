@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<templates id="template" xml:space="preserve">
+    <t
+        t-name="mrp_bom_line_losses.BomOverviewTable"
+        t-inherit="mrp.BomOverviewTable"
+        t-inherit-mode="extension"
+        owl="1"
+    >
+        <xpath expr="//thead/tr/th[1]/following-sibling::th[1]" position="after">
+            <th class="text-end">Loss %</th>
+            <th class="text-end">Qty w/ Loss</th>
+            <th t-if="showCosts" class="text-end">Loss Cost</th>
+        </xpath>
+    </t>
+    <t
+        t-name="mrp_bom_line_losses.BomOverviewLine"
+        t-inherit="mrp.BomOverviewLine"
+        t-inherit-mode="extension"
+        owl="1"
+    >
+        <xpath expr="//tr/td[2]" position="after">
+            <td class="text-end">
+                <t t-if="data.type == 'component'">
+                    <t t-if="lossEditingState.value">
+                        <input
+                            t-ref="lossInput"
+                            class="o_mrp_bom_loss_input form-control form-control-sm text-end d-inline-block"
+                            type="text"
+                            inputmode="decimal"
+                            maxlength="6"
+                            t-att-data-base-qty="data.quantity"
+                            t-on-click.stop=""
+                            t-on-input.stop="onLossInput"
+                            t-on-change.stop="onLossInput"
+                            t-on-blur.stop="onLossBlur"
+                            t-att-value="lossPercentDisplay"
+                            style="width: 4.5rem;"
+                        />
+                    </t>
+                    <t t-else="">
+                        <span class="d-inline-flex align-items-center">
+                            <a
+                                href="#"
+                                role="button"
+                                class="fa fa-pencil me-1 text-muted"
+                                t-on-click.stop="onLossEditClick"
+                                title="Edit loss"
+                            />
+                            <span t-esc="formatFloat(lossPercentDisplay, {'digits': [false, 2]})"/>
+                            <span class="ms-1">%</span>
+                        </span>
+                    </t>
+                </t>
+            </td>
+            <td class="text-end o_mrp_bom_loss_qty" t-att-data-loss-qty="data.qty_with_loss">
+                <t t-if="data.type == 'component'">
+                    <t t-esc="formatFloat(lossQtyDisplay, {'digits': [false, precision]})" />
+                </t>
+            </td>
+            <td t-if="showCosts" class="text-end">
+                <t t-if="data.type == 'component'">
+                    <t t-esc="formatMonetary(lossCostDisplay)" />
+                </t>
+            </td>
+        </xpath>
+    </t>
+</templates>

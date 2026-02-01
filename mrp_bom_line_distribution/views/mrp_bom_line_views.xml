@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+  ~ Copyright 2026 vladimirov.rosen@gmail.com
+  ~ License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
+  -->
+<odoo>
+    <record id="mrp_bom_line_view_form" model="ir.ui.view">
+        <field name="name">Add distribution coefficient to BoM Line form view</field>
+        <field name="model">mrp.bom.line</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_line_view_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_qty']/.." position="after">
+                <field
+                    name="distribution_coefficient"
+                    widget="percentage"
+                    optional="hide"
+                    readonly="is_distribution_master"
+                />
+                <field name="is_distribution_master" column_invisible="1" force_save="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

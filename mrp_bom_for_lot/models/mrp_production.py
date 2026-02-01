@@ -57,7 +57,7 @@ class MrpProduction(models.Model):
 
             if lot_bom_line:
                 # Коригиране на количеството
-                factor = self.product_qty / self.bom_lot_id.product_qty
+                factor = self.product_qty / self.bom_id.product_qty
                 new_qty = lot_bom_line[0].product_qty * factor
                 move.product_uom_qty = new_qty
 

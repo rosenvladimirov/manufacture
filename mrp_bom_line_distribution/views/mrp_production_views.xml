@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2026 vladimirov.rosen@gmail.com
+  ~ License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
+  -->
+<odoo>
+    <record id="mrp_production_form_view_distribution" model="ir.ui.view">
+        <field name="name">mrp.production.form.distribution</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view" />
+        <field name="arch" type="xml">
+            <xpath
+                expr="//field[@name='move_raw_ids']/*[self::list or self::tree]//field[@name='product_uom_qty']"
+                position="after"
+            >
+                <field
+                    name="distribution_coefficient"
+                    widget="percentage"
+                    readonly="is_distribution_master"
+                />
+                <field name="is_distribution_master" invisible="1" />
+                <button
+                    name="action_open_distribution_logs"
+                    type="object"
+                    icon="fa-history"
+                    invisible="is_distribution_master"
+                />
+            </xpath>
+        </field>
+    </record>
+</odoo>
