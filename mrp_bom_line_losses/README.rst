@@ -3,7 +3,11 @@ MRP BoM Line Losses
 ===================
 
 This module adds a loss percentage to BoM lines.
-When a production order is created, the quantity of the components is increased by the loss percentage defined in the BoM.
+When a production order is created, the quantity of the components is adjusted by the loss percentage defined in the BoM.
+
+* Positive loss (e.g., ``0.10``) **adds** extra quantity (scrap).
+* Negative loss (e.g., ``-0.05``) **reduces** required quantity (efficiency gain).
+* Loss must be > -100% (factor must stay positive).
 
 Configuration
 =============

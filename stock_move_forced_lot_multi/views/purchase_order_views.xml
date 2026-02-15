@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Purchase Order Form View - Lines -->
+    <record id="purchase_order_form_forced_lot" model="ir.ui.view">
+        <field name="name">purchase.order.form.forced.lot</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='order_line']/list/field[@name='product_qty']" position="after">
+                <field name="forced_lot_ids" 
+                       widget="many2many_tags"
+                       domain="[('product_id', '=', product_id)]"
+                       options="{'no_create': False}"
+                       optional="show"/>
+                <field name="forced_lot_ids_display" 
+                       string="Lots" 
+                       optional="hide"
+                       readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Purchase Order Line Form View -->
+    <record id="purchase_order_line_form_forced_lot" model="ir.ui.view">
+        <field name="name">purchase.order.line.form.forced.lot</field>
+        <field name="model">purchase.order.line</field>
+        <field name="inherit_id" ref="purchase.purchase_order_line_form2"/>
+        <field name="arch" type="xml">
+            <field name="product_qty" position="after">
+                <field name="forced_lot_ids" 
+                       widget="many2many_tags"
+                       domain="[('product_id', '=', product_id)]"
+                       options="{'no_create': False}"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Purchase Order Tree View -->
+    <record id="purchase_order_line_tree_forced_lot" model="ir.ui.view">
+        <field name="name">purchase.order.line.tree.forced.lot</field>
+        <field name="model">purchase.order.line</field>
+        <field name="inherit_id" ref="purchase.purchase_order_line_tree"/>
+        <field name="arch" type="xml">
+            <field name="product_qty" position="after">
+                <field name="forced_lot_ids" widget="many2many_tags" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

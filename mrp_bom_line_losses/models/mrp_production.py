@@ -2,6 +2,7 @@
 #  License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 from odoo import models
+from odoo.exceptions import ValidationError
 
 
 class MRPProduction(models.Model):
@@ -23,5 +24,11 @@ class MRPProduction(models.Model):
             bom_line=bom_line,
         )
         if bom_line and bom_line.loss != 0.0:
-            values["product_uom_qty"] = product_uom_qty * (1.0 + bom_line.loss)
+            factor = 1.0 + bom_line.loss
+            if factor <= 0.0:
+                raise ValidationError(
+                    "Loss cannot reduce component quantity to zero or negative "
+                    f"(factor={factor:.3f}, loss={bom_line.loss:.3f})"
+                )
+            values["product_uom_qty"] = product_uom_qty * factor
         return values

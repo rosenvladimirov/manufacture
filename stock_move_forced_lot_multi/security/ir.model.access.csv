@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_stock_move_forced_lot_rel,stock.move.forced.lot.rel,stock.model_stock_move,stock.group_stock_user,1,1,1,1
+access_purchase_order_line_forced_lot_rel,purchase.order.line.forced.lot.rel,purchase.model_purchase_order_line,purchase.group_purchase_user,1,1,1,1
+access_stock_move_forced_lot_wizard,stock.move.forced.lot.wizard,model_stock_move_forced_lot_wizard,stock.group_stock_user,1,1,1,1

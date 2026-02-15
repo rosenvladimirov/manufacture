@@ -34,7 +34,8 @@ class ReportBomStructure(models.AbstractModel):
         loss = bom_line.loss or 0.0
         res["line_id"] = bom_line.id
         res["loss"] = loss
-        res["qty_with_loss"] = line_quantity * (1.0 + loss)
+        factor = 1.0 + loss
+        res["qty_with_loss"] = line_quantity * factor if factor > 0.0 else 0.0
         res["loss_qty"] = line_quantity * loss
         if line_quantity:
             unit_cost = res["prod_cost"] / line_quantity

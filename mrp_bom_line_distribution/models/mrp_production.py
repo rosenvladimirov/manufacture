@@ -26,8 +26,12 @@ class MRPProduction(models.Model):
             values["distribution_coefficient"] = bom_line.distribution_coefficient
             values["is_distribution_master"] = bom_line.is_distribution_master
             base_qty = 0.0
-            if bom_line.product_qty:
-                factor = product_uom_qty / bom_line.product_qty
-                base_qty = bom_line.bom_id.base_distribution_qty * factor
+            bom = bom_line.bom_id
+            if bom and bom.product_qty:
+                qty_in_bom_uom = self.product_uom_id._compute_quantity(
+                    self.product_qty, bom.product_uom_id, round=False
+                )
+                factor = qty_in_bom_uom / bom.product_qty
+                base_qty = bom.base_distribution_qty * factor
             values["base_distribution_qty"] = base_qty
         return values

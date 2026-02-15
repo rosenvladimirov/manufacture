@@ -1,0 +1,73 @@
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <h2 class="oe_slogan">Stock Move Forced Lot Multi</h2>
+        <h3 class="oe_slogan">Force multiple lots from MO to PO through procurement</h3>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3>Overview</h3>
+            <p>
+                This module allows you to define multiple lots on Manufacturing Order components,
+                which are then automatically propagated through procurement to Purchase Orders
+                and their incoming shipments.
+            </p>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3>Workflow</h3>
+            <pre>
+MO (Manufacturing Order)
+  └── stock.move (raw material)
+          └── forced_lot_ids = [LOT001, LOT002, LOT003]
+                              ↓ procurement (MTO)
+PO (Purchase Order)
+  └── purchase.order.line
+          ├── forced_lot_ids = [LOT001, LOT002, LOT003]
+          └── description includes lot names
+                              ↓ confirm PO
+Picking (incoming)
+  └── stock.move
+          └── stock.move.line (auto-created)
+                  ├── lot_id = LOT001
+                  ├── lot_id = LOT002
+                  └── lot_id = LOT003
+            </pre>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3>Features</h3>
+            <ul>
+                <li>Many2many lots on stock moves</li>
+                <li>Automatic propagation through procurement</li>
+                <li>Lot names added to PO line description</li>
+                <li>Auto-creation of move lines per lot on incoming</li>
+                <li>Full MRP integration</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_span12">
+            <h3>Usage</h3>
+            <ol>
+                <li>Create a Manufacturing Order</li>
+                <li>In Components tab, add lots to "Forced Lots" field</li>
+                <li>Confirm MO - PO is created with lots (if MTO)</li>
+                <li>Confirm PO - Picking has move lines per lot</li>
+            </ol>
+        </div>
+    </div>
+</section>
