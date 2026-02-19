@@ -78,6 +78,19 @@ class PurchaseOrderLine(models.Model):
             else:
                 lot_ids = list(forced_lot_ids)
             vals["forced_lot_ids"] = [(6, 0, lot_ids)]
+
+            # Build description with lot names (and refs when present)
+            lot_descriptions = []
+            for lot in forced_lot_ids:
+                lot_desc = lot.name
+                if lot.ref:
+                    lot_desc += f" ({lot.ref})"
+                lot_descriptions.append(lot_desc)
+
+            if lot_descriptions:
+                existing_name = vals.get("name", "")
+                lot_info = "\n".join(lot_descriptions)
+                vals["name"] = f"{existing_name}\n\nLots:\n{lot_info}"
         return vals
 
 

@@ -36,33 +36,6 @@ class StockRule(models.Model):
             ]
         return move_values
 
-    def _prepare_purchase_order_line(
-        self, product_id, product_qty, product_uom, company_id, values, po
-    ):
-        """Pass forced_lot_ids to purchase order line."""
-        line_values = super()._prepare_purchase_order_line(
-            product_id, product_qty, product_uom, company_id, values, po
-        )
-
-        forced_lot_ids = values.get("forced_lot_ids")
-        if forced_lot_ids:
-            line_values["forced_lot_ids"] = [(6, 0, forced_lot_ids.ids)]
-
-            # Build description with lot names
-            lot_descriptions = []
-            for lot in forced_lot_ids:
-                lot_desc = lot.name
-                if lot.ref:
-                    lot_desc += f" ({lot.ref})"
-                lot_descriptions.append(lot_desc)
-
-            if lot_descriptions:
-                existing_name = line_values.get("name", "")
-                lot_info = "\n".join(lot_descriptions)
-                line_values["name"] = f"{existing_name}\n\nLots:\n{lot_info}"
-
-        return line_values
-
     def _run_buy(self, procurements):
         """Ensure forced_lot_ids are passed through buy rule."""
         # The parent method will call _prepare_purchase_order_line
