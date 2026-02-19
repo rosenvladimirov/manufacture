@@ -78,9 +78,8 @@ class StockMove(models.Model):
         if remaining_qty <= 0:
             return
 
-        qty_per_lot = remaining_qty / len(lots_to_create)
-
         for lot in lots_to_create:
+            qty_per_lot = self._get_qty_per_lot(remaining_qty, lots_to_create, lot)
             self.env["stock.move.line"].create({
                 "move_id": self.id,
                 "product_id": self.product_id.id,
@@ -91,6 +90,11 @@ class StockMove(models.Model):
                 "lot_id": lot.id,
                 "quantity": qty_per_lot,
             })
+
+    def _get_qty_per_lot(self, remaining_qty, lots_to_create, lot=None):
+        """Return the quantity to use per lot when creating move lines."""
+        self.ensure_one()
+        return remaining_qty / len(lots_to_create)
 
     def _merge_moves(self, merge_into=False):
         """Prevent merging moves with different forced lots."""
