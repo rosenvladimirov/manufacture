@@ -6,7 +6,7 @@
     "category": "Manufacturing",
     "website": "https://github.com/OCA/manufacture",
     "author": "Tecnativa, Odoo Community Association (OCA)",
-    "license": "AGPL-3",
+    "license": "LGPL-3",
     "depends": ["mrp"],
     "installable": True,
     "data": [
