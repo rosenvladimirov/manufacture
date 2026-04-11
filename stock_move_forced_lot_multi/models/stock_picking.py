@@ -14,9 +14,9 @@ class StockPicking(models.Model):
         help="Lots forced on moves in this picking.",
     )
 
-    @api.depends("move_ids_without_package.forced_lot_ids")
+    @api.depends("move_ids.forced_lot_ids")
     def _compute_forced_lot_ids(self):
         for picking in self:
             picking.forced_lot_ids = (
-                picking.move_ids_without_package.mapped("forced_lot_ids")
+                picking.move_ids.mapped("forced_lot_ids")
             )

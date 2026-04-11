@@ -35,13 +35,13 @@
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//page[@name='operations']//field[@name='move_ids_without_package']/list/field[@name='product_uom_qty']" position="after">
+            <xpath expr="//page[@name='operations']//field[@name='move_ids']/list/field[@name='product_uom_qty']" position="after">
                 <field name="forced_lot_ids"
                        widget="many2many_tags"
                        column_invisible="True"
                        optional="hide"/>
             </xpath>
-            <xpath expr="//page[@name='operations']//field[@name='move_ids_without_package']/list" position="inside">
+            <xpath expr="//page[@name='operations']//field[@name='move_ids']/list" position="inside">
                 <button name="action_open_forced_lot_wizard"
                         type="object"
                         class="btn btn-sm o_icon_button"
