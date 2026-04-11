@@ -4,7 +4,7 @@
 {
     "name": "Stock Move Forced Lot Multi - Dimensions",
     "summary": "Add lot dimensions (width/height/thickness) and pieces calculation to PO lines",
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.0.1",
     "category": "Warehouse Management",
     "website": "https://github.com/OCA/stock-logistics-workflow",
     "author": "Your Company, Odoo Community Association (OCA)",

@@ -18,7 +18,7 @@ class PurchaseOrderLine(models.Model):
 
     @api.depends(
         "product_qty",
-        "product_uom",
+        "product_uom_id",
         "forced_lot_ids",
         "forced_lot_ids.width",
         "forced_lot_ids.height",
@@ -30,7 +30,7 @@ class PurchaseOrderLine(models.Model):
         meter_uom = self.env.ref("uom.product_uom_meter", raise_if_not_found=False)
 
         for line in self:
-            if not line.product_uom:
+            if not line.product_uom_id:
                 line.lot_pcs_qty = 0.0
                 continue
 
@@ -60,13 +60,13 @@ class PurchaseOrderLine(models.Model):
 
             if (
                 square_meter_uom
-                and line.product_uom.category_id.id == square_meter_uom.category_id.id
+                and line.product_uom_id.category_id.id == square_meter_uom.category_id.id
             ):
                 if not lot_area_sqm:
                     line.lot_pcs_qty = 0.0
                     continue
 
-                qty_sqm = line.product_uom._compute_quantity(
+                qty_sqm = line.product_uom_id._compute_quantity(
                     line.product_qty or 0.0, square_meter_uom, round=False
                 )
                 line.lot_pcs_qty = qty_sqm / lot_area_sqm
@@ -74,14 +74,14 @@ class PurchaseOrderLine(models.Model):
 
             if (
                 meter_uom
-                and line.product_uom.category_id.id == meter_uom.category_id.id
+                and line.product_uom_id.category_id.id == meter_uom.category_id.id
             ):
                 bar_length_m = lot_width / 1000 if lot_width else 0.0
                 if not bar_length_m:
                     line.lot_pcs_qty = 0.0
                     continue
 
-                qty_m = line.product_uom._compute_quantity(
+                qty_m = line.product_uom_id._compute_quantity(
                     line.product_qty or 0.0, meter_uom, round=False
                 )
                 line.lot_pcs_qty = qty_m / bar_length_m
@@ -95,7 +95,7 @@ class PurchaseOrderLine(models.Model):
         if not square_meter_uom:
             return vals
 
-        uom = self.env["uom.uom"].browse(vals.get("product_uom") or self.product_uom.id)
+        uom = self.env["uom.uom"].browse(vals.get("product_uom_id") or self.product_uom_id.id)
         if not uom or uom.category_id.id != square_meter_uom.category_id.id:
             return vals
 
