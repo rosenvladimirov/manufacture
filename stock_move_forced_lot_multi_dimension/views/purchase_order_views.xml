@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Purchase Order Form View - Dimension fields -->
+    <record id="purchase_order_form_forced_lot_dimension" model="ir.ui.view">
+        <field name="name">purchase.order.form.forced.lot.dimension</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="stock_move_forced_lot_multi.purchase_order_form_forced_lot"/>
+        <field name="arch" type="xml">
+            <field name="forced_lot_ids" position="before">
+                <field name="lot_pcs_qty" readonly="1" optional="show"/>
+            </field>
+            <field name="forced_lot_ids" position="after">
+                <field name="lot_width" optional="hide"/>
+                <field name="lot_height" optional="hide"/>
+                <field name="lot_thickness" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Purchase Order Line Form View - Dimension fields -->
+    <record id="purchase_order_line_form_forced_lot_dimension" model="ir.ui.view">
+        <field name="name">purchase.order.line.form.forced.lot.dimension</field>
+        <field name="model">purchase.order.line</field>
+        <field name="inherit_id" ref="stock_move_forced_lot_multi.purchase_order_line_form_forced_lot"/>
+        <field name="arch" type="xml">
+            <field name="forced_lot_ids" position="before">
+                <field name="lot_pcs_qty" readonly="1"/>
+            </field>
+            <field name="forced_lot_ids" position="after">
+                <field name="lot_width"/>
+                <field name="lot_height"/>
+                <field name="lot_thickness"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Purchase Order Tree View - Dimension fields -->
+    <record id="purchase_order_line_tree_forced_lot_dimension" model="ir.ui.view">
+        <field name="name">purchase.order.line.tree.forced.lot.dimension</field>
+        <field name="model">purchase.order.line</field>
+        <field name="inherit_id" ref="stock_move_forced_lot_multi.purchase_order_line_tree_forced_lot"/>
+        <field name="arch" type="xml">
+            <field name="forced_lot_ids" position="before">
+                <field name="lot_pcs_qty" readonly="1" optional="show"/>
+            </field>
+            <field name="forced_lot_ids" position="after">
+                <field name="lot_width" optional="hide"/>
+                <field name="lot_height" optional="hide"/>
+                <field name="lot_thickness" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Stock Lot Form View - Dimension fields -->
+    <record id="view_stock_lot_form_inherit_dimension" model="ir.ui.view">
+        <field name="name">stock.lot.form.inherit.dimension</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='product_qty']" position="after">
+                <field name="product_uom_qty"/>
+            </xpath>
+            <xpath expr="//group[@name='main_group']/group[1]" position="inside">
+                <field name="width"/>
+                <field name="height"/>
+                <field name="thickness"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Stock Lot Tree View - Dimension fields -->
+    <record id="view_stock_lot_tree_inherit_dimension" model="ir.ui.view">
+        <field name="name">stock.lot.tree.inherit.dimension</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+        <field name="arch" type="xml">
+            <field name="product_qty" position="after">
+                <field name="product_uom_qty" optional="show"/>
+            </field>
+            <field name="company_id" position="before">
+                <field name="width" optional="hide"/>
+                <field name="height" optional="hide"/>
+                <field name="thickness" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <!-- Stock Lot Search View - Dimension fields -->
+    <record id="view_stock_lot_search_inherit_dimension" model="ir.ui.view">
+        <field name="name">stock.lot.search.inherit.dimension</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.search_product_lot_filter"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <field name="width"/>
+                <field name="height"/>
+                <field name="thickness"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>
