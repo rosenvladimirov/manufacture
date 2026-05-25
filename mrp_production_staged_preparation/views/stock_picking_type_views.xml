@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BL Consulting
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+    <record id="stock_picking_type_form_staged_preparation"
+            model="ir.ui.view">
+        <field name="name">stock.picking.type.form.staged.preparation</field>
+        <field name="model">stock.picking.type</field>
+        <field name="inherit_id" ref="stock.view_picking_type_form"/>
+        <field name="arch" type="xml">
+            <!-- Add new group at end of the General page, visible only for
+                 manufacturing operation types. -->
+            <xpath expr="//page[@name='general']" position="inside">
+                <group string="Staged Preparation"
+                       name="staged_preparation"
+                       invisible="code != 'mrp_operation'">
+                    <field name="staged_preparation_enabled"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

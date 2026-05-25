@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 BL Consulting
+     License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl). -->
+<odoo>
+
+    <record id="mrp_production_form_staged_preparation"
+            model="ir.ui.view">
+        <field name="name">mrp.production.form.staged.preparation</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+
+            <!-- Visible stage badge alongside the existing state widget -->
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="staged_preparation_enabled" invisible="1"/>
+                <field name="stage"
+                       widget="statusbar"
+                       statusbar_visible="intermediate,prepared"
+                       invisible="not staged_preparation_enabled"/>
+            </xpath>
+
+            <!-- Prepare button: видим само при intermediate + enabled + active state -->
+            <xpath expr="//header" position="inside">
+                <button name="action_prepare_production"
+                        type="object"
+                        string="Prepare for Production"
+                        class="oe_highlight"
+                        invisible="(not staged_preparation_enabled) or stage != 'intermediate' or state not in ('confirmed', 'progress')"
+                        groups="mrp.group_mrp_user"/>
+            </xpath>
+
+        </field>
+    </record>
+
+</odoo>
