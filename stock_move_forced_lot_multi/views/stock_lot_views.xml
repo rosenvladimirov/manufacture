@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_stock_lot_form_inherit_forced_mo" model="ir.ui.view">
+        <field name="name">stock.lot.form.inherit.forced.split</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='main_group']/group" position="inside">
+                <field name="force_split"/>
+                <field name="split_buffer_qty"
+                       invisible="not force_split"
+                       required="force_split"/>
+                <field name="po_split"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_stock_lot_tree_inherit_forced_mo" model="ir.ui.view">
+        <field name="name">stock.lot.tree.inherit.forced.split</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.view_production_lot_tree"/>
+        <field name="arch" type="xml">
+            <field name="company_id" position="before">
+                <field name="force_split" optional="hide"/>
+                <field name="split_buffer_qty" optional="hide"/>
+                <field name="po_split" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_stock_lot_search_inherit_forced_mo" model="ir.ui.view">
+        <field name="name">stock.lot.search.inherit.forced.split</field>
+        <field name="model">stock.lot</field>
+        <field name="inherit_id" ref="stock.search_product_lot_filter"/>
+        <field name="arch" type="xml">
+            <field name="name" position="after">
+                <filter name="force_split" string="Split Into Separate Procurement"
+                        domain="[('force_split', '=', True)]"/>
+                <filter name="po_split" string="Force PO Line Split"
+                        domain="[('po_split', '=', True)]"/>
+            </field>
+        </field>
+    </record>
+
+</odoo>

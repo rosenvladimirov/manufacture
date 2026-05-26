@@ -31,4 +31,22 @@
         </field>
     </record>
 
+    <!-- MRP Production - Components Tab (alternative xpath if above doesn't work) -->
+    <record id="mrp_production_form_forced_lot_alt" model="ir.ui.view">
+        <field name="name">mrp.production.form.forced.lot.alt</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <!-- Components section in form view -->
+            <xpath expr="//field[@name='move_raw_ids']//field[@name='quantity']" position="after">
+                <field name="forced_lot_ids"
+                       widget="many2many_tags"
+                       domain="[('product_id', '=', product_id)]"
+                       optional="show"
+                       invisible="not product_id"/>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>

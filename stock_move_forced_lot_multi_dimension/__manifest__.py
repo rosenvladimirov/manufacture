@@ -2,9 +2,9 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 {
-    "name": "Stock Move Forced Lot Multi",
-    "summary": "Force multiple lots on stock moves from MO to PO",
-    "version": "18.0.4.1.0",
+    "name": "Stock Move Forced Lot Multi - Dimensions",
+    "summary": "Add lot dimensions (width/height/thickness) and pieces calculation to PO lines",
+    "version": "18.0.1.2.0",
     "category": "Warehouse Management",
     "website": "https://github.com/OCA/stock-logistics-workflow",
     "author": "Your Company, Odoo Community Association (OCA)",
@@ -13,17 +13,10 @@
     "application": False,
     "installable": True,
     "depends": [
-        "stock",
-        "purchase_stock",
-        "mrp",
+        "stock_move_forced_lot_multi",
     ],
     "data": [
-        "security/ir.model.access.csv",
         "views/stock_lot_views.xml",
-        "views/stock_move_views.xml",
-        "views/stock_move_forced_lot_wizard_views.xml",
         "views/purchase_order_views.xml",
-        "views/mrp_production_views.xml",
-        "views/stock_orderpoint_views.xml",
     ],
 }

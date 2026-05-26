@@ -6,9 +6,9 @@
 <odoo>
     <template id="report_mrp_bom_loss" inherit_id="mrp.report_mrp_bom">
         <xpath expr="//thead/tr/th[1]/following-sibling::th[1]" position="after">
-            <th class="text-end">Loss %</th>
-            <th class="text-end">Qty w/ Loss</th>
-            <th class="text-end">Loss Cost</th>
+            <th class="text-end">Loss/Eff. %</th>
+            <th class="text-end">Adj. Qty</th>
+            <th class="text-end">Adj. Cost</th>
         </xpath>
         <xpath expr="//tbody/tr[1]/td[2]" position="after">
             <td class="text-end" />

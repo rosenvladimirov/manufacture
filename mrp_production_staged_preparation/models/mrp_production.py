@@ -83,7 +83,34 @@ class MrpProduction(models.Model):
     # _staged_intermediate_active() → bypass-нати endpoints и MTS raw moves.
 
     def action_confirm(self):
-        result = super().action_confirm()
+        # Pre-rewrite endpoint-ите на raw/finished moves за staged MOs ПРЕДИ
+        # super(). Причина: raw moves може да са били създадени при draft
+        # _compute_move_raw_ids когато picking_type.staged_preparation_enabled
+        # е бил False, или при copy от стар MO; в тоя случай _get_move_raw_values
+        # override-ът няма как да е намесен. Force-write на endpoint-ите към
+        # WH/Stock ги нормализира към "1-step look" преди _adjust_procure_method.
+        staged_ids = tuple(p.id for p in self if p.staged_preparation_enabled)
+        for production in self.filtered(lambda p: p.id in staged_ids):
+            wh = production._staged_warehouse()
+            if not (wh and wh.lot_stock_id):
+                continue
+            production.move_raw_ids.write({
+                "location_id": wh.lot_stock_id.id,
+                "warehouse_id": wh.id,
+                "procure_method": "make_to_stock",
+            })
+            production.move_finished_ids.write({
+                "location_dest_id": wh.lot_stock_id.id,
+                "warehouse_id": wh.id,
+            })
+        # Подаваме staged_ids през context, за да може stock.move
+        # _adjust_procure_method override да short-circuit-ва ДОКАТО state е
+        # още 'confirmed' (flip към 'preparation' се случва СЛЕД super тук).
+        ctx_self = (
+            self.with_context(staged_preparation_pending_ids=staged_ids)
+            if staged_ids else self
+        )
+        result = super(MrpProduction, ctx_self).action_confirm()
         for production in self:
             if (
                 production.staged_preparation_enabled
@@ -258,14 +285,48 @@ class MrpProduction(models.Model):
         if raw_to_reconfirm:
             raw_to_reconfirm.write({"procure_method": "make_to_order"})
 
-        # ── Re-trigger pull rules чрез _action_confirm ──────────────────
-        # merge=False — не искаме новородените Pick/Store да се merge-нат с
-        # други MO's pickings (procurement_group_id вече осигурява separation,
-        # но изричен merge=False е допълнителна гаранция).
+        # ── Re-trigger pull rules ─────────────────────────────────────────
+        # Odoo 18 ``stock.move._action_confirm`` обработва САМО moves в
+        # state='draft' (вижда filter в native кода). Нашите raw moves вече
+        # са state='confirmed' от native action_confirm, затова повторно
+        # викане няма ефект — pull rule никога не се evaluates и Pick picking
+        # не се ражда.
+        #
+        # Затова явно изпълняваме ``procurement.group.run`` за raw moves —
+        # това задейства MTO pull rule (Stock→pbm_loc) → Pick picking се
+        # ражда нативно с move_dest_ids сочещ обратно към raw move-а.
         moves_to_reconfirm = raw_to_reconfirm | finished_to_reconfirm
         if moves_to_reconfirm:
             moves_to_reconfirm._action_confirm(merge=False)
-            _logger.info(
-                "Staged preparation: MO %s → %d moves re-confirmed (steps=%s)",
-                self.name, len(moves_to_reconfirm), steps,
-            )
+
+        if raw_to_reconfirm:
+            Procurement = self.env["procurement.group"]
+            procurements = []
+            for move in raw_to_reconfirm:
+                values = {
+                    "group_id": self.procurement_group_id,
+                    "date_planned": move.date,
+                    "date_deadline": move.date_deadline,
+                    "move_dest_ids": move,
+                    "route_ids": move.route_ids,
+                    "warehouse_id": wh,
+                    "priority": self.priority,
+                    "company_id": self.company_id,
+                    "product_description_variants": move.description_picking or "",
+                }
+                procurements.append(Procurement.Procurement(
+                    move.product_id,
+                    move.product_uom_qty,
+                    move.product_uom,
+                    move.location_id,
+                    move.product_id.display_name,
+                    move.origin or self.name,
+                    self.company_id,
+                    values,
+                ))
+            if procurements:
+                Procurement.run(procurements)
+                _logger.info(
+                    "Staged preparation: MO %s → %d procurements run (steps=%s)",
+                    self.name, len(procurements), steps,
+                )

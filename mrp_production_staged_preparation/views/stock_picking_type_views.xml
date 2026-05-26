@@ -12,10 +12,12 @@
             <!-- Add new group at end of the General page, visible only for
                  manufacturing operation types. -->
             <xpath expr="//page[@name='general']" position="inside">
-                <group string="Staged Preparation"
-                       name="staged_preparation"
-                       invisible="code != 'mrp_operation'">
-                    <field name="staged_preparation_enabled"/>
+                <group>
+                    <group string="Staged Preparation"
+                           name="staged_preparation"
+                           invisible="code != 'mrp_operation'">
+                        <field name="staged_preparation_enabled"/>
+                    </group>
                 </group>
             </xpath>
         </field>

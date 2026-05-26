@@ -3,12 +3,13 @@
 {
     "name": "MRP Production Staged Preparation",
     "summary": (
-        "Two-stage MO lifecycle: confirm в 'intermediate' (forecast active, "
-        "no logistic pickings) → user action 'Prepare for production' → "
-        "endpoints се swap-ват към буферните локации, native procurement "
-        "ражда Pick/Store pickings."
+        "Two-stage MO lifecycle expressed in native state: confirm into "
+        "'preparation' (forecast active, no logistic pickings) → user "
+        "action 'Prepare for production' → endpoints swap to buffer "
+        "locations, native procurement gives birth to Pick/Store pickings, "
+        "state becomes 'confirmed'."
     ),
-    "version": "18.0.1.0.0",
+    "version": "18.0.2.0.0",
     "category": "Manufacturing",
     "website": "https://github.com/OCA/manufacture",
     "author": "BL Consulting, Odoo Community Association (OCA)",

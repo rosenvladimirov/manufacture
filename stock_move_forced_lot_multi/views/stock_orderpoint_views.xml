@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_warehouse_orderpoint_tree_inherit_forced_lots" model="ir.ui.view">
+        <field name="name">stock.warehouse.orderpoint.list.inherit.forced.lots</field>
+        <field name="model">stock.warehouse.orderpoint</field>
+        <field name="inherit_id" ref="stock.view_warehouse_orderpoint_tree_editable"/>
+        <field name="arch" type="xml">
+            <list position="attributes">
+                <attribute name="default_order">parent_id, id</attribute>
+                <attribute name="open_form_view">1</attribute>
+            </list>
+            <field name="product_max_qty" position="after">
+                <field name="is_lot_child" column_invisible="True"/>
+                <field name="allowed_lot_ids" column_invisible="True"/>
+                <field name="parent_id" optional="hide" readonly="1"/>
+                <field name="lot_id" optional="show"
+                       readonly="not parent_id"
+                       domain="[('id', 'in', allowed_lot_ids)]"/>
+                <field name="child_count" widget="badge"
+                       decoration-info="child_count &gt; 0"
+                       invisible="child_count == 0"
+                       optional="show"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_warehouse_orderpoint_form_inherit_forced_lots" model="ir.ui.view">
+        <field name="name">stock.warehouse.orderpoint.form.inherit.forced.lots</field>
+        <field name="model">stock.warehouse.orderpoint</field>
+        <field name="inherit_id" ref="stock.view_warehouse_orderpoint_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group" position="before">
+                <field name="parent_id" invisible="1"/>
+                <field name="is_lot_child" invisible="1"/>
+            </xpath>
+            <xpath expr="//sheet/group" position="after">
+                <notebook invisible="parent_id">
+                    <page name="lot_subrules" string="Lot Sub-rules"
+                          invisible="not product_id">
+                        <field name="allowed_lot_ids" invisible="1"/>
+                        <field name="child_ids"
+                               context="{'default_parent_id': id,
+                                         'default_product_id': product_id,
+                                         'default_location_id': location_id,
+                                         'default_warehouse_id': warehouse_id,
+                                         'default_company_id': company_id}">
+                            <list>
+                                <field name="lot_id"/>
+                                <field name="product_min_qty" string="Min"/>
+                                <field name="product_max_qty" string="Max"/>
+                                <field name="qty_on_hand"/>
+                                <field name="qty_forecast"/>
+                                <field name="qty_to_order"/>
+                            </list>
+                        </field>
+                        <div class="text-muted">
+                            <i class="fa fa-info-circle"/>
+                            When this product-level orderpoint has lot
+                            sub-rules, the children determine
+                            replenishment (one procurement per listed
+                            lot). The parent product-level min/max only
+                            applies as fallback for lots not registered
+                            here ("orphan" forced lots arriving from
+                            MTO / manual flows).
+                        </div>
+                    </page>
+                </notebook>
+                <group invisible="not parent_id">
+                    <group string="Lot Sub-rule">
+                        <field name="allowed_lot_ids" invisible="1"/>
+                        <field name="parent_id" readonly="1"
+                               options="{'no_create': True, 'no_open': False}"/>
+                        <field name="lot_id"
+                               domain="[('id', 'in', allowed_lot_ids)]"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="stock_reorder_report_search_inherit_lot" model="ir.ui.view">
+        <field name="name">stock.warehouse.orderpoint.reorder.search.inherit.lot</field>
+        <field name="model">stock.warehouse.orderpoint</field>
+        <field name="inherit_id" ref="stock.stock_reorder_report_search"/>
+        <field name="arch" type="xml">
+            <field name="product_id" position="after">
+                <field name="lot_id"/>
+            </field>
+            <filter name="filter_to_reorder" position="after">
+                <separator/>
+                <filter name="filter_lot_children" string="Lot Sub-rules"
+                        domain="[('is_lot_child', '=', True)]"/>
+                <filter name="filter_parents_only" string="Parents only"
+                        domain="[('is_lot_child', '=', False)]"/>
+            </filter>
+        </field>
+    </record>
+
+    <record id="stock.action_orderpoint_replenish" model="ir.actions.act_window">
+        <field name="domain">[('is_lot_child', '=', False)]</field>
+    </record>
+
+</odoo>

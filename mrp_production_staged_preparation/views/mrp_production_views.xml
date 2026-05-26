@@ -10,22 +10,18 @@
         <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
         <field name="arch" type="xml">
 
-            <!-- Visible stage badge alongside the existing state widget -->
+            <!-- Inject staged_preparation_enabled flag (hidden) so views/buttons can use it. -->
             <xpath expr="//field[@name='state']" position="before">
                 <field name="staged_preparation_enabled" invisible="1"/>
-                <field name="stage"
-                       widget="statusbar"
-                       statusbar_visible="intermediate,prepared"
-                       invisible="not staged_preparation_enabled"/>
             </xpath>
 
-            <!-- Prepare button: видим само при intermediate + enabled + active state -->
+            <!-- Prepare button: видим само при state='preparation' + enabled -->
             <xpath expr="//header" position="inside">
                 <button name="action_prepare_production"
                         type="object"
                         string="Prepare for Production"
                         class="oe_highlight"
-                        invisible="(not staged_preparation_enabled) or stage != 'intermediate' or state not in ('confirmed', 'progress')"
+                        invisible="(not staged_preparation_enabled) or state != 'preparation'"
                         groups="mrp.group_mrp_user"/>
             </xpath>
 

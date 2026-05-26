@@ -7,6 +7,11 @@ from odoo import api, fields, models
 class StockMove(models.Model):
     _inherit = "stock.move"
 
+    forced_lot_extra_data = fields.Json(
+        string="Extra Data",
+        help="Arbitrary JSON data attached to this move for propagation purposes.",
+    )
+
     forced_lot_ids = fields.Many2many(
         comodel_name="stock.lot",
         relation="stock_move_forced_lot_rel",
@@ -19,93 +24,91 @@ class StockMove(models.Model):
     )
 
     def _prepare_procurement_values(self):
-        """Pass forced_lot_ids to procurement for propagation to PO."""
+        """Pass forced_lot_ids to procurement for propagation to PO/MO."""
         values = super()._prepare_procurement_values()
         if self.forced_lot_ids:
             values["forced_lot_ids"] = self.forced_lot_ids
         return values
 
-    def _get_new_picking_values(self):
-        """Include forced lots info when creating new picking."""
-        values = super()._get_new_picking_values()
-        return values
-
-    def _prepare_move_line_vals(self, quantity=None, reserved_quant=None):
-        """Prepare move line values - will be extended for lot population."""
-        vals = super()._prepare_move_line_vals(
-            quantity=quantity, reserved_quant=reserved_quant
-        )
-        return vals
+    @api.model
+    def _prepare_merge_moves_distinct_fields(self):
+        """Prevent merging moves with different forced_lot_ids."""
+        distinct_fields = super()._prepare_merge_moves_distinct_fields()
+        distinct_fields.append("forced_lot_ids")
+        return distinct_fields
 
     def _action_assign(self, force_qty=False):
-        """Override to handle forced lots on incoming moves."""
+        """Auto-fill move_line.lot_id from forced_lot_ids when empty.
+
+        Runs after super()._action_assign() so any lot picked by quant
+        reservation wins. Only writes on move_lines that have neither
+        lot_id nor lot_name set — never overrides Odoo's reservation
+        choice or a value the user typed.
+
+        Single forced lot → fills lot_id on all empty lines.
+        Multiple forced lots → only acts when there is exactly one empty
+        line; splits it pro-rata into one line per forced lot. Other
+        shapes (multiple empty lines and multiple forced lots) are left
+        untouched for the user to resolve.
+
+        Skips creation for any forced lot that already has a non-empty
+        move_line on the move — prevents duplicate zero-qty lines when
+        another flow (e.g. LogiKal importer) pre-seeded the lines.
+        """
         res = super()._action_assign(force_qty=force_qty)
-        # For incoming moves with forced lots, create move lines per lot
-        for move in self.filtered(
-            lambda m: m.forced_lot_ids
-            and m.picking_type_id.code == "incoming"
-            and m.state in ("confirmed", "partially_available", "assigned")
-        ):
-            move._create_forced_lot_move_lines()
-        return res
+        MoveLine = self.env["stock.move.line"]
+        for move in self:
+            if not move.forced_lot_ids:
+                continue
+            if move.product_id.tracking == "none":
+                continue
+            forced_lots = move.forced_lot_ids
+            empty_lines = move.move_line_ids.filtered(
+                lambda ml: not ml.lot_id and not ml.lot_name
+            )
+            if not empty_lines:
+                continue
 
-    def _create_forced_lot_move_lines(self):
-        """Create stock.move.line records for each forced lot."""
-        self.ensure_one()
-        if not self.forced_lot_ids:
-            return
+            already_seeded_lot_ids = set(
+                move.move_line_ids.filtered("lot_id").mapped("lot_id").ids
+            )
 
-        # Remove existing move lines without lot or with lots not in forced_lot_ids
-        lines_to_remove = self.move_line_ids.filtered(
-            lambda l: not l.lot_id or l.lot_id not in self.forced_lot_ids
-        )
-        lines_to_remove.unlink()
+            if len(forced_lots) == 1:
+                if forced_lots.id in already_seeded_lot_ids:
+                    continue
+                empty_lines.write({"lot_id": forced_lots[0].id})
+                continue
 
-        # Get existing lots in move lines
-        existing_lots = self.move_line_ids.mapped("lot_id")
+            if len(empty_lines) != 1:
+                continue
+            first = empty_lines[0]
+            total_qty = first.quantity or move.product_uom_qty
+            if total_qty <= 0:
+                continue
 
-        # Calculate quantity per lot (equal distribution or based on lot info)
-        lots_to_create = self.forced_lot_ids - existing_lots
-        if not lots_to_create:
-            return
-
-        # Distribute quantity equally among lots for now
-        # This can be enhanced to use lot-specific quantities
-        total_qty = self.product_uom_qty
-        existing_qty = sum(self.move_line_ids.mapped("quantity"))
-        remaining_qty = total_qty - existing_qty
-
-        if remaining_qty <= 0:
-            return
-
-        for lot in lots_to_create:
-            qty_per_lot = self._get_qty_per_lot(remaining_qty, lots_to_create, lot)
-            self.env["stock.move.line"].create({
-                "move_id": self.id,
-                "product_id": self.product_id.id,
-                "product_uom_id": self.product_uom.id,
-                "location_id": self.location_id.id,
-                "location_dest_id": self.location_dest_id.id,
-                "picking_id": self.picking_id.id,
-                "lot_id": lot.id,
+            lots_to_seed = forced_lots.filtered(
+                lambda l: l.id not in already_seeded_lot_ids
+            )
+            if not lots_to_seed:
+                continue
+            qty_per_lot = total_qty / len(lots_to_seed)
+            first.write({
+                "lot_id": lots_to_seed[0].id,
                 "quantity": qty_per_lot,
             })
-
-    def _get_qty_per_lot(self, remaining_qty, lots_to_create, lot=None):
-        """Return the quantity to use per lot when creating move lines."""
-        self.ensure_one()
-        return remaining_qty / len(lots_to_create)
-
-    def _merge_moves(self, merge_into=False):
-        """Prevent merging moves with different forced lots."""
-        # Group moves by forced_lot_ids to prevent incorrect merging
-        moves_to_merge = self.filtered(lambda m: not m.forced_lot_ids)
-        moves_with_lots = self - moves_to_merge
-
-        result = super(StockMove, moves_to_merge)._merge_moves(merge_into=merge_into)
-
-        # Don't merge moves with forced lots - return them as-is
-        return result | moves_with_lots
+            for lot in lots_to_seed[1:]:
+                MoveLine.create({
+                    "move_id": move.id,
+                    "product_id": move.product_id.id,
+                    "product_uom_id": move.product_uom.id,
+                    "location_id": move.location_id.id,
+                    "location_dest_id": move.location_dest_id.id,
+                    "picking_id": move.picking_id.id,
+                    "lot_id": lot.id,
+                    "quantity": qty_per_lot,
+                    "company_id": move.company_id.id,
+                })
+        return res
 
     def action_open_forced_lot_wizard(self):
         self.ensure_one()
