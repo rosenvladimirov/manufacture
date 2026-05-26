@@ -92,12 +92,3 @@ class PurchaseOrderLine(models.Model):
                 lot_info = "\n".join(lot_descriptions)
                 vals["name"] = f"{existing_name}\n\nLots:\n{lot_info}"
         return vals
-
-
-class PurchaseOrder(models.Model):
-    _inherit = "purchase.order"
-
-    def _prepare_picking(self):
-        """Prepare picking values from PO."""
-        vals = super()._prepare_picking()
-        return vals

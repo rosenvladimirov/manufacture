@@ -18,6 +18,13 @@ class StockMove(models.Model):
         copy=True,
     )
 
+    @api.model
+    def _prepare_merge_moves_distinct_fields(self):
+        """Prevent merging moves with different forced lots."""
+        distinct_fields = super()._prepare_merge_moves_distinct_fields()
+        distinct_fields.append("forced_lot_ids")
+        return distinct_fields
+
     def _prepare_procurement_values(self):
         """Pass forced_lot_ids to procurement for propagation to PO."""
         values = super()._prepare_procurement_values()
@@ -25,22 +32,9 @@ class StockMove(models.Model):
             values["forced_lot_ids"] = self.forced_lot_ids
         return values
 
-    def _get_new_picking_values(self):
-        """Include forced lots info when creating new picking."""
-        values = super()._get_new_picking_values()
-        return values
-
-    def _prepare_move_line_vals(self, quantity=None, reserved_quant=None):
-        """Prepare move line values - will be extended for lot population."""
-        vals = super()._prepare_move_line_vals(
-            quantity=quantity, reserved_quant=reserved_quant
-        )
-        return vals
-
     def _action_assign(self, force_qty=False):
         """Override to handle forced lots on incoming moves."""
         res = super()._action_assign(force_qty=force_qty)
-        # For incoming moves with forced lots, create move lines per lot
         for move in self.filtered(
             lambda m: m.forced_lot_ids
             and m.picking_type_id.code == "incoming"
@@ -55,22 +49,16 @@ class StockMove(models.Model):
         if not self.forced_lot_ids:
             return
 
-        # Remove existing move lines without lot or with lots not in forced_lot_ids
         lines_to_remove = self.move_line_ids.filtered(
             lambda l: not l.lot_id or l.lot_id not in self.forced_lot_ids
         )
         lines_to_remove.unlink()
 
-        # Get existing lots in move lines
         existing_lots = self.move_line_ids.mapped("lot_id")
-
-        # Calculate quantity per lot (equal distribution or based on lot info)
         lots_to_create = self.forced_lot_ids - existing_lots
         if not lots_to_create:
             return
 
-        # Distribute quantity equally among lots for now
-        # This can be enhanced to use lot-specific quantities
         total_qty = self.product_uom_qty
         existing_qty = sum(self.move_line_ids.mapped("quantity"))
         remaining_qty = total_qty - existing_qty
@@ -95,17 +83,6 @@ class StockMove(models.Model):
         """Return the quantity to use per lot when creating move lines."""
         self.ensure_one()
         return remaining_qty / len(lots_to_create)
-
-    def _merge_moves(self, merge_into=False):
-        """Prevent merging moves with different forced lots."""
-        # Group moves by forced_lot_ids to prevent incorrect merging
-        moves_to_merge = self.filtered(lambda m: not m.forced_lot_ids)
-        moves_with_lots = self - moves_to_merge
-
-        result = super(StockMove, moves_to_merge)._merge_moves(merge_into=merge_into)
-
-        # Don't merge moves with forced lots - return them as-is
-        return result | moves_with_lots
 
     def action_open_forced_lot_wizard(self):
         self.ensure_one()

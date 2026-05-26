@@ -35,9 +35,3 @@ class StockRule(models.Model):
                 (6, 0, values["forced_lot_ids"].ids)
             ]
         return move_values
-
-    def _run_buy(self, procurements):
-        """Ensure forced_lot_ids are passed through buy rule."""
-        # The parent method will call _prepare_purchase_order_line
-        # which we've already overridden above
-        return super()._run_buy(procurements)
