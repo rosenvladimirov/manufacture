@@ -4,7 +4,40 @@ All notable changes to this module will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
-## [18.0.2.0.0] - 2026-05-26
+## [18.0.2.1.0] - 2026-05-28
+
+### Changed (BREAKING)
+
+- Preparation gate-ът се мести **след** Plan (Enterprise/community Plan
+  button), вместо след Confirm. Това решава регресията при lot-tracked MTO
+  продукти (стъкла, армировка), при които PO drafts не се раждаха докато
+  MO стои в preparation.
+- `button_plan` override: след native super(), MO с `staged_preparation_enabled`
+  flip-ва state от `'confirmed'` към `'preparation'`. State machine става:
+  draft → confirmed (PO/Pick раждат се) → planned/preparation → progress.
+- `action_confirm` override премахнат — confirm flow работи нативно, цялата
+  MTO chain (Pick/Store pickings, PO drafts) се ражда нормално.
+- `_get_move_raw_values` / `_get_move_finished_values` override-ите
+  премахнати — endpoint manipulation вече не е нужна. Pull rules работят
+  нативно срещу pbm_loc / sam_loc.
+- `stock.move._adjust_procure_method` override премахнат — MTO chain не се
+  suppress-ва вече.
+- `action_prepare_production` опростен — само state flip
+  `'preparation' → 'confirmed'`, без endpoint swap или procurement re-trigger
+  (всичко вече материализирано).
+- `_staged_intermediate_active` / `_staged_warehouse` helpers премахнати
+  (без consumers вече).
+
+### Migration note
+
+При upgrade върху MO-та в стара preparation state (от 18.0.2.0.0): тяхното
+state остава `'preparation'`, но raw moves вече имат WH/Stock endpoints
+вместо pbm_loc. Operator нужно е да натисне Prepare → confirmed; ако
+warehouse е 2/3-step, raw moves ще останат с лоша location (без Pick
+picking). Препоръка: преди upgrade завършете всички preparation MOs или
+cancel-нете ги.
+
+## [18.0.2.0.0] - 2026-05-26 (superseded by 18.0.2.1.0)
 
 ### Changed (BREAKING)
 
