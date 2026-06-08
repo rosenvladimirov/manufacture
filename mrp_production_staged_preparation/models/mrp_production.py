@@ -244,6 +244,12 @@ class MrpProduction(models.Model):
                     "move_dest_ids": False,
                     "state": "draft",
                 })
+                # forced-lot консумация → лотът е предопределен → авто-консумация
+                # (manual_consumption=False). Иначе workorder-attached tracked
+                # move става manual_consumption=True и Produce All иска ръчно
+                # регистриране на лота → „supply Lot/Serial" грешка (Любо го хвана).
+                if N.forced_lot_ids:
+                    N.manual_consumption = False
                 # ① съществуващият move → ПЪРВИ ПИКИНГ: Stock → Pre-Production.
                 #    Десният край се отлепя от Virtual-Prod; Stock-краят (и
                 #    procurement-ът от Confirm) ОСТАВА. Вече не е raw консумация,
