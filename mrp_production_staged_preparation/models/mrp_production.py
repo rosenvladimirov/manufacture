@@ -171,27 +171,34 @@ class MrpProduction(models.Model):
 
             production.state = "confirmed"
 
-            # 3) Размразяваме не-стъклените raw moves → СТАНДАРТНО поведение:
-            #    make_to_order + re-confirm → нативен pbm pull (Стока→
-            #    Pre-Production pick) + ордерпоинтът поръчва ТОГАВА. draft reset
-            #    е нужен, иначе _action_confirm на вече-confirmed move не
-            #    регенерира pull. (Стъклото вече е materialized на Confirm.)
+            # 3) Размразяваме не-стъклените raw moves → АБСОЛЮТНО СТАНДАРТЕН
+            #    ОРДЕРПОИНТ модел (НЕ MTO): swap location → WH/Stock + force
+            #    make_to_stock (1-step Stock→Production) + re-confirm. Така:
+            #    консумират от Stock, търсенето става ВИДИМО на WH/Stock →
+            #    ордерпоинтът поръчва ТОГАВА (по форкаст), точно като стандартно
+            #    едностепенно. БЕЗ make_to_order → няма MTO „заобикаляне" на
+            #    ордерпоинта. Стъклото е пропуснато (то си направи MTO на Confirm).
+            #    draft reset е нужен, иначе re-confirm на вече-confirmed move не
+            #    регенерира procurement/reservation.
+            wh = (production.picking_type_id.warehouse_id
+                  or production.location_src_id.warehouse_id)
             frozen = production.move_raw_ids.filtered(
                 lambda m: m.state not in ("done", "cancel")
                 and not self._staged_is_glass(m.product_id)
                 and m.procure_method == "make_to_stock"
             )
-            if frozen:
+            if frozen and wh and wh.lot_stock_id:
                 frozen._do_unreserve()
                 frozen.write({
                     "state": "draft",
-                    "procure_method": "make_to_order",
+                    "location_id": wh.lot_stock_id.id,
+                    "procure_method": "make_to_stock",
                     "group_id": production.procurement_group_id.id,
                 })
                 frozen._action_confirm(merge=False)
                 _logger.info(
-                    "Staged preparation: MO %s released → %d frozen non-glass "
-                    "moves re-confirmed as standard (pick + orderpoint)",
+                    "Staged preparation: MO %s released → %d non-glass moves to "
+                    "standard 1-step/orderpoint (Stock, make_to_stock)",
                     production.name, len(frozen),
                 )
         return True
