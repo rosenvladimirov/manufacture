@@ -1,5 +1,5 @@
-# Copyright 2026 BL Consulting
-# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
+# Copyright 2026 Rosen Vladimirov
+# License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
 
 import logging
 
@@ -38,14 +38,24 @@ class MrpProduction(models.Model):
     When ``staged_preparation_enabled`` е False, MO следва native draft →
     confirmed → progress → done flow непокътнато.
 
-    **Семантика спрямо предходна версия (v18.0.1.x):** preparation се местеше
-    между confirm и progress, и override-ваше endpoint-ите на raw/finished
-    moves към WH/Stock + force-ваше make_to_stock, за да suppress-не
-    Pick/Store pickings до Prepare button. Това чупеше MTO chain за glass и
-    други lot-tracked продукти, защото PO се раждаше едва на Prepare.
-    Сегашната версия (v18.0.2.0.0) измества preparation **след** Plan; MTO
-    chain работи нативно на confirm; preparation е чист visual gate без
-    endpoint manipulation.
+    **ХИБРИД (v18.0.2.2.0):** избирателно отлагане на вътрешните компонентни
+    picks до floor release, БЕЗ да чупи glass/MTO chain-а:
+      • lot-tracked компоненти (стъкло, барове) → нормален make_to_order на
+        Confirm → PO/MTO chain тръгва навреме (доставчиците получават поръчки
+        рано — точно това, което старият full-suppress чупеше).
+      • non-lot-tracked компоненти (хардуер) → форсирани make_to_stock в
+        stock.move._adjust_procure_method докато ``staged_released`` е False →
+        вътрешните Стока→Pre-Production picks НЕ се раждат на Confirm. Раждат
+        се едва на action_prepare_production (re-confirm с make_to_order).
+
+    Така floor-ът не получава вътрешни трансфери преди „Подготви за
+    производство", а стъклото/MTO пак получават PO навреме. Дискриминаторът е
+    ``product.tracking`` (none → отлага се; lot/serial → не).
+
+    **История:** v18.0.1.x правеше full-suppress (всичко след Prepare) →
+    чупеше glass MTO. v18.0.2.0.0 махна suppress-а изцяло (всичко на Confirm) →
+    floor получаваше трансфери преди подготовка. v18.0.2.2.0 = хибридът между
+    двете.
     """
 
     _inherit = "mrp.production"
@@ -63,6 +73,19 @@ class MrpProduction(models.Model):
         related="picking_type_id.staged_preparation_enabled",
         store=False,
         help="Mirror of the picking type's flag — drives override visibility.",
+    )
+
+    staged_released = fields.Boolean(
+        string="Released to floor",
+        default=False,
+        copy=False,
+        help=(
+            "True след 'Подготви за производство'. Докато е False, не-lot-tracked "
+            "компонентите на staged MO се форсират make_to_stock в "
+            "stock.move._adjust_procure_method → вътрешните Стока→Pre-Production "
+            "picks се отлагат до floor release. Lot-tracked (стъкло/барове) не се "
+            "влияят — техният PO/MTO chain тръгва на Confirm."
+        ),
     )
 
     # ── Override: button_plan (EE Plan) ─────────────────────────────────
@@ -90,9 +113,11 @@ class MrpProduction(models.Model):
         return result
 
     # ── Action: prepare for production (preparation → confirmed) ────────
-    # Release-to-floor button. Не пипа move endpoints или procure_method —
-    # тези са вече materialized от Plan/Confirm стъпките. Прави само state
-    # flip обратно към 'confirmed', което unlock-ва native progress flow.
+    # Release-to-floor button. Сетва staged_released=True (спира deferral-а в
+    # stock.move._adjust_procure_method), после re-confirm-ва отложените
+    # (non-lot-tracked) raw moves → pull rule ражда вътрешните Стока→
+    # Pre-Production picks ЕДВА сега. Lot-tracked moves вече са materialized
+    # на Confirm и не се пипат. Накрая flip към 'confirmed' → unlock progress.
 
     def action_prepare_production(self):
         for production in self:
@@ -108,6 +133,46 @@ class MrpProduction(models.Model):
                     "'Preparation' can be released to production.",
                     name=production.name, state=production.state,
                 ))
+
+            # 1) Спираме deferral-а за този MO.
+            production.staged_released = True
+
+            # 2) Гарантираме procurement група (иначе новородените picks се
+            #    merge-ват с други MO-та — merge ключът включва group_id).
+            if not production.procurement_group_id:
+                production.procurement_group_id = self.env[
+                    "procurement.group"
+                ].create({
+                    "name": production.name,
+                    "move_type": production.move_type or "direct",
+                    "partner_id": production.partner_id.id
+                    if production.partner_id else False,
+                })
+
+            # 3) Re-confirm отложените raw moves → make_to_order → pull rule
+            #    ражда Стока→Pre-Production picks сега (на floor release).
+            deferred = production.move_raw_ids.filtered(
+                lambda m: m.state not in ("done", "cancel")
+                and m.product_id.tracking == "none"
+                and m.procure_method == "make_to_stock"
+            )
+            if deferred:
+                deferred._do_unreserve()
+                # state='draft' → _action_confirm третира moves като нови и
+                # ПУСКА наново procurement (pull rule). Без draft reset,
+                # _action_confirm на вече-confirmed move не регенерира pick.
+                deferred.write({
+                    "state": "draft",
+                    "procure_method": "make_to_order",
+                    "group_id": production.procurement_group_id.id,
+                })
+                deferred._action_confirm(merge=False)
+                _logger.info(
+                    "Staged preparation: MO %s released → %d deferred raw moves "
+                    "re-confirmed (picks generated)",
+                    production.name, len(deferred),
+                )
+
             production.state = "confirmed"
             _logger.info(
                 "Staged preparation: MO %s released → state=confirmed",

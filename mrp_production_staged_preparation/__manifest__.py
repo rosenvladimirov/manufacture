@@ -1,19 +1,19 @@
-# Copyright 2026 BL Consulting
-# License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
+# Copyright 2026 Rosen Vladimirov
+# License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
 {
     "name": "MRP Production Staged Preparation",
     "summary": (
-        "Inject a 'Preparation' gate after Plan: workorders are scheduled "
-        "normally, Pick/Store pickings and PO chain are born at confirm, but "
-        "the MO sits in 'Preparation' state until the operator clicks "
-        "'Prepare for Production' to release it to the floor."
+        "Inject a 'Preparation' gate after Plan. Hybrid deferral: lot-tracked "
+        "(glass/bars) keep their PO/MTO chain at confirm, while non-lot-tracked "
+        "internal component picks are deferred until 'Prepare for Production' "
+        "releases the MO to the floor."
     ),
-    "version": "18.0.2.1.0",
+    "version": "18.0.2.2.0",
     "category": "Manufacturing",
-    "website": "https://github.com/OCA/manufacture",
-    "author": "BL Consulting, Odoo Community Association (OCA)",
+    "website": "https://github.com/rosenvladimirov/manufacture",
+    "author": "Rosen Vladimirov",
     "maintainers": ["rosen-vladimirov"],
-    "license": "AGPL-3",
+    "license": "LGPL-3",
     "application": False,
     "installable": True,
     "depends": [
