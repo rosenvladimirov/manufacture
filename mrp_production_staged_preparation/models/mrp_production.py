@@ -224,6 +224,11 @@ class MrpProduction(models.Model):
             for M in candidates:
                 if M.state == "assigned":
                     M._do_unreserve()
+                # Планираният workorder стои на M (от button_plan). Той трябва
+                # да отиде на КОНСУМАЦИЯТА (N), не на пика — иначе компонентът
+                # не е закачен за никоя операция и Produce гърми с „supply
+                # Lot/Serial". (operation_id се копира; workorder_id е copy=False.)
+                wo_id = M.workorder_id.id
                 # ② НОВ парон (консумация): Pre-Production → Virtual-Production.
                 #    move_orig = M → чака първия пикинг (без нов pull).
                 N = M.copy({
@@ -234,16 +239,19 @@ class MrpProduction(models.Model):
                     "group_id": pg.id,
                     "picking_id": False,
                     "picking_type_id": production.picking_type_id.id,
+                    "workorder_id": wo_id,
                     "move_orig_ids": False,
                     "move_dest_ids": False,
                     "state": "draft",
                 })
                 # ① съществуващият move → ПЪРВИ ПИКИНГ: Stock → Pre-Production.
                 #    Десният край се отлепя от Virtual-Prod; Stock-краят (и
-                #    procurement-ът от Confirm) ОСТАВА. Вече не е raw консумация.
+                #    procurement-ът от Confirm) ОСТАВА. Вече не е raw консумация,
+                #    нито закачен за workorder (той отиде на N).
                 M.write({
                     "location_dest_id": pbm.id,
                     "raw_material_production_id": False,
+                    "workorder_id": False,
                     "group_id": pg.id,
                     "picking_type_id": pbm_type.id if pbm_type
                     else M.picking_type_id.id,
