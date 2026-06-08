@@ -8,7 +8,7 @@
         "internal component picks are deferred until 'Prepare for Production' "
         "releases the MO to the floor."
     ),
-    "version": "18.0.2.2.1",
+    "version": "18.0.2.2.2",
     "category": "Manufacturing",
     "website": "https://github.com/rosenvladimirov/manufacture",
     "author": "Rosen Vladimirov",

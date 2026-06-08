@@ -20,28 +20,31 @@ class StockMove(models.Model):
     # стъкло/барове) → нормален make_to_order → PO/pick на Confirm.
 
     def _staged_should_defer(self):
-        """True ако този raw move трябва да се отложи до floor release.
+        """True ако този raw move трябва да мине през ОРДЕРПОИНТ логиката (МТС),
+        вместо да се chain-ва на per-MO MTO в pbm маршрута.
 
-        Отлагаме САМО ако компонентът е (а) не-lot-tracked И (б) ВЕЧЕ наличен
-        в склада. Тогава деферирането държи само вътрешния Стока→Pre-Production
-        pick — нищо не се блокира. Ако компонентът НЕ е наличен (трябва покупка,
-        напр. Formteil), връщаме False → make_to_order остава → MTO/buy chain
-        създава PO навреме, точно както при lot-tracked профилите. Така
-        отлагаме трансфери, БЕЗ да блокираме покупки.
+        Дизайн (Росен): ВСИЧКО без стъклата → make_to_stock → ордерпоинтът
+        (reordering rule) поема репленишмънта (МТС+МТО на ниво ордерпоинт).
+        Само СТЪКЛОТО остава make_to_order (per-project, без склад).
+
+        В pbm (2-step) raw moves по подразбиране са make_to_order (за да
+        chain-ват Стока→Pre-Production pick). Това форсира не-стъклените на
+        make_to_stock → НЕ се ражда вътрешен pick на Confirm (отложен до
+        „Подготви") + ордерпоинтът прави PO-то по форкаст. Стъклото (lot,
+        категория Glass) → native make_to_order → glass PO на Confirm.
+
+        Дискриминатор: глас = product.tracking != 'none' И категорията съдържа
+        'Glass'. Барове (lot, Profiles) НЕ са глас → също минават през МТС.
         """
-        self.ensure_one()
-        mo = self.raw_material_production_id
-        if not (mo
-                and mo.picking_type_id.staged_preparation_enabled
-                and not mo.staged_released
-                and self.product_id.tracking == "none"):
-            return False
-        warehouse = mo.picking_type_id.warehouse_id or mo.warehouse_id
-        product = self.product_id
-        if warehouse:
-            product = product.with_context(warehouse=warehouse.id)
-        # free_qty = налично - вече резервирано; ако покрива нуждата → отлагаме.
-        return product.free_qty >= self.product_uom_qty
+        # ВРЕМЕННО ИЗКЛЮЧЕНО (2026-06-08): форсирането на make_to_stock стои
+        # в Pre-Production (pbm_loc) и НЕ задейства WH/Stock ордерпоинта →
+        # компонентите оставаха без PO. „Без трансфер преди подготовка" + „PO
+        # през ордерпоинт" са несъвместими с procure_method трик в pbm (pick-ът
+        # е сигналът за търсене към Stock). Правилното решение е release-
+        # management (PO на confirm, физическо освобождаване на pick на
+        # „Подготви"). Докато се реши — native pbm: pick + ордерпоинт + PO
+        # работят (трансфери на confirm). Visual gate + reset бутон остават.
+        return False
 
     # ВАЖНО: сигнатурата трябва да приема *args/**kwargs — core/repair викат
     # _adjust_procure_method(picking_type_code='...') с keyword аргумент.
