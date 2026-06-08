@@ -94,52 +94,20 @@ class MrpProduction(models.Model):
         self.ensure_one()
         return bool(self.staged_preparation_enabled and not self.staged_released)
 
-    def _staged_warehouse(self):
-        self.ensure_one()
-        return (self.picking_type_id.warehouse_id
-                or self.location_src_id.warehouse_id
-                or self.env["stock.warehouse"])
-
     @staticmethod
     def _staged_is_glass(product):
-        """Стъклото (категория съдържа 'Glass') остава MTO — НЕ се swap-ва."""
+        """Стъклото (категория съдържа 'Glass') се поръчва на Confirm (нативно
+        MTO); всичко друго е ЗАМРАЗЕНО до 'Подготви за производство'."""
         return "Glass" in (product.categ_id.complete_name or "")
 
-    # ── Override: raw/finished move endpoints в intermediate фаза ────────
-    # Не-стъклените raw moves → Stock→Production (1-step, make_to_stock):
-    # резервират от WH/Stock, ордерпоинтът вижда търсенето, няма буфер-pick.
-    # Finished move → Production→Stock (1-step). Стъклото остава нативно (pbm,
-    # make_to_order) → glass PO + pick на Confirm. На 'Подготви' се swap-ват
-    # обратно към pbm/sam буфера (action_prepare_production).
-
-    def _get_move_raw_values(self, product, product_uom_qty, product_uom,
-                             operation_id=False, bom_line=False):
-        vals = super()._get_move_raw_values(
-            product, product_uom_qty, product_uom, operation_id, bom_line)
-        if not self._staged_intermediate_active():
-            return vals
-        if self._staged_is_glass(product):
-            return vals
-        wh = self._staged_warehouse()
-        if wh and wh.lot_stock_id:
-            vals["location_id"] = wh.lot_stock_id.id
-            vals["warehouse_id"] = wh.id
-            vals["procure_method"] = "make_to_stock"
-        return vals
-
-    def _get_move_finished_values(self, product_id, product_uom_qty, product_uom,
-                                  operation_id=False, byproduct_id=False,
-                                  cost_share=0):
-        vals = super()._get_move_finished_values(
-            product_id, product_uom_qty, product_uom,
-            operation_id, byproduct_id, cost_share)
-        if not self._staged_intermediate_active():
-            return vals
-        wh = self._staged_warehouse()
-        if wh and wh.lot_stock_id:
-            vals["location_dest_id"] = wh.lot_stock_id.id
-            vals["warehouse_id"] = wh.id
-        return vals
+    # ── Замразяване (без endpoint-swap) ─────────────────────────────────
+    # Не-стъклените raw moves ОСТАВАТ в Pre-Production (pbm_loc) и се форсират
+    # make_to_stock в stock.move._adjust_procure_method → НЕ се ражда pick,
+    # търсенето остава в pbm_loc → ордерпоинтът (на WH/Stock) е сляп →
+    # 0 поръчки на Confirm. Стъклото минава нативно (make_to_order) → glass PO
+    # + pick на Confirm. На 'Подготви' не-стъклените се re-confirm-ват като
+    # СТАНДАРТНО поведение (нативен pbm pick + ордерпоинт) — виж
+    # action_prepare_production.
 
     # ── Override: button_plan (EE Plan) ─────────────────────────────────
     # Native ``button_plan`` (mrp/models/mrp_production.py:1613):
@@ -187,13 +155,10 @@ class MrpProduction(models.Model):
                     name=production.name, state=production.state,
                 ))
 
-            # 1) Маркираме released → _staged_intermediate_active() става False.
+            # 1) Release → _staged_intermediate_active() става False (размразява).
             production.staged_released = True
 
-            wh = production._staged_warehouse()
-
-            # 2) Procurement група (иначе новородените picks се merge-ват с
-            #    други MO-та — merge ключът включва group_id).
+            # 2) Procurement група (новородените picks да не merge-ват с други MO).
             if not production.procurement_group_id:
                 production.procurement_group_id = self.env[
                     "procurement.group"
@@ -204,64 +169,29 @@ class MrpProduction(models.Model):
                     if production.partner_id else False,
                 })
 
-            # 3) Цел-локации според warehouse steps. mrp_one_step → no-op
-            #    (нямаше буфер swap). pbm/pbm_sam → raw към pbm_loc; pbm_sam →
-            #    finished към sam_loc.
-            target_raw_src = False
-            target_finished_dest = False
-            if wh.manufacture_steps in ("pbm", "pbm_sam"):
-                target_raw_src = wh.pbm_loc_id
-            if wh.manufacture_steps == "pbm_sam":
-                target_finished_dest = wh.sam_loc_id
-
-            raw_to_reconfirm = self.env["stock.move"]
-            # 4) Не-стъклените raw moves: swap Stock → pbm_loc + make_to_order
-            #    + re-confirm → pull rule ражда Стока→Pre-Production pick
-            #    (вторият пикинг). Стъклените са вече на pbm — не ги пипаме.
-            if target_raw_src:
-                for move in production.move_raw_ids.filtered(
-                        lambda m: m.state not in ("done", "cancel")):
-                    if self._staged_is_glass(move.product_id):
-                        continue
-                    if move.location_id == target_raw_src:
-                        continue
-                    if move.state == "assigned":
-                        move._do_unreserve()
-                    move.write({
-                        "state": "draft",
-                        "location_id": target_raw_src.id,
-                        "procure_method": "make_to_order",
-                        "group_id": production.procurement_group_id.id,
-                    })
-                    raw_to_reconfirm |= move
-
-            finished_to_reconfirm = self.env["stock.move"]
-            if target_finished_dest:
-                for move in production.move_finished_ids.filtered(
-                        lambda m: m.state not in ("done", "cancel")):
-                    if move.location_dest_id == target_finished_dest:
-                        continue
-                    if move.state == "assigned":
-                        move._do_unreserve()
-                    move.write({
-                        "location_dest_id": target_finished_dest.id,
-                        "group_id": production.procurement_group_id.id,
-                    })
-                    finished_to_reconfirm |= move
-
             production.state = "confirmed"
 
-            moves = raw_to_reconfirm | finished_to_reconfirm
-            if moves:
-                moves._action_confirm(merge=False)
+            # 3) Размразяваме не-стъклените raw moves → СТАНДАРТНО поведение:
+            #    make_to_order + re-confirm → нативен pbm pull (Стока→
+            #    Pre-Production pick) + ордерпоинтът поръчва ТОГАВА. draft reset
+            #    е нужен, иначе _action_confirm на вече-confirmed move не
+            #    регенерира pull. (Стъклото вече е materialized на Confirm.)
+            frozen = production.move_raw_ids.filtered(
+                lambda m: m.state not in ("done", "cancel")
+                and not self._staged_is_glass(m.product_id)
+                and m.procure_method == "make_to_stock"
+            )
+            if frozen:
+                frozen._do_unreserve()
+                frozen.write({
+                    "state": "draft",
+                    "procure_method": "make_to_order",
+                    "group_id": production.procurement_group_id.id,
+                })
+                frozen._action_confirm(merge=False)
                 _logger.info(
-                    "Staged preparation: MO %s released → %d moves swapped back "
-                    "to buffer + re-confirmed (second picking generated)",
-                    production.name, len(moves),
-                )
-            else:
-                _logger.info(
-                    "Staged preparation: MO %s released (1-step, no buffer swap)",
-                    production.name,
+                    "Staged preparation: MO %s released → %d frozen non-glass "
+                    "moves re-confirmed as standard (pick + orderpoint)",
+                    production.name, len(frozen),
                 )
         return True
