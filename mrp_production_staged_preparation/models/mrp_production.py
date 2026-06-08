@@ -187,13 +187,19 @@ class MrpProduction(models.Model):
                     name=production.name, state=production.state,
                 ))
 
-            # 1) Маркираме released → _staged_intermediate_active() става False.
+            # 1) Маркираме released.
             production.staged_released = True
 
             wh = production._staged_warehouse()
+            pbm = wh.pbm_loc_id
+            prod_loc = production.production_location_id
 
-            # 2) Procurement група (иначе новородените picks се merge-ват с
-            #    други MO-та — merge ключът включва group_id).
+            # mrp_one_step или липсва Pre-Production → нищо за местене (no-op).
+            if wh.manufacture_steps not in ("pbm", "pbm_sam") or not pbm:
+                production.state = "confirmed"
+                continue
+
+            # 2) Procurement група (новите picks да не merge-ват с други MO).
             if not production.procurement_group_id:
                 production.procurement_group_id = self.env[
                     "procurement.group"
@@ -203,65 +209,60 @@ class MrpProduction(models.Model):
                     "partner_id": production.partner_id.id
                     if production.partner_id else False,
                 })
+            pg = production.procurement_group_id
+            pbm_type = wh.pbm_type_id
 
-            # 3) Цел-локации според warehouse steps. mrp_one_step → no-op
-            #    (нямаше буфер swap). pbm/pbm_sam → raw към pbm_loc; pbm_sam →
-            #    finished към sam_loc.
-            target_raw_src = False
-            target_finished_dest = False
-            if wh.manufacture_steps in ("pbm", "pbm_sam"):
-                target_raw_src = wh.pbm_loc_id
-            if wh.manufacture_steps == "pbm_sam":
-                target_finished_dest = wh.sam_loc_id
+            # 3) Кандидати: не-стъклени raw moves, които на Confirm са 1-step
+            #    Stock → Virtual-Production. Чупим при ДЕСНИЯ край (Virtual-Prod).
+            candidates = production.move_raw_ids.filtered(
+                lambda m: m.state not in ("done", "cancel")
+                and not self._staged_is_glass(m.product_id)
+                and m.location_dest_id == prod_loc
+                and m.location_id == wh.lot_stock_id)
 
-            raw_to_reconfirm = self.env["stock.move"]
-            # 4) Не-стъклените raw moves: swap Stock → pbm_loc + make_to_order
-            #    + re-confirm → pull rule ражда Стока→Pre-Production pick
-            #    (вторият пикинг). Стъклените са вече на pbm — не ги пипаме.
-            if target_raw_src:
-                for move in production.move_raw_ids.filtered(
-                        lambda m: m.state not in ("done", "cancel")):
-                    if self._staged_is_glass(move.product_id):
-                        continue
-                    if move.location_id == target_raw_src:
-                        continue
-                    if move.state == "assigned":
-                        move._do_unreserve()
-                    move.write({
-                        "state": "draft",
-                        "location_id": target_raw_src.id,
-                        "procure_method": "make_to_order",
-                        "group_id": production.procurement_group_id.id,
-                    })
-                    raw_to_reconfirm |= move
-
-            finished_to_reconfirm = self.env["stock.move"]
-            if target_finished_dest:
-                for move in production.move_finished_ids.filtered(
-                        lambda m: m.state not in ("done", "cancel")):
-                    if move.location_dest_id == target_finished_dest:
-                        continue
-                    if move.state == "assigned":
-                        move._do_unreserve()
-                    move.write({
-                        "location_dest_id": target_finished_dest.id,
-                        "group_id": production.procurement_group_id.id,
-                    })
-                    finished_to_reconfirm |= move
+            bridges = self.env["stock.move"]
+            for M in candidates:
+                if M.state == "assigned":
+                    M._do_unreserve()
+                # ② НОВ парон (консумация): Pre-Production → Virtual-Production.
+                #    move_orig = M → чака първия пикинг (без нов pull).
+                N = M.copy({
+                    "location_id": pbm.id,
+                    "location_dest_id": prod_loc.id,
+                    "procure_method": "make_to_order",
+                    "raw_material_production_id": production.id,
+                    "group_id": pg.id,
+                    "picking_id": False,
+                    "picking_type_id": production.picking_type_id.id,
+                    "move_orig_ids": False,
+                    "move_dest_ids": False,
+                    "state": "draft",
+                })
+                # ① съществуващият move → ПЪРВИ ПИКИНГ: Stock → Pre-Production.
+                #    Десният край се отлепя от Virtual-Prod; Stock-краят (и
+                #    procurement-ът от Confirm) ОСТАВА. Вече не е raw консумация.
+                M.write({
+                    "location_dest_id": pbm.id,
+                    "raw_material_production_id": False,
+                    "group_id": pg.id,
+                    "picking_type_id": pbm_type.id if pbm_type
+                    else M.picking_type_id.id,
+                    "move_dest_ids": [(6, 0, [N.id])],
+                })
+                bridges |= N
 
             production.state = "confirmed"
-
-            moves = raw_to_reconfirm | finished_to_reconfirm
-            if moves:
-                moves._action_confirm(merge=False)
+            if bridges:
+                first_picks = bridges.move_orig_ids  # бившите M (Stock→Pre-Prod)
+                bridges._action_confirm(merge=False)        # ② мостовете (waiting)
+                # ① пиковете → assign към Pick Components picking (за да се
+                #    ПОКАЖАТ като трансфер за оператора) + резервация от Stock.
+                first_picks.write({"state": "confirmed"})
+                first_picks._assign_picking()
+                first_picks._action_assign()                # резервират от Stock
                 _logger.info(
-                    "Staged preparation: MO %s released → %d moves swapped back "
-                    "to buffer + re-confirmed (second picking generated)",
-                    production.name, len(moves),
-                )
-            else:
-                _logger.info(
-                    "Staged preparation: MO %s released (1-step, no buffer swap)",
-                    production.name,
-                )
+                    "Staged preparation: MO %s released → %d component(s): десен "
+                    "край откачен Stock→Pre-Production (① пикинг) + нов парон "
+                    "Pre-Production→Production (② консумация)",
+                    production.name, len(bridges))
         return True
