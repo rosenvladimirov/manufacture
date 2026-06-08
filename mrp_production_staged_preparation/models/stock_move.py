@@ -20,15 +20,28 @@ class StockMove(models.Model):
     # стъкло/барове) → нормален make_to_order → PO/pick на Confirm.
 
     def _staged_should_defer(self):
-        """True ако този raw move трябва да се отложи до floor release."""
+        """True ако този raw move трябва да се отложи до floor release.
+
+        Отлагаме САМО ако компонентът е (а) не-lot-tracked И (б) ВЕЧЕ наличен
+        в склада. Тогава деферирането държи само вътрешния Стока→Pre-Production
+        pick — нищо не се блокира. Ако компонентът НЕ е наличен (трябва покупка,
+        напр. Formteil), връщаме False → make_to_order остава → MTO/buy chain
+        създава PO навреме, точно както при lot-tracked профилите. Така
+        отлагаме трансфери, БЕЗ да блокираме покупки.
+        """
         self.ensure_one()
         mo = self.raw_material_production_id
-        return bool(
-            mo
-            and mo.picking_type_id.staged_preparation_enabled
-            and not mo.staged_released
-            and self.product_id.tracking == "none"
-        )
+        if not (mo
+                and mo.picking_type_id.staged_preparation_enabled
+                and not mo.staged_released
+                and self.product_id.tracking == "none"):
+            return False
+        warehouse = mo.picking_type_id.warehouse_id or mo.warehouse_id
+        product = self.product_id
+        if warehouse:
+            product = product.with_context(warehouse=warehouse.id)
+        # free_qty = налично - вече резервирано; ако покрива нуждата → отлагаме.
+        return product.free_qty >= self.product_uom_qty
 
     # ВАЖНО: сигнатурата трябва да приема *args/**kwargs — core/repair викат
     # _adjust_procure_method(picking_type_code='...') с keyword аргумент.
