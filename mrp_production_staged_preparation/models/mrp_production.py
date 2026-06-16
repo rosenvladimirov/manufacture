@@ -280,3 +280,60 @@ class MrpProduction(models.Model):
                     "Pre-Production→Production (② консумация)",
                     production.name, len(bridges))
         return True
+
+    # ── List batch action: prepare a daily set of MOs into ONE transfer ──
+    # Бутон „Prepare for Production" в header-а на СПИСЪКА (след „Plan"). Цел:
+    # 1 трансфер Stock→Pre-Production на ден за цеха. Подготвя всяко избрано
+    # staged МО (per-MO логиката е НЕпроменена) и после АГРЕГИРА новородените
+    # Pick Components пикинги в ЕДИН — подход #1 (само picking_id се мести;
+    # procurement групите, веригата M→N и forced_lot_ids остават per-MO).
+    # Скоупът е МАРКИРАНАТА партида (може от различни проекти), не per-SO.
+
+    def action_prepare_production_batch(self):
+        eligible = self.filtered(
+            lambda p: p.staged_preparation_enabled and p.state == "preparation"
+        )
+        if not eligible:
+            raise UserError(_(
+                "None of the selected manufacturing orders is in 'Preparation' "
+                "with staged preparation enabled."
+            ))
+
+        # 1) Подготвяме всяко избрано МО (per-MO release е непроменен).
+        eligible.action_prepare_production()
+
+        # 2) Събираме новородените Stock→Pre-Production пикинги на партидата.
+        #    Бридж парон (N): Pre-Production→Production в move_raw_ids; неговият
+        #    move_orig (M) е първият пик Stock→Pre-Production → неговият picking.
+        pc_pickings = self.env["stock.picking"]
+        for production in eligible:
+            pbm = production._staged_warehouse().pbm_loc_id
+            if not pbm:
+                continue
+            bridges = production.move_raw_ids.filtered(
+                lambda m: m.location_id == pbm
+                and m.state not in ("done", "cancel")
+            )
+            first_picks = bridges.move_orig_ids.filtered(
+                lambda m: m.location_dest_id == pbm
+                and m.picking_id
+                and m.picking_id.state not in ("done", "cancel")
+            )
+            pc_pickings |= first_picks.picking_id
+
+        # 3) Агрегация: всички PC пикинги на партидата → ЕДИН трансфер.
+        if len(pc_pickings) > 1:
+            target = pc_pickings.sorted("id")[0]
+            others = pc_pickings - target
+            others.move_ids.write({"picking_id": target.id})
+            origins = sorted({o for o in pc_pickings.mapped("origin") if o})
+            if origins:
+                target.origin = ", ".join(origins)[:2000]
+            others.filtered(lambda p: not p.move_ids).unlink()
+            target._action_assign()  # резервира слетите редове
+            _logger.info(
+                "Staged preparation batch: %d МО → 1 агрегиран PC трансфер %s "
+                "(%d пикинга слети в дневна партида)",
+                len(eligible), target.name, len(pc_pickings),
+            )
+        return True

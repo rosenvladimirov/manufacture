@@ -28,4 +28,21 @@
         </field>
     </record>
 
+    <!-- LIST batch бутон: „Prepare for Production" веднага СЛЕД „Plan" в
+         header-а на списъка с МО. Действа върху маркираните записи (дневна
+         партида) → 1 агрегиран Stock→Pre-Production трансфер. -->
+    <record id="mrp_production_list_staged_preparation" model="ir.ui.view">
+        <field name="name">mrp.production.list.staged.preparation</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='button_plan']" position="after">
+                <button name="action_prepare_production_batch"
+                        type="object"
+                        string="Prepare for Production"
+                        groups="mrp.group_mrp_user"/>
+            </xpath>
+        </field>
+    </record>
+
 </odoo>
