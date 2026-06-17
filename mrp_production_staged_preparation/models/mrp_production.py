@@ -379,4 +379,31 @@ class MrpProduction(models.Model):
                 "(%d пикинга слети в дневна партида)",
                 len(eligible), target.name, len(pc_pickings),
             )
+
+        # 4) РАЗКРОЙ (cutting): обединяването на пикинга ПРЕДХОЖДА оптимизацията.
+        #    Оптимизираме ВСИЧКИ парчета от ВСИЧКИ МО-та на партидата ЗАЕДНО
+        #    (cross-MO нестване на прътовете за цялата дневна партида) и
+        #    избраният прът се пинва обратно като forced_lot_ids на МО-тата.
+        #    GUARDED: само ако mrp_cutting_optimization + MRP plugin-ът са
+        #    инсталирани; неуспех (напр. барове още не получени) НЕ блокира
+        #    подготовката — пуска се ръчно по-късно (бутон „Optimize Cutting").
+        Opt = self.env.get("mrp.cutting.optimization")
+        adapter = self.env.get("cutting.source.adapter.mrp_production")
+        if Opt is not None and adapter is not None:
+            try:
+                opt = Opt.create({
+                    "name": _("Daily cut: %s") % ", ".join(
+                        eligible.mapped("name"))[:60],
+                    "material_domain": "mrp_production",
+                    "production_ids": [(6, 0, eligible.ids)],
+                })
+                opt.action_optimize()
+                _logger.info(
+                    "Staged preparation batch: cross-MO разкрой %s за %d МО-та",
+                    opt.name, len(eligible))
+            except Exception as exc:  # noqa: BLE001 — разкроят не бива да блокира
+                _logger.warning(
+                    "Staged preparation batch: разкроят пропуснат (%s) — "
+                    "вероятно барове още не са в наличност; пусни ръчно "
+                    "(бутон „Optimize Cutting“ на МО) щом пристигнат.", exc)
         return True
