@@ -5,6 +5,7 @@ import logging
 
 from odoo import _, fields, models
 from odoo.exceptions import UserError
+from odoo.tools import float_compare
 
 _logger = logging.getLogger(__name__)
 
@@ -52,10 +53,20 @@ class MrpProduction(models.Model):
     производство", а стъклото/MTO пак получават PO навреме. Дискриминаторът е
     ``product.tracking`` (none → отлага се; lot/serial → не).
 
+    **Фаза 2 / правило B (v18.0.2.5.0) — move-level недостиг + идемпотентност:**
+    при action_prepare_production консумационният парон N (Pre-Production→
+    Production) е make_to_stock и при assign резервира наличния Pre-Production
+    буфер ПЪРВО. Пикът ① (Stock→Pre-Production) се оразмерява на НЕДОСТИГА =
+    N.demand − N.reserved. Буферът покрива всичко → пик не се прави (Prepare е
+    идемпотентен: повторен натиск не дублира — лекува 161-164). Материал,
+    резервиран за ЧУЖДО МО, не се краде (assign взима само свободния quant), та
+    правилно остава в недостига. Стъклото/lot-tracked си остава отделно (свой
+    PO/MTO chain от Confirm; не влиза в дневния Stock→Pre-Production пик).
+
     **История:** v18.0.1.x правеше full-suppress (всичко след Prepare) →
     чупеше glass MTO. v18.0.2.0.0 махна suppress-а изцяло (всичко на Confirm) →
     floor получаваше трансфери преди подготовка. v18.0.2.2.0 = хибридът между
-    двете.
+    двете. v18.0.2.4.0 добави батч агрегацията (Фаза 1). v18.0.2.5.0 = правило B.
     """
 
     _inherit = "mrp.production"
@@ -220,7 +231,13 @@ class MrpProduction(models.Model):
                 and m.location_dest_id == prod_loc
                 and m.location_id == wh.lot_stock_id)
 
-            bridges = self.env["stock.move"]
+            # B изисква РЕД: N (консумация) резервира Pre-Production буфера
+            # ПРЕДИ да се закачи веригата към пика. Ако ① пикът се линкне към N
+            # преди assign, N влиза в 'waiting' (чака origin-а) и НЕ резервира
+            # наличния буфер. Затова: (а) създаваме N БЕЗ верига, (б) assign-ваме
+            # → резервират буфера, (в) оразмеряваме пика на недостига и (г) ЧАК
+            # ТОГАВА линкваме веригата (резервацията оцелява — валидирано).
+            pairs = []                       # [(M пик, N консумация), ...]
             for M in candidates:
                 if M.state == "assigned":
                     M._do_unreserve()
@@ -229,12 +246,13 @@ class MrpProduction(models.Model):
                 # не е закачен за никоя операция и Produce гърми с „supply
                 # Lot/Serial". (operation_id се копира; workorder_id е copy=False.)
                 wo_id = M.workorder_id.id
-                # ② НОВ парон (консумация): Pre-Production → Virtual-Production.
-                #    move_orig = M → чака първия пикинг (без нов pull).
+                # ② НОВ парон (консумация): Pre-Production → Virtual-Production,
+                #    procure_method = make_to_stock, БЕЗ верига (move_orig=False)
+                #    → при assign резервира свободния Pre-Production буфер.
                 N = M.copy({
                     "location_id": pbm.id,
                     "location_dest_id": prod_loc.id,
-                    "procure_method": "make_to_order",
+                    "procure_method": "make_to_stock",
                     "raw_material_production_id": production.id,
                     "group_id": pg.id,
                     "picking_id": False,
@@ -252,8 +270,8 @@ class MrpProduction(models.Model):
                     N.manual_consumption = False
                 # ① съществуващият move → ПЪРВИ ПИКИНГ: Stock → Pre-Production.
                 #    Десният край се отлепя от Virtual-Prod; Stock-краят (и
-                #    procurement-ът от Confirm) ОСТАВА. Вече не е raw консумация,
-                #    нито закачен за workorder (той отиде на N).
+                #    procurement-ът от Confirm) ОСТАВА. Веригата към N се закача
+                #    ПО-КЪСНО (виж по-долу), за да не блокира буфер-резервацията.
                 M.write({
                     "location_dest_id": pbm.id,
                     "raw_material_production_id": False,
@@ -261,24 +279,49 @@ class MrpProduction(models.Model):
                     "group_id": pg.id,
                     "picking_type_id": pbm_type.id if pbm_type
                     else M.picking_type_id.id,
-                    "move_dest_ids": [(6, 0, [N.id])],
                 })
-                bridges |= N
+                pairs.append((M, N))
 
             production.state = "confirmed"
-            if bridges:
-                first_picks = bridges.move_orig_ids  # бившите M (Stock→Pre-Prod)
-                bridges._action_confirm(merge=False)        # ② мостовете (waiting)
-                # ① пиковете → assign към Pick Components picking (за да се
-                #    ПОКАЖАТ като трансфер за оператора) + резервация от Stock.
-                first_picks.write({"state": "confirmed"})
-                first_picks._assign_picking()
-                first_picks._action_assign()                # резервират от Stock
+            if pairs:
+                # ② Потвърждаваме консумациите и ги assign-ваме (още БЕЗ верига)
+                #    → make_to_stock N резервира наличния Pre-Production буфер.
+                #    reserved = N.quantity (core stock_move._action_assign:
+                #    reserved_availability = move.quantity). Assign взима само
+                #    СВОБОДНИЯ quant → материал, резервиран за ЧУЖДО МО, не се
+                #    пипа → правилно остава в недостига (не крадем чуждото).
+                consumptions = self.env["stock.move"].union(
+                    *[N for _, N in pairs])
+                consumptions._action_confirm(merge=False)
+                consumptions._action_assign()
+                # ① B — оразмеряваме всеки пик на НЕДОСТИГА = demand − reserved.
+                kept_picks = self.env["stock.move"]
+                covered = 0
+                for M, N in pairs:
+                    rounding = N.product_uom.rounding
+                    shortage = N.product_uom_qty - N.quantity
+                    if float_compare(shortage, 0.0,
+                                     precision_rounding=rounding) <= 0:
+                        # Буферът покрива всичко → пик НЕ е нужен (идемпотентно:
+                        # повторен Prepare не дублира пик — лекува 161-164).
+                        M._action_cancel()
+                        covered += 1
+                        continue
+                    M.product_uom_qty = shortage            # само недостигът
+                    # Закачаме веригата СЕГА (буфер-резервацията на N оцелява) →
+                    # при done на пика native propagation дораздели N остатъка.
+                    M.write({"move_dest_ids": [(6, 0, [N.id])]})
+                    kept_picks |= M
+                if kept_picks:
+                    # пиковете → assign към Pick Components picking (за да се
+                    # ПОКАЖАТ като трансфер за оператора) + резервация от Stock.
+                    kept_picks.write({"state": "confirmed"})
+                    kept_picks._assign_picking()
+                    kept_picks._action_assign()             # резервират от Stock
                 _logger.info(
-                    "Staged preparation: MO %s released → %d component(s): десен "
-                    "край откачен Stock→Pre-Production (① пикинг) + нов парон "
-                    "Pre-Production→Production (② консумация)",
-                    production.name, len(bridges))
+                    "Staged preparation (B): MO %s → %d консумация(и); %d пик(а) "
+                    "за недостига, %d покрити изцяло от Pre-Production буфер",
+                    production.name, len(pairs), len(kept_picks), covered)
         return True
 
     # ── List batch action: prepare a daily set of MOs into ONE transfer ──
@@ -330,7 +373,7 @@ class MrpProduction(models.Model):
             if origins:
                 target.origin = ", ".join(origins)[:2000]
             others.filtered(lambda p: not p.move_ids).unlink()
-            target._action_assign()  # резервира слетите редове
+            target.action_assign()  # резервира слетите редове (stock.picking API)
             _logger.info(
                 "Staged preparation batch: %d МО → 1 агрегиран PC трансфер %s "
                 "(%d пикинга слети в дневна партида)",
