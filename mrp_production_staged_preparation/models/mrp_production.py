@@ -342,10 +342,39 @@ class MrpProduction(models.Model):
                 "with staged preparation enabled."
             ))
 
-        # 1) Подготвяме всяко избрано МО (per-MO release е непроменен).
+        # 1) РАЗКРОЙ ПЪРВО (при Preparation, ПРЕДИ пиковете).  Оптимизацията
+        #    коригира КОЕФИЦИЕНТА (bom_line.loss) и преоразмерява bar move-овете
+        #    (product_uom_qty = полезни × (1+loss)) → пиковете в стъпка 2 се
+        #    генерират за КОРЕКТНОТО количество.  cross-MO нестване на цялата
+        #    дневна партида + forced_lot пиниране.  GUARDED: само ако
+        #    mrp_cutting_optimization + MRP plugin-ът са инсталирани; неуспех
+        #    (напр. барове още не получени) НЕ блокира подготовката — пуска се
+        #    ръчно по-късно (бутон „Optimize Cutting“ на МО).
+        Opt = self.env.get("mrp.cutting.optimization")
+        adapter = self.env.get("cutting.source.adapter.mrp_production")
+        if Opt is not None and adapter is not None:
+            try:
+                opt = Opt.create({
+                    "name": _("Daily cut: %s") % ", ".join(
+                        eligible.mapped("name"))[:60],
+                    "material_domain": "mrp_production",
+                    "production_ids": [(6, 0, eligible.ids)],
+                })
+                opt.action_optimize()
+                _logger.info(
+                    "Staged preparation batch: cross-MO разкрой %s за %d МО-та "
+                    "(loss коригиран ПРЕДИ пиковете)", opt.name, len(eligible))
+            except Exception as exc:  # noqa: BLE001 — разкроят не бива да блокира
+                _logger.warning(
+                    "Staged preparation batch: разкроят пропуснат (%s) — "
+                    "вероятно барове още не са в наличност; пусни ръчно "
+                    "(бутон „Optimize Cutting“ на МО) щом пристигнат.", exc)
+
+        # 2) Подготвяме всяко избрано МО (per-MO release).  Пиковете вече се
+        #    размерват от коригираните (от разкроя) количества.
         eligible.action_prepare_production()
 
-        # 2) Събираме новородените Stock→Pre-Production пикинги на партидата.
+        # 3) Събираме новородените Stock→Pre-Production пикинги на партидата.
         #    Бридж парон (N): Pre-Production→Production в move_raw_ids; неговият
         #    move_orig (M) е първият пик Stock→Pre-Production → неговият picking.
         pc_pickings = self.env["stock.picking"]
@@ -364,7 +393,7 @@ class MrpProduction(models.Model):
             )
             pc_pickings |= first_picks.picking_id
 
-        # 3) Агрегация: всички PC пикинги на партидата → ЕДИН трансфер.
+        # 4) Агрегация: всички PC пикинги на партидата → ЕДИН трансфер.
         if len(pc_pickings) > 1:
             target = pc_pickings.sorted("id")[0]
             others = pc_pickings - target
@@ -379,31 +408,4 @@ class MrpProduction(models.Model):
                 "(%d пикинга слети в дневна партида)",
                 len(eligible), target.name, len(pc_pickings),
             )
-
-        # 4) РАЗКРОЙ (cutting): обединяването на пикинга ПРЕДХОЖДА оптимизацията.
-        #    Оптимизираме ВСИЧКИ парчета от ВСИЧКИ МО-та на партидата ЗАЕДНО
-        #    (cross-MO нестване на прътовете за цялата дневна партида) и
-        #    избраният прът се пинва обратно като forced_lot_ids на МО-тата.
-        #    GUARDED: само ако mrp_cutting_optimization + MRP plugin-ът са
-        #    инсталирани; неуспех (напр. барове още не получени) НЕ блокира
-        #    подготовката — пуска се ръчно по-късно (бутон „Optimize Cutting").
-        Opt = self.env.get("mrp.cutting.optimization")
-        adapter = self.env.get("cutting.source.adapter.mrp_production")
-        if Opt is not None and adapter is not None:
-            try:
-                opt = Opt.create({
-                    "name": _("Daily cut: %s") % ", ".join(
-                        eligible.mapped("name"))[:60],
-                    "material_domain": "mrp_production",
-                    "production_ids": [(6, 0, eligible.ids)],
-                })
-                opt.action_optimize()
-                _logger.info(
-                    "Staged preparation batch: cross-MO разкрой %s за %d МО-та",
-                    opt.name, len(eligible))
-            except Exception as exc:  # noqa: BLE001 — разкроят не бива да блокира
-                _logger.warning(
-                    "Staged preparation batch: разкроят пропуснат (%s) — "
-                    "вероятно барове още не са в наличност; пусни ръчно "
-                    "(бутон „Optimize Cutting“ на МО) щом пристигнат.", exc)
         return True
