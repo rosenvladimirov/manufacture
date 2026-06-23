@@ -342,22 +342,23 @@ class MrpProduction(models.Model):
                 "with staged preparation enabled."
             ))
 
-        # 0) PRE-CHECK наличност (искане на Любо): всички компоненти трябва да са
-        #    Available ПРЕДИ разкроя. Иначе оптимизацията се пуска върху непълна
-        #    наличност (липсващ бар/стъкло) и трябва да се прави ОТНАЧАЛО щом
-        #    материалът дойде. Спираме рано с ясен списък кои МО + какво липсва.
+        # 0) PRE-CHECK наличност (искане на Любо): ПРЕДУПРЕЖДЕНИЕ, НЕ блок, ако
+        #    някое МО няма всичките компоненти Available. Не блокираме, защото
+        #    стъклото се потребява чак на монтажа (дни по-късно) → има още време
+        #    за доставка. Само информираме (chatter сега + sticky notification
+        #    накрая), за да не се изненада операторът. Разкроят/пиковете
+        #    продължават нормално за всички избрани МО.
         not_ready = eligible.filtered(
             lambda p: p.components_availability_state
             and p.components_availability_state != 'available')
-        if not_ready:
-            raise UserError(_(
-                "Cannot prepare for production — components are not yet available "
-                "for:\n%s\n\nMake sure every component is in stock first, so the "
-                "cutting optimization is not run on incomplete stock and has to be "
-                "redone once the material arrives.",
-                "\n".join(
-                    "• %s — %s" % (p.name, p.components_availability or _("Not Available"))
-                    for p in not_ready)))
+        for production in not_ready:
+            _logger.warning(
+                "Staged preparation: МО %s подготвено с НЕналични компоненти (%s)",
+                production.name, production.components_availability)
+            production.message_post(body=_(
+                "⚠ Prepared for production while components are not yet available "
+                "(%s). Make sure they arrive before consumption.",
+                production.components_availability or _("Not Available")))
 
         # 1) РАЗКРОЙ ПЪРВО (при Preparation, ПРЕДИ пиковете).  Оптимизацията
         #    коригира КОЕФИЦИЕНТА (bom_line.loss) и преоразмерява bar move-овете
@@ -425,4 +426,23 @@ class MrpProduction(models.Model):
                 "(%d пикинга слети в дневна партида)",
                 len(eligible), target.name, len(pc_pickings),
             )
+        # Не-блокиращо предупреждение за МО с неналични компоненти (виж стъпка 0).
+        if not_ready:
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'type': 'warning',
+                    'title': _("Prepared — some components not yet available"),
+                    'message': _(
+                        "Optimization and transfers were created. These MOs have "
+                        "components not yet in stock (e.g. glass arriving before "
+                        "installation):\n%s",
+                        "\n".join(
+                            "• %s — %s" % (
+                                p.name, p.components_availability or _("Not Available"))
+                            for p in not_ready)),
+                    'sticky': True,
+                },
+            }
         return True
