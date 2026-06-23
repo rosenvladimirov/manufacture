@@ -342,6 +342,23 @@ class MrpProduction(models.Model):
                 "with staged preparation enabled."
             ))
 
+        # 0) PRE-CHECK наличност (искане на Любо): всички компоненти трябва да са
+        #    Available ПРЕДИ разкроя. Иначе оптимизацията се пуска върху непълна
+        #    наличност (липсващ бар/стъкло) и трябва да се прави ОТНАЧАЛО щом
+        #    материалът дойде. Спираме рано с ясен списък кои МО + какво липсва.
+        not_ready = eligible.filtered(
+            lambda p: p.components_availability_state
+            and p.components_availability_state != 'available')
+        if not_ready:
+            raise UserError(_(
+                "Cannot prepare for production — components are not yet available "
+                "for:\n%s\n\nMake sure every component is in stock first, so the "
+                "cutting optimization is not run on incomplete stock and has to be "
+                "redone once the material arrives.",
+                "\n".join(
+                    "• %s — %s" % (p.name, p.components_availability or _("Not Available"))
+                    for p in not_ready)))
+
         # 1) РАЗКРОЙ ПЪРВО (при Preparation, ПРЕДИ пиковете).  Оптимизацията
         #    коригира КОЕФИЦИЕНТА (bom_line.loss) и преоразмерява bar move-овете
         #    (product_uom_qty = полезни × (1+loss)) → пиковете в стъпка 2 се
