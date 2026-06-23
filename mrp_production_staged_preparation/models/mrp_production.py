@@ -342,23 +342,57 @@ class MrpProduction(models.Model):
                 "with staged preparation enabled."
             ))
 
-        # 0) PRE-CHECK наличност (искане на Любо): ПРЕДУПРЕЖДЕНИЕ, НЕ блок, ако
-        #    някое МО няма всичките компоненти Available. Не блокираме, защото
-        #    стъклото се потребява чак на монтажа (дни по-късно) → има още време
-        #    за доставка. Само информираме (chatter сега + sticky notification
-        #    накрая), за да не се изненада операторът. Разкроят/пиковете
-        #    продължават нормално за всички избрани МО.
-        not_ready = eligible.filtered(
-            lambda p: p.components_availability_state
-            and p.components_availability_state != 'available')
-        for production in not_ready:
+        # 0) PRE-CHECK наличност ПО РОЛЯ НА КОМПОНЕНТА (искане на Любо):
+        #    • РЕЖЕЩИ компоненти (профили/барове = продукти с cut.piece template
+        #      на този BoM, входът на първата операция/разкроя) НЕналични → ТВЪРД
+        #      БЛОК — оптимизацията е безсмислена без баровете (#1051).
+        #    • ОСТАНАЛИ (стъкло/обков, консумирани на по-късни операции/монтаж)
+        #      НЕналични → само WARNING — идват до монтажа, има време.
+        #    NB: raw moves тук НЕ са разделени по operation_id (всички на една
+        #    операция), затова дискриминаторът е „има ли cut.piece" = реалният
+        #    режещ вход, а не operation_id (по-надеждно от routing-а).
+        Piece = self.env.get("mrp.cutting.piece")
+
+        def _unavail(m):
+            rounding = m.product_uom.rounding or 0.01
+            return (m.forecast_availability or 0.0) < m.product_uom_qty - rounding
+
+        blocked, warned = [], []
+        for production in eligible:
+            cut_ids = set()
+            if Piece is not None and production.bom_id:
+                cut_ids = set(Piece.sudo().search(
+                    [("bom_line_id.bom_id", "=", production.bom_id.id)]
+                ).mapped("product_id").ids)
+            live = production.move_raw_ids.filtered(
+                lambda m: m.state not in ("done", "cancel"))
+            cut_bad = live.filtered(
+                lambda m: m.product_id.id in cut_ids and _unavail(m))
+            other_bad = live.filtered(
+                lambda m: m.product_id.id not in cut_ids and _unavail(m))
+            if cut_bad:
+                blocked.append((production, cut_bad))
+            elif other_bad:
+                warned.append((production, other_bad))
+        if blocked:
+            raise UserError(_(
+                "Cannot prepare for production — cutting components (profiles/bars "
+                "for the first operation) are not available:\n%s\n\nThe cutting "
+                "optimization needs these in stock; add stock and retry.",
+                "\n".join(
+                    "• %s — %s" % (p.name, ", ".join(
+                        m.product_id.display_name for m in bad))
+                    for p, bad in blocked)))
+        for production, bad in warned:
             _logger.warning(
-                "Staged preparation: МО %s подготвено с НЕналични компоненти (%s)",
-                production.name, production.components_availability)
+                "Staged preparation: МО %s — по-късни компоненти неналични (%s)",
+                production.name,
+                ", ".join(m.product_id.display_name for m in bad))
             production.message_post(body=_(
-                "⚠ Prepared for production while components are not yet available "
-                "(%s). Make sure they arrive before consumption.",
-                production.components_availability or _("Not Available")))
+                "⚠ Prepared while later-operation components are not yet available "
+                "(%s). They should arrive before consumption (e.g. glass at "
+                "installation).",
+                ", ".join(m.product_id.display_name for m in bad)))
 
         # 1) РАЗКРОЙ ПЪРВО (при Preparation, ПРЕДИ пиковете).  Оптимизацията
         #    коригира КОЕФИЦИЕНТА (bom_line.loss) и преоразмерява bar move-овете
@@ -426,22 +460,23 @@ class MrpProduction(models.Model):
                 "(%d пикинга слети в дневна партида)",
                 len(eligible), target.name, len(pc_pickings),
             )
-        # Не-блокиращо предупреждение за МО с неналични компоненти (виж стъпка 0).
-        if not_ready:
+        # Не-блокиращо предупреждение за МО с неналични ПО-КЪСНИ компоненти
+        # (стъкло/обков). Режещите вече биха блокирали по-горе.
+        if warned:
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
                     'type': 'warning',
-                    'title': _("Prepared — some components not yet available"),
+                    'title': _("Prepared — later components not yet available"),
                     'message': _(
                         "Optimization and transfers were created. These MOs have "
-                        "components not yet in stock (e.g. glass arriving before "
-                        "installation):\n%s",
+                        "later-operation components not yet in stock (e.g. glass "
+                        "for installation):\n%s",
                         "\n".join(
-                            "• %s — %s" % (
-                                p.name, p.components_availability or _("Not Available"))
-                            for p in not_ready)),
+                            "• %s — %s" % (p.name, ", ".join(
+                                m.product_id.display_name for m in bad))
+                            for p, bad in warned)),
                     'sticky': True,
                 },
             }
