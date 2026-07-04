@@ -454,11 +454,27 @@ class MrpProduction(models.Model):
             if origins:
                 target.origin = ", ".join(origins)[:2000]
             others.filtered(lambda p: not p.move_ids).unlink()
-            target.action_assign()  # резервира слетите редове (stock.picking API)
+            # #724: сливаме и ДВИЖЕНИЯТА per (продукт+лот) — семантика A
+            # (Любо, 04.07). Дневната партида върви по НАЙ-РАННИЯ deadline —
+            # унифицираме date_deadline преди merge, иначе per-MO deadline-ите
+            # блокират cross-MO сливането (date_deadline е distinct поле).
+            deadlines = [d for d in target.move_ids.mapped("date_deadline") if d]
+            if deadlines:
+                target.move_ids.write({"date_deadline": min(deadlines)})
+            # do_unreserve маха резервациите (пречат на merge-а). _merge_moves
+            # пази forced_lot_ids разделно (distinct поле от forced_lot_multi):
+            # лот-tracked редове (барове/стъкло) остават per-лот, не-лот
+            # компонентите се сливат per продукт. Веригата M→N оцелява —
+            # merge-ът унифицира move_dest_ids/move_orig_ids на слетия move.
+            moves_before = len(target.move_ids)
+            target.do_unreserve()
+            target.move_ids._merge_moves()
+            target.action_assign()  # ре-резервация (+ forced_lot fill)
             _logger.info(
                 "Staged preparation batch: %d МО → 1 агрегиран PC трансфер %s "
-                "(%d пикинга слети в дневна партида)",
+                "(%d пикинга слети; #724 merge: %d → %d движения)",
                 len(eligible), target.name, len(pc_pickings),
+                moves_before, len(target.move_ids),
             )
         # Не-блокиращо предупреждение за МО с неналични ПО-КЪСНИ компоненти
         # (стъкло/обков). Режещите вече биха блокирали по-горе.
