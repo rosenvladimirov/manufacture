@@ -4,7 +4,7 @@
 {
     "name": "Stock Move Forced Lot Multi",
     "summary": "Force multiple lots on stock moves from MO to PO",
-    "version": "18.0.4.2.0",
+    "version": "18.0.4.3.0",
     "category": "Warehouse Management",
     "website": "https://github.com/OCA/stock-logistics-workflow",
     "author": "Your Company, Odoo Community Association (OCA)",

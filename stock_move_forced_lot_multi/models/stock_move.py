@@ -38,24 +38,43 @@ class StockMove(models.Model):
         return distinct_fields
 
     def _action_assign(self, force_qty=False):
-        """Auto-fill move_line.lot_id from forced_lot_ids when empty.
+        """Auto-fill на move_line.lot_id от forced_lot_ids след резервация.
 
-        Runs after super()._action_assign() so any lot picked by quant
-        reservation wins. Only writes on move_lines that have neither
-        lot_id nor lot_name set — never overrides Odoo's reservation
-        choice or a value the user typed.
-
-        Single forced lot → fills lot_id on all empty lines.
-        Multiple forced lots → only acts when there is exactly one empty
-        line; splits it pro-rata into one line per forced lot. Other
-        shapes (multiple empty lines and multiple forced lots) are left
-        untouched for the user to resolve.
-
-        Skips creation for any forced lot that already has a non-empty
-        move_line on the move — prevents duplicate zero-qty lines when
-        another flow (e.g. LogiKal importer) pre-seeded the lines.
+        Върви СЛЕД super()._action_assign(), така че лот избран от quant
+        резервацията печели. Пълни само празни линии (виж helper-а).
         """
         res = super()._action_assign(force_qty=force_qty)
+        self._forced_lot_fill_empty_lines()
+        return res
+
+    def _action_done(self, cancel_backorder=False):
+        """Forced_lot fill и по immediate-transfer пътя (lot-gap фикс).
+
+        При mark_done БЕЗ предварителен _action_assign (напр. МО raw
+        consumption в интегрирания Prepare/Optimize поток) move_line-ите
+        се раждат тук без lot_id → core-ът вдига „You need to supply a
+        Lot/Serial Number" (stock_move_line._action_done). Пълним от
+        forced_lot_ids ПРЕДИ super(), със същата семантика като fill-а
+        в _action_assign.
+        """
+        self._forced_lot_fill_empty_lines()
+        return super()._action_done(cancel_backorder=cancel_backorder)
+
+    def _forced_lot_fill_empty_lines(self):
+        """Пълни lot_id на празните move_lines от forced_lot_ids.
+
+        Пише САМО по линии без lot_id и без lot_name — никога не
+        презаписва избор на резервацията или ръчно въведена стойност.
+
+        Един forced лот → попълва lot_id на всички празни линии.
+        Няколко forced лота → действа само при ТОЧНО една празна линия;
+        разцепва я pro-rata на по една линия per лот. Други форми
+        (няколко празни линии + няколко лота) се оставят на потребителя.
+
+        Прескача лотове, които вече имат непразна move_line на move-а —
+        предпазва от дублирани zero-qty линии, когато друг поток (напр.
+        LogiKal importer-ът) е pre-seed-нал линиите.
+        """
         MoveLine = self.env["stock.move.line"]
         for move in self:
             if not move.forced_lot_ids:
@@ -108,7 +127,6 @@ class StockMove(models.Model):
                     "quantity": qty_per_lot,
                     "company_id": move.company_id.id,
                 })
-        return res
 
     def action_open_forced_lot_wizard(self):
         self.ensure_one()
