@@ -1,0 +1,167 @@
+#  Translation of Odoo Server.
+#  This file contains the translation of the following modules:
+#  	* mrp_bom_for_lot
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-11 08:00+0000\n"
+"PO-Revision-Date: 2026-08-11 12:00+0300\n"
+"Last-Translator: Rosen Vladimirov <vladimirov.rosen@gmail.com>\n"
+"Language-Team: \n"
+"Language: bg_BG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_production_lot_form_inherit_bom
+msgid "<span class=\"o_stat_text\">BOM</span>"
+msgstr "<span class=\"o_stat_text\">BOM</span>"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_form
+msgid "Additional notes..."
+msgstr "Допълнителни бележки..."
+
+#. module: mrp_bom_for_lot
+#: model:ir.model,name:mrp_bom_for_lot.model_mrp_bom_lot
+msgid "BOM for Lot/Serial Number"
+msgstr "BOM за партида/сериен номер"
+
+#. module: mrp_bom_for_lot
+#: model:ir.actions.act_window,name:mrp_bom_for_lot.action_mrp_bom_lot
+#: model:ir.ui.menu,name:mrp_bom_for_lot.menu_mrp_bom_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_form
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_tree
+msgid "BOM for Lot/Serial number"
+msgstr "BOM за партида/сериен номер"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.actions.act_window,help:mrp_bom_for_lot.action_mrp_bom_lot
+msgid ""
+"BOM for Lot/Serial number allows you to adjust the quantities of\n"
+"                components from the master BOM for a specific lot or serial number."
+msgstr ""
+"BOM за партида/сериен номер позволява да коригирате количествата на\n"
+"                компонентите от основната BOM за конкретна партида или сериен номер."
+
+#. module: mrp_bom_for_lot
+#. odoo-python
+#: code:addons/mrp_bom_for_lot/models/mrp_production.py:0
+msgid "BOM for lot found"
+msgstr "Намерена е BOM за партидата"
+
+#. module: mrp_bom_for_lot
+#: model:ir.model,name:mrp_bom_for_lot.model_mrp_bom_lot_line
+msgid "BOM line for Lot/Serial number"
+msgstr "Ред от BOM за партида/сериен номер"
+
+#. module: mrp_bom_for_lot
+#: model:ir.model,name:mrp_bom_for_lot.model_mrp_bom_line
+msgid "Bill of Material Line"
+msgstr "Ред от спецификация на материали"
+
+#. module: mrp_bom_for_lot
+#: model:ir.model.fields.selection,name:mrp_bom_for_lot.selection__mrp_bom_lot__state__cancel
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_form
+msgid "Cancel"
+msgstr "Отказ"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_form
+msgid "Comment"
+msgstr "Коментар"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_form
+msgid "Components"
+msgstr "Компоненти"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_form
+msgid "Confirm"
+msgstr "Потвърждение"
+
+#. module: mrp_bom_for_lot
+#: model:ir.model.fields.selection,name:mrp_bom_for_lot.selection__mrp_bom_lot__state__confirmed
+msgid "Confirmed"
+msgstr "Потвърдена"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.actions.act_window,help:mrp_bom_for_lot.action_mrp_bom_lot
+msgid "Create the first BOM for lot/serial number"
+msgstr "Създайте първата BOM за партида/сериен номер"
+
+#. module: mrp_bom_for_lot
+#: model:ir.model.fields,field_description:mrp_bom_for_lot.field_mrp_bom_line__display_name
+#: model:ir.model.fields,field_description:mrp_bom_for_lot.field_mrp_production__display_name
+#: model:ir.model.fields,field_description:mrp_bom_for_lot.field_stock_lot__display_name
+msgid "Display Name"
+msgstr "Име за показване"
+
+#. module: mrp_bom_for_lot
+#. odoo-python
+#: code:addons/mrp_bom_for_lot/models/mrp_production.py:0
+msgid ""
+"Found a BOM specific to this lot. Use the \"Load Lot BOM\" button to apply "
+"the adjusted amounts."
+msgstr ""
+"Намерена е BOM, специфична за тази партида. Използвайте бутона „Зареди BOM "
+"за партида“, за да приложите коригираните количества."
+
+#. module: mrp_bom_for_lot
+#: model:ir.model.fields,field_description:mrp_bom_for_lot.field_mrp_bom_line__id
+#: model:ir.model.fields,field_description:mrp_bom_for_lot.field_mrp_production__id
+#: model:ir.model.fields,field_description:mrp_bom_for_lot.field_stock_lot__id
+msgid "ID"
+msgstr "Номер (ID)"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_production_form_inherit_lot_bom
+msgid "Load BOM for lot"
+msgstr "Зареди BOM за партида"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_form
+msgid "Load from master BOM"
+msgstr "Зареди от основната BOM"
+
+#. module: mrp_bom_for_lot
+#: model:ir.model,name:mrp_bom_for_lot.model_stock_lot
+msgid "Lot/Serial"
+msgstr "Партиден/сериен"
+
+#. module: mrp_bom_for_lot
+#: model:ir.model,name:mrp_bom_for_lot.model_mrp_production
+msgid "Manufacturing Order"
+msgstr "Производствена поръчка"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_form
+msgid "Return to draft"
+msgstr "Върни в чернова"
+
+#. module: mrp_bom_for_lot
+#. odoo-python
+#: code:addons/mrp_bom_for_lot/models/mrp_production.py:0
+msgid "Successfully"
+msgstr "Успешно"
+
+#. module: mrp_bom_for_lot
+#. odoo-python
+#: code:addons/mrp_bom_for_lot/models/mrp_production.py:0
+msgid "The quantities are adjusted according to the BOM for the lot"
+msgstr "Количествата са коригирани според BOM за партидата"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_production_lot_form_inherit_bom
+msgid "To produce"
+msgstr "За производство"
+
+#. module: mrp_bom_for_lot
+#: model:ir.model.fields.selection,name:mrp_bom_for_lot.selection__mrp_bom_lot__state__done
+msgid "Used"
+msgstr "Употребяван"
