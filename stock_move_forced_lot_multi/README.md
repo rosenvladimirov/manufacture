@@ -89,4 +89,4 @@ AGPL-3.0
 
 ## Author
 
-Your Company
+Rosen Vladimirov, Terraros Commerce Ltd.
