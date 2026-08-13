@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ================= europlacer.trac.line (87M) ================= -->
+    <record id="view_europlacer_trac_line_list" model="ir.ui.view">
+        <field name="name">europlacer.trac.line.list</field>
+        <field name="model">europlacer.trac.line</field>
+        <field name="arch" type="xml">
+            <!-- count_limit спира пълния COUNT(*) на 86M реда (pager показва
+                 "10000+" вместо точен брой) — иначе всяко отваряне timeout-ва. -->
+            <!-- Трансферираните O11 данни носят RAW id-та в many2one-ите
+                 (product_id/lot_id/feeder_id сочат несъществуващи записи в
+                 mec-19 → display_name гърми). Затова показваме текстовите
+                 dummy_* еквиваленти; суровите m2o са optional=hide. -->
+            <list string="Traceability lines" limit="80" count_limit="10000">
+                <field name="trac_id" optional="show"/>
+                <field name="position"/>
+                <field name="dummy_product_code" optional="show"/>
+                <field name="dummy_product_name"/>
+                <field name="dummy_lot_name"/>
+                <field name="dummy_product_sn" optional="show"/>
+                <field name="mark" optional="hide"/>
+                <field name="measure"/>
+                <field name="product_id" optional="hide"/>
+                <field name="lot_id" optional="hide"/>
+                <field name="feeder_id" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_europlacer_trac_line_search" model="ir.ui.view">
+        <field name="name">europlacer.trac.line.search</field>
+        <field name="model">europlacer.trac.line</field>
+        <field name="arch" type="xml">
+            <search string="Traceability lines">
+                <field name="trac_id"/>
+                <field name="product_id"/>
+                <field name="lot_id"/>
+                <field name="dummy_product_name"/>
+                <field name="dummy_lot_name"/>
+                <filter name="gb_trac" string="Trace header" context="{'group_by': 'trac_id'}"/>
+                <filter name="gb_product" string="Product" context="{'group_by': 'product_id'}"/>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_europlacer_trac_line" model="ir.actions.act_window">
+        <field name="name">Traceability lines (87M)</field>
+        <field name="res_model">europlacer.trac.line</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="view_europlacer_trac_line_search"/>
+    </record>
+
+    <!-- ================= europlacer.trac (headers) ================= -->
+    <record id="view_europlacer_trac_list" model="ir.ui.view">
+        <field name="name">europlacer.trac.list</field>
+        <field name="model">europlacer.trac</field>
+        <field name="arch" type="xml">
+            <list string="Traceability">
+                <field name="name"/>
+                <field name="begin_date_trac"/>
+                <field name="end_date_trac" optional="hide"/>
+                <field name="product_id"/>
+                <field name="production_id"/>
+                <field name="batch"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_europlacer_trac_form" model="ir.ui.view">
+        <field name="name">europlacer.trac.form</field>
+        <field name="model">europlacer.trac</field>
+        <field name="arch" type="xml">
+            <form string="Traceability">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="product_id"/>
+                            <field name="production_id"/>
+                            <field name="workorder_id"/>
+                            <field name="batch"/>
+                        </group>
+                        <group>
+                            <field name="begin_date_trac"/>
+                            <field name="end_date_trac"/>
+                            <field name="final_lot_id"/>
+                            <field name="workcenter_id"/>
+                            <field name="partner_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lines">
+                            <field name="lines">
+                                <list limit="200">
+                                    <field name="position"/>
+                                    <field name="dummy_product_name"/>
+                                    <field name="product_id"/>
+                                    <field name="dummy_lot_name"/>
+                                    <field name="lot_id"/>
+                                    <field name="measure"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_europlacer_trac" model="ir.actions.act_window">
+        <field name="name">Traceability</field>
+        <field name="res_model">europlacer.trac</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- ================= menus ================= -->
+    <menuitem id="menu_europlacer_root" name="Europlacer Trac" sequence="90"/>
+    <menuitem id="menu_europlacer_trac" name="Traceability" parent="menu_europlacer_root"
+              action="action_europlacer_trac" sequence="10"/>
+    <menuitem id="menu_europlacer_trac_line" name="Traceability lines (87M)" parent="menu_europlacer_root"
+              action="action_europlacer_trac_line" sequence="20"/>
+</odoo>
