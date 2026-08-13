@@ -12,52 +12,71 @@ class StockMove(models.Model):
     _inherit = "stock.move"
 
     def _get_forecast_availability_outgoing(self, warehouse, location_id=False):
-        """Fallback to the MTO `move_orig_ids` chain ONLY when the forecast
-        report fully drops an outgoing move that the chain will fulfill.
+        """Derive forecast for MTO moves from their `move_orig_ids` chain
+        instead of the global forecast report allocation.
 
-        Standard Odoo (stock/models/stock_move.py:2469-2490):
+        Why
+        ---
+        Standard Odoo computes the per-move forecast via
+        `stock.forecasted_product_product._get_report_lines`, which
+        reconciles ALL outgoing demands of a product against ALL incoming
+        receipts in the warehouse, chronologically
+        (stock/models/stock_move.py:_get_forecast_availability_outgoing,
+        ~2469-2490).
 
-            result = defaultdict(lambda: (0.0, False))
-            for line in forecast_lines:
-                ...
-                result[move_out] = (qty_expected, date_expected)
-            return result
+        For a 3-step manufacturing MTO chain this allocation is
+        non-deterministic at the per-move level: several identical raw
+        moves, all fully reserved by their own origs, get paired with a
+        `move_in` (→ a future `date_expected`) or not, essentially at
+        random, because incoming == demand on the same date (`date_start`).
+        Result: the MO `forecast_widget` flickers identical, fully-reserved
+        components between "Available" (green) and "Exp DATE" (orange),
+        while a genuinely unreserved component (origs still `waiting`,
+        qty=0) can be masked as "Available". The badge stops correlating
+        with the real chain state. (Reported MO/00655, db dev-teo-2305,
+        2026-05-29; earlier MO 493-500 / S00216, 2026-05-13.)
 
-        Single failure mode covered (Case 1 — qty == 0):
+        For an MTO move the only meaningful source of truth is its own
+        chain — the origs that physically feed it — not the global product
+        forecast. So for such moves we replace the report's value with one
+        derived from the chain.
 
-        When the whole demand of an outgoing move is reconciled
-        (reserved + stock + transit + incoming) inside
-        `_get_report_lines`, no row is emitted for that move, so it
-        keeps the defaultdict value `(0.0, False)` — read by callers as
-        "Not Available" even though a confirmed/waiting incoming receipt
-        is queued. UI shows fake "Not Available"; operator clears it
-        with Unreserve + Check Availability.
+        Scope guard
+        -----------
+        We only override moves that are BOTH `make_to_order` AND have
+        `move_orig_ids` AND are still upstream-bound (`waiting`,
+        `confirmed`, `partially_available`). Non-MTO moves keep super()'s
+        result untouched — their `(qty>0, date=False)` "available from
+        current stock" semantics are valid and must not be overwritten
+        (the v3 regression).
 
-        NOT covered (deliberately): `(qty>0, date=False)`. That tuple is
-        a valid "available now from current stock" signal — overwriting
-        its date with a future chain date is wrong and produces fake
-        "Expected" badges (regression removed in this version).
+        Warehouse scope
+        ---------------
+        Standard Odoo computes forecast for
+        `child_of(warehouse.view_location_id)` only. We respect the same
+        scope: only origs delivering into this warehouse's view-location
+        subtree count, so multi-warehouse setups are not cross-counted.
 
-        Warehouse scope: standard Odoo computes forecast for
-        `child_of(warehouse.view_location_id)` only. The fallback MUST
-        respect the same scope — summing `move_orig_ids` globally counts
-        incoming receipts destined for OTHER warehouses, giving wrong
-        results in multi-warehouse setups. We therefore only count orig
-        moves whose `location_dest_id` is inside this warehouse's view
-        location subtree.
+        Derivation (per move, same product, in-scope origs)
+        ---------------------------------------------------
+        - ready_qty = Σ product_qty of origs in state `assigned`/`done`
+          (reserved or already arrived → physically committed to us);
+        - chain_qty = Σ product_qty of origs not `cancel`
+          (everything the chain is planned to deliver);
+        - expected_date = max scheduled date among pending (non-done,
+          non-cancel) origs, falling back to the move's own date.
 
-        Behavior:
+        Then:
+        - ready_qty >= demand        → (demand, False)          "Available"
+        - chain_qty >= demand        → (demand, expected_date)  "Exp DATE"
+        - chain_qty  > 0             → (ready_qty, expected_date) partial
+                                                                "Not Available"
+        - otherwise                  → leave super()'s value
 
-        - super() as the primary source of truth;
-        - only touch moves where result is `(0.0, *)` AND the move is
-          still upstream-bound (`waiting`, `confirmed`,
-          `partially_available`);
-        - sum `move_orig_ids.product_qty` for orig moves that are
-          pending (not done/cancel) AND deliver into this warehouse's
-          locations;
-        - never overwrites a non-zero primary result.
-
-        Idempotent and reversible (uninstall restores Odoo behavior).
+        This is deterministic (depends only on the move's own chain),
+        subsumes the old qty==0 fallback, fixes the flicker, and unmasks
+        unreserved components. Idempotent and reversible (uninstall
+        restores Odoo behavior).
         """
         result = super()._get_forecast_availability_outgoing(
             warehouse, location_id=location_id,
@@ -68,31 +87,50 @@ class StockMove(models.Model):
             )
         )
         for move in self:
-            qty, date = result.get(move, (0.0, False))
-            if qty > 0:
-                continue  # primary report produced a value — leave alone
+            if move.procure_method != "make_to_order":
+                continue
             if move.state not in ("waiting", "confirmed", "partially_available"):
                 continue
             if not move.move_orig_ids:
                 continue
-            chain_pending = move.move_orig_ids.filtered(
-                lambda o: o.state not in ("done", "cancel")
+
+            demand = move.product_qty
+            in_scope = move.move_orig_ids.filtered(
+                lambda o: o.product_id == move.product_id
+                and o.state != "cancel"
                 and o.location_dest_id.id in wh_location_ids
             )
-            if not chain_pending:
+            if not in_scope:
                 continue
-            chain_qty = sum(chain_pending.mapped("product_qty"))
-            if chain_qty <= 0:
-                continue
-            chain_date = max(
-                (o.date for o in chain_pending if o.date),
+
+            ready_qty = sum(
+                o.product_qty
+                for o in in_scope
+                if o.state in ("assigned", "done")
+            )
+            chain_qty = sum(in_scope.mapped("product_qty"))
+            pending = in_scope.filtered(lambda o: o.state != "done")
+            expected_date = max(
+                (o.date for o in pending if o.date),
                 default=False,
-            )
-            result[move] = (chain_qty, date or chain_date or move.date)
-            _logger.debug(
-                "Forecast fallback (qty=0): move %s (%s) → qty=%s date=%s "
-                "from %d in-scope orig move(s)",
-                move.id, move.product_id.display_name,
-                chain_qty, chain_date, len(chain_pending),
-            )
+            ) or move.date
+
+            if ready_qty >= demand:
+                new_value = (demand, False)
+            elif chain_qty >= demand:
+                new_value = (demand, expected_date)
+            elif chain_qty > 0:
+                new_value = (ready_qty, expected_date)
+            else:
+                continue
+
+            if result.get(move, (0.0, False)) != new_value:
+                _logger.debug(
+                    "Forecast chain-override: move %s (%s) %s → %s "
+                    "[ready=%s chain=%s demand=%s, %d in-scope orig(s)]",
+                    move.id, move.product_id.display_name,
+                    result.get(move), new_value,
+                    ready_qty, chain_qty, demand, len(in_scope),
+                )
+            result[move] = new_value
         return result

@@ -2,6 +2,7 @@
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
 from odoo import models
+from odoo.tools.float_utils import float_round
 
 
 class StockRule(models.Model):
@@ -9,24 +10,45 @@ class StockRule(models.Model):
 
     @staticmethod
     def _po_split_total_area(lots):
-        """Връща сумата от product_uom_qty × final_quantity за po_split лотове.
+        """Връща общата нужда (m²) за po_split лотове = искано == вложено.
 
-        Връща None ако нито един лот няма po_split — caller fallback-ва към
-        стандартното поведение на purchase_stock (acc product_qty).
-        Връща None и ако сумата е <= 0 (липсват dimension/quantity данни) —
-        пак fallback, за да не set-нем 0 като product_qty.
+        Количеството за всеки лот = product_uom_qty × Σ(usage.pieces по всички
+        позиции на лота). usage.pieces е авторитетната per-position нужда
+        (raw_pieces × real_quantity), същата база, която MO-тата влагат — така
+        PO ред-ът (искано) съвпада със сумата на вложеното в производството.
+
+        final_quantity (COUNT DISTINCT GlassID от LogiKal) е ненадеждна за
+        реалната нужда (не включва real_quantity, дедуплицира размери), затова
+        се ползва само като fallback за лотове БЕЗ usage записи (legacy/import
+        без position link).
+
+        Връща None ако нито един лот няма po_split, или ако сумата е <= 0 —
+        caller fallback-ва към стандартното поведение на purchase_stock.
         """
         po_split_lots = lots.filtered("po_split")
         if not po_split_lots:
             return None
+        env = po_split_lots.env
+        Usage = env.get("logikal.lot.position.usage")
         total = 0.0
         for lot in po_split_lots:
             uom_qty = getattr(lot, "product_uom_qty", 0.0) or 0.0
-            final_qty = getattr(lot, "final_quantity", 0.0) or 0.0
-            total += uom_qty * final_qty
+            # Реална обща нужда от лота = Σ usage.pieces по всички позиции
+            pieces = 0.0
+            if Usage is not None:
+                usages = Usage.sudo().search([("lot_id", "=", lot.id)])
+                pieces = sum(usages.mapped("pieces"))
+            # Fallback само ако няма usage записи за този лот
+            if not pieces:
+                pieces = getattr(lot, "final_quantity", 0.0) or 0.0
+            total += uom_qty * pieces
         if total <= 0:
             return None
-        return total
+        # Закръгляме до UoM precision на продукта (m² → 0.01), за да не носи
+        # PO ред-ът натрупана float грешка
+        product = po_split_lots[:1].product_id
+        rounding = product.uom_id.rounding if product and product.uom_id else 0.01
+        return float_round(total, precision_rounding=rounding)
 
     def _update_purchase_order_line(
         self, product_id, product_qty, product_uom, company_id, values, line

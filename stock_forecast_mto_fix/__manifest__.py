@@ -3,11 +3,13 @@
 
 {
     "name": "Stock Forecast MTO Chain Fix",
-    "summary": "Warehouse-scoped fallback to move_orig_ids chain when the "
-               "forecast report fully drops an MTO outgoing move "
-               "(fake 'Not Available'). Case 2 date-fallback removed — it "
-               "broke valid 'available now' semantics.",
-    "version": "18.0.3.0.0",
+    "summary": "Derive forecast (qty, date) for MTO moves from their "
+               "move_orig_ids chain instead of the non-deterministic global "
+               "forecast report allocation. Fixes the MO forecast_widget "
+               "flicker on identical reserved components and unmasks "
+               "unreserved ones. Warehouse-scoped; MTO-only guard avoids the "
+               "v3 'available from stock' regression.",
+    "version": "18.0.4.0.0",
     "category": "Warehouse Management",
     "website": "https://github.com/OCA/stock-logistics-workflow",
     "author": "Your Company",
