@@ -85,7 +85,8 @@ No special configuration needed. Install the module and you're ready to go.
 
 ## License
 
-AGPL-3.0
+AGPL-3.0-or-later, или търговски лиценз от Rosen Vladimirov
+(двоен лиценз — виж `LICENSE-COMMERCIAL.md`).
 
 ## Author
 
