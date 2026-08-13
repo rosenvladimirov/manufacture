@@ -4,7 +4,6 @@
         t-name="mrp_bom_line_distribution.BomOverviewTable"
         t-inherit="mrp.BomOverviewTable"
         t-inherit-mode="extension"
-        owl="1"
     >
         <xpath expr="//thead/tr/th[1]/following-sibling::th[1]" position="after">
             <th class="text-end">Coeff %</th>
@@ -16,7 +15,6 @@
         t-name="mrp_bom_line_distribution.BomOverviewLine"
         t-inherit="mrp.BomOverviewLine"
         t-inherit-mode="extension"
-        owl="1"
     >
         <xpath expr="//tr/td[2]" position="after">
             <td class="text-end">

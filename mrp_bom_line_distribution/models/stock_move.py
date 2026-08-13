@@ -216,7 +216,7 @@ class StockMove(models.Model):
             "type": "ir.actions.act_window",
             "name": _("Distribution Coefficient History"),
             "res_model": "mrp.production.coefficient.log",
-            "view_mode": "tree,form",
+            "view_mode": "list,form",
             "target": "current",
             "domain": [("move_id", "=", self.id)],
         }

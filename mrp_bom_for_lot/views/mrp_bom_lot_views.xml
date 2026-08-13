@@ -93,39 +93,7 @@
                         </page>
                     </notebook>
                 </sheet>
-                <chatter/>
             </form>
-        </field>
-    </record>
-
-    <!-- Search view -->
-    <record id="view_mrp_bom_lot_search" model="ir.ui.view">
-        <field name="name">mrp.bom.lot.search</field>
-        <field name="model">mrp.bom.lot</field>
-        <field name="arch" type="xml">
-            <search string="Search BOM for Lot/Serial number">
-                <field name="name"/>
-                <field name="product_tmpl_id"/>
-                <field name="product_id"/>
-                <field name="lot_id"/>
-                <field name="lot_name"/>
-                <field name="master_bom_id"/>
-                <separator/>
-                <filter string="Draft" name="draft"
-                        domain="[('state', '=', 'draft')]"/>
-                <filter string="Confirmed" name="confirmed"
-                        domain="[('state', '=', 'confirmed')]"/>
-                <filter string="Used" name="done"
-                        domain="[('state', '=', 'done')]"/>
-                <group expand="0" string="Grouping by">
-                    <filter string="Product" name="group_product"
-                            context="{'group_by': 'product_id'}"/>
-                    <filter string="Lot/Serial number" name="group_lot"
-                            context="{'group_by': 'lot_id'}"/>
-                    <filter string="Status" name="group_state"
-                            context="{'group_by': 'state'}"/>
-                </group>
-            </search>
         </field>
     </record>
 

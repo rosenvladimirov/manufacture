@@ -6,7 +6,7 @@ from odoo.exceptions import ValidationError, UserError
 class MrpBomLot(models.Model):
     _name = 'mrp.bom.lot'
     _description = 'BOM for Lot/Serial Number'
-    _inherit = ['mail.thread', 'mail.activity.mixin']
+    # _inherit = ['mail.thread', 'mail.activity.mixin']  # Disabled for Odoo 19 compatibility
     _order = 'create_date desc, id desc'
 
     name = fields.Char(
@@ -77,6 +77,45 @@ class MrpBomLot(models.Model):
         default=lambda self: self.env.company
     )
 
+    def _find_master_bom(self, product_id, product_tmpl_id, company_id):
+        if not product_tmpl_id:
+            return self.env['mrp.bom']
+
+        company_ids = [False]
+        if company_id:
+            company_ids.insert(0, company_id.id)
+
+        if product_id:
+            variant_bom = self.env['mrp.bom'].search([
+                ('product_id', '=', product_id.id),
+                ('company_id', 'in', company_ids),
+            ], order='sequence, id', limit=1)
+            if variant_bom:
+                return variant_bom
+
+        return self.env['mrp.bom'].search([
+            ('product_tmpl_id', '=', product_tmpl_id.id),
+            ('product_id', '=', False),
+            ('company_id', 'in', company_ids),
+        ], order='sequence, id', limit=1)
+
+    @api.onchange('lot_id', 'product_id', 'product_tmpl_id')
+    def _onchange_lot_or_product(self):
+        if self.lot_id and self.lot_id.product_id:
+            if self.product_id != self.lot_id.product_id:
+                self.product_id = self.lot_id.product_id
+            if self.product_tmpl_id != self.lot_id.product_id.product_tmpl_id:
+                self.product_tmpl_id = self.lot_id.product_id.product_tmpl_id
+
+        if self.product_tmpl_id:
+            self.master_bom_id = self._find_master_bom(
+                self.product_id,
+                self.product_tmpl_id,
+                self.company_id
+            )
+            if self.master_bom_id:
+                pass
+
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
@@ -88,9 +127,8 @@ class MrpBomLot(models.Model):
     def _onchange_master_bom_id(self):
         """Зареждане на компонентите от главния BOM"""
         if self.master_bom_id:
-            # self.product_tmpl_id = self.master_bom_id.product_tmpl_id
-            # self.product_id = self.master_bom_id.product_id
-            self._load_master_bom_lines()
+            # Loading is done explicitly via the button to avoid overwriting lines.
+            pass
 
     def _load_master_bom_lines(self):
         """Зарежда редовете от главния BOM"""
