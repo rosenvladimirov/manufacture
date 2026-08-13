@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<odoo>
+    <!--
+        Наследяваме view-то на account_move_line_mrp_info, за да сме сигурни, че
+        неговото "Journal Items" копче вече е добавено в button_box-а, и го заменяме
+        с пълноценен smart button: видим за счетоводни потребители (а не само в
+        developer mode) и с брояч на счетоводните редове.
+    -->
+    <record id="mrp_production_form_view_journal_items_button" model="ir.ui.view">
+        <field name="name">mrp.production.form.account.move.line.button</field>
+        <field name="model">mrp.production</field>
+        <field
+            name="inherit_id"
+            ref="account_move_line_mrp_info.mrp_production_form_view"
+        />
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='view_journal_items']" position="replace">
+                <button
+                    name="action_view_account_move_lines"
+                    type="object"
+                    class="oe_stat_button"
+                    icon="fa-th-list"
+                    groups="account.group_account_user"
+                    invisible="account_move_line_count == 0"
+                >
+                    <field
+                        name="account_move_line_count"
+                        widget="statinfo"
+                        string="Journal Items"
+                    />
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,11 +1,22 @@
-# Copyright 2026 Rosen Vladimirov
-# License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
+# Copyright 2026 Rosen Vladimirov, Terraros Commerce Ltd.
+# License OPL-1 (Odoo Proprietary License v1.0)
+# https://www.odoo.com/documentation/user/legal/licenses/licenses.html
 
-from odoo import models
+from odoo import fields, models
 
 
 class StockMove(models.Model):
     _inherit = "stock.move"
+
+    # Whole-bar B credit-back marker (Любо 157140): отделя нашите offcut
+    # by-product moves от РЪЧНО дефинираните by-products на потребителя —
+    # _cal_price override-ът сетва cost_share САМО на маркираните. copy=False →
+    # backorder не наследява.
+    is_staged_offcut = fields.Boolean(
+        "Staged Offcut By-product", default=False, copy=False,
+        help="Whole-bar credit-back offcut by-product (variant B). Its value "
+             "is set via cost_share in mrp.production._cal_price so the offcut "
+             "reduces the finished product cost strictly FIFO.")
 
     # ── Hybrid staged endpoint-swap (виж mrp_production._get_move_raw_values) ─
     # В intermediate фазата (staged_preparation_enabled и НЕ staged_released)

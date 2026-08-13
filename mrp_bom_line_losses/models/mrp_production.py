@@ -5,6 +5,7 @@ import logging
 from collections import defaultdict
 
 from odoo import models
+from odoo.tools.float_utils import float_round
 
 _logger = logging.getLogger(__name__)
 
@@ -42,7 +43,19 @@ class MRPProduction(models.Model):
                 product_uom_qty * factor if factor > 0.0 else product_uom_qty,
             )
             if factor > 0.0:
-                product_uom_qty = product_uom_qty * factor
+                # bom.explode() закръгля product_uom_qty до UoM precision
+                # ПРЕДИ loss; при гранични стойности (5.765 -> 5.77) това
+                # x loss дава грешен резултат (6.015 вместо 6.010).
+                # Реконструираме незакръгленото net от bom_line и прилагаме
+                # loss + закръгляне в правилен ред: round(net x factor).
+                rounding = (product_uom or product.uom_id).rounding or 0.01
+                base = bom_line.product_qty or 0.0
+                net_qty = product_uom_qty
+                if base > 0:
+                    units = round(product_uom_qty / base)
+                    if units >= 1 and abs(product_uom_qty - base * units) <= rounding:
+                        net_qty = base * units
+                product_uom_qty = float_round(net_qty * factor, precision_rounding=rounding)
         else:
             _logger.info(
                 "  -> NO LOSS APPLIED (bom_line=%s, bom_line.loss=%s)",

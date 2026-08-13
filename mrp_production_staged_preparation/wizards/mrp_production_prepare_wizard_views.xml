@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_mrp_production_prepare_wizard_form" model="ir.ui.view">
+        <field name="name">mrp.production.prepare.wizard.form</field>
+        <field name="model">mrp.production.prepare.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Prepare for Production">
+                <p class="mb-2"><strong>Confirm start the manufacturing order(s)?</strong></p>
+                <p class="text-muted">
+                    Yes — stage materials and start now (In Processing, locked).<br/>
+                    No — stage materials but keep in Preparation (start later).
+                </p>
+                <field name="production_ids" readonly="1" widget="many2many_tags"/>
+                <footer>
+                    <button string="Yes — Start" name="action_prepare_and_start"
+                            type="object" class="btn-primary"/>
+                    <button string="No — Prepare only" name="action_prepare_only"
+                            type="object" class="btn-secondary"/>
+                    <button string="Cancel" special="cancel" class="btn-light"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

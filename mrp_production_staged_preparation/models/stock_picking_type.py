@@ -1,5 +1,6 @@
-# Copyright 2026 Rosen Vladimirov
-# License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl).
+# Copyright 2026 Rosen Vladimirov, Terraros Commerce Ltd.
+# License OPL-1 (Odoo Proprietary License v1.0)
+# https://www.odoo.com/documentation/user/legal/licenses/licenses.html
 
 from odoo import fields, models
 

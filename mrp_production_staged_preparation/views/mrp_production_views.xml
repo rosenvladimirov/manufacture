@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright 2026 Rosen Vladimirov
-     License LGPL-3.0 or later (https://www.gnu.org/licenses/lgpl). -->
+<!-- Copyright 2026 Rosen Vladimirov, Terraros Commerce Ltd.
+     License OPL-1 (Odoo Proprietary License v1.0)
+     https://www.odoo.com/documentation/user/legal/licenses/licenses.html -->
 <odoo>
 
     <record id="mrp_production_form_staged_preparation"
@@ -58,6 +59,12 @@
                 <field name="staged_released" optional="show" string="Released"
                        widget="boolean_toggle" readonly="1"/>
             </xpath>
+            <!-- Reference се свиваше до няколко символа, защото полето е без
+                 зададена ширина и губи борбата за място. Реалната дължина е
+                 11 знака (WH/MO/00016) → 150px е с резерв. -->
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="width">100px</attribute>
+            </xpath>
         </field>
     </record>
 
@@ -73,6 +80,13 @@
                         domain="[('staged_released', '=', True)]"/>
                 <filter name="staged_in_preparation" string="In Preparation"
                         domain="[('state', '=', 'preparation')]"/>
+            </xpath>
+            <!-- Ядреният „To Do" не знае за статус preparation → операторът
+                 губеше МО-то от поглед в момента, в който започне работа по
+                 него. Пренаписваме domain-а тук, а НЕ в mrp — ядреният view се
+                 възстановява при всеки -u на mrp. -->
+            <xpath expr="//filter[@name='todo']" position="attributes">
+                <attribute name="domain">[('state', 'in', ('draft', 'confirmed', 'preparation', 'progress', 'to_close'))]</attribute>
             </xpath>
         </field>
     </record>
