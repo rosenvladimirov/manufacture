@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Визард за откат на стейджинга. Два изхода, защото решението е
+         еднозначно: докъде да се върне поръчката. -->
+    <record id="view_mrp_production_unprepare_wizard_form" model="ir.ui.view">
+        <field name="name">mrp.production.unprepare.wizard.form</field>
+        <field name="model">mrp.production.unprepare.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Undo Preparation">
+                <field name="production_ids" invisible="1"/>
+                <div class="alert alert-warning" role="alert">
+                    Undoing the preparation releases the reservations, deletes
+                    the Stock to Pre-Production transfer and puts the components
+                    back on a single step.
+                </div>
+                <group>
+                    <field name="production_count" string="Orders affected"/>
+                    <field name="picking_count" string="Transfers to delete"/>
+                </group>
+                <p>
+                    Choose how far back the orders should go:
+                </p>
+                <ul>
+                    <li><b>Confirmed</b> — the staging is undone, the order stays
+                        confirmed. Use this to redo the preparation.</li>
+                    <li><b>Draft</b> — the order is fully reopened. Use this when
+                        the bill of materials or the lines must be changed.</li>
+                </ul>
+                <footer>
+                    <button name="action_back_to_confirmed" type="object"
+                            string="Back to Confirmed" class="btn-primary"/>
+                    <button name="action_back_to_draft" type="object"
+                            string="Back to Draft" class="btn-secondary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

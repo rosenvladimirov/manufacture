@@ -32,6 +32,14 @@
                         class="oe_highlight"
                         invisible="(not staged_preparation_enabled) or state != 'preparation'"
                         groups="mrp.group_mrp_user"/>
+                <!-- Откат на подготовката: връща в draft, маха пикинга към
+                     Pre-Production и връща движенията на едностъпково.
+                     Видим само след като подготовката е минала. -->
+                <button name="action_unprepare_production_wizard"
+                        type="object"
+                        string="Undo Preparation"
+                        invisible="(not staged_preparation_enabled) or (not staged_released) or state in ('done', 'cancel')"
+                        groups="mrp.group_mrp_user"/>
             </xpath>
 
         </field>
@@ -49,6 +57,12 @@
                 <button name="action_prepare_production_batch"
                         type="object"
                         string="Prepare for Production"
+                        groups="mrp.group_mrp_user"/>
+                <!-- Откат за маркираната партида. Методът сам филтрира
+                     неподходящите редове, за да не спира заради един. -->
+                <button name="action_unprepare_production_wizard"
+                        type="object"
+                        string="Undo Preparation"
                         groups="mrp.group_mrp_user"/>
             </xpath>
             <!-- Бадж/декорация: подготвените (released) редове в зелено + колона. -->
