@@ -18,8 +18,14 @@
                 <field name="staged_released" invisible="1"/>
             </xpath>
 
-            <!-- Бадж „Released to floor" (подготвено за цеха): ъглова лента. -->
-            <xpath expr="//sheet" position="inside">
+            <!-- Бадж „Released to floor" (подготвено за цеха): ъглова лента.
+                 ⚠️ ПЪРВО дете на sheet, не последно. `position="inside"` слага
+                 widget-а НАКРАЯ — тоест след notebook-а — и лентата се рендира
+                 долу вдясно, в списъка с компоненти, вместо в горния ъгъл.
+                 Мерено на WH/MO/00230; Любо: „много ме дразни". Ъгловата лента
+                 се позиционира спрямо СОБСТВЕНИЯ си контейнер, затова мястото ѝ
+                 в XML-а решава къде излиза. -->
+            <xpath expr="//sheet/*[1]" position="before">
                 <widget name="web_ribbon" title="Released" bg_color="text-bg-success"
                         invisible="not staged_released"/>
             </xpath>
