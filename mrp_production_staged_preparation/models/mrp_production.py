@@ -476,7 +476,63 @@ class MrpProduction(models.Model):
                 legs |= leg
         if legs:
             legs._action_confirm(merge=False)
+            legs._staged_pin_offcut_lot()
         return legs
+
+    def _staged_pin_offcut_lot(self):
+        """Заковава остатъчния лот върху реда на движението.
+
+        🔴 БЕЗ ТОВА ОСТАТЪКЪТ КАЦА С ПАРТИДАТА НА ЦЕЛИЯ ПРЪТ. Мерено на живо
+        (03.09, WH/MO/00298):
+        ```
+        stock.move 8743   is_staged_offcut=True · forced_lot_ids=[312]   иска новия
+        stock.move.line   lot_id = 5 („6500")                            каца със стария
+        quant за OFF- лотовете 308–312                                   НУЛА записа
+        quant в Remnant/Offcut                8.39 м „6500" · 5.35 м „6500"
+        ```
+        ⇒ Партида „6500" твърди „това са пръти 6500 мм". Остатък от 8 метра с
+        такава партида се брои за наличност и влиза във „Free Stock in Transit",
+        а за рязане не става — мерено: 6 от 7 количества в склада не са кратни
+        на дължината на пръта.
+
+        🔑 ЗАЩО `forced_lot_ids` НЕ СТИГА САМ: модулът го прилага в
+        `_action_assign`, и то САМО върху редове с празен `lot_id` — нарочно, за
+        да не пренаписва резервация на Odoo. Това движение обаче тръгва от
+        ВИРТУАЛНА локация (Production) с готово `quantity` и `picked=True`, тъй
+        че `_action_assign` не се вика изобщо. Няма кой да сложи лота.
+
+        ⚠️ Тук се пише ИЗРИЧНО и се ПРЕЗАПИСВА, ако Odoo вече е сложил друг лот:
+        за by-product от виртуална локация „заварената" стойност не е нечия
+        резервация, а произволният лот, който складът е намерил.
+        ⛔ Пипа се САМО движение с `is_staged_offcut` — нищо друго.
+        """
+        # ⚠️ Модулът НЕ зависи от `stock_move_forced_lot_multi` (виж manifest:
+        # depends = mrp, stock). Затова полето се пита, както се прави навсякъде
+        # другаде тук — инак ъпгрейд само на този модул гърми с
+        # „Invalid field 'forced_lot_ids' on model 'stock.move'".
+        if "forced_lot_ids" not in self.env["stock.move"]._fields:
+            return
+        for move in self.filtered("is_staged_offcut"):
+            lot = move.forced_lot_ids[:1]
+            if not lot:
+                continue
+            if move.move_line_ids:
+                gresh = move.move_line_ids.filtered(lambda l: l.lot_id != lot)
+                if gresh:
+                    gresh.write({"lot_id": lot.id})
+            else:
+                # Линия още няма (движението е само потвърдено) — правим я сами,
+                # инак Odoo ще я роди при приключването и пак ще избере лот сам.
+                self.env["stock.move.line"].create({
+                    "move_id": move.id,
+                    "product_id": move.product_id.id,
+                    "product_uom_id": move.product_uom.id,
+                    "location_id": move.location_id.id,
+                    "location_dest_id": move.location_dest_id.id,
+                    "lot_id": lot.id,
+                    "quantity": move.product_uom_qty,
+                    "company_id": move.company_id.id,
+                })
 
     def _cal_price(self, consumed_moves):
         """Whole-bar B credit-back (Любо 157140): offcut by-product move-овете
