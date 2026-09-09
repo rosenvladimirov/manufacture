@@ -419,8 +419,29 @@ class MrpProduction(models.Model):
         opt = self.staged_cutting_optimization_id
         if not opt or opt.state != "done":
             return Move
+        # ⛔ КРЕДИТ-БЕКЪТ СЕ ГАСИ (дума на Росен, 09.09: „спираме и двата,
+        # минаваме изцяло на подход 2"; дума на Любо, 08.09: „твърдо не минаваме
+        # през бай продукти").
+        #
+        # Тук прътът се изписва ЦЯЛ на поръчката, а остатъкът се връща като
+        # страничен продукт и взима стойността си през `cost_share` от
+        # СЕБЕСТОЙНОСТТА НА ПОРЪЧКАТА — вместо от цената, на която прътът е
+        # купен. Точно това Любо отхвърли принципно още на 23.08.
+        #
+        # 🔑 Защо превключвател, а не изтриване — по същата причина, по която
+        # ядрото пази режима `inventory`: инсталация без подателя на подход 2
+        # би останала без НИКАКЪВ механизъм за остатъци и би ги хвърляла в
+        # скрап мълчешком. Режимът се чете МЕКО: няма ли го полето, пътят не
+        # тръгва — гасенето е по подразбиране, не раждането.
+        if getattr(opt, "offcut_birth_mode", False) != "byproduct":
+            return Move
         if "is_staged_offcut" not in Move._fields \
                 or "forced_lot_ids" not in Move._fields:
+            return Move
+        # Именуването на остатъка живее в mrp_cutting_optimization (ЕДНО
+        # определение за трите викача). Липсва ли то, липсват и `is_offcut` /
+        # `offcut_length_mm` по-долу ⇒ пътят не тръгва, вместо да именува сам.
+        if not hasattr(self.env["stock.lot"], "_create_offcut_lot"):
             return Move
         adapter = self.env.get("cutting.source.adapter.mrp_production")
         if adapter is None:
@@ -437,24 +458,26 @@ class MrpProduction(models.Model):
             if self._staged_pattern_owner(pattern) not in self_ids:
                 continue
             product = pattern.bar_product_id
-            meters = pattern.remnant_length / 1000.0
+            # Количеството и полето на лота идват от ЕДНО число — дължината,
+            # която складът може да държи. Инак движението носи 1.814 м, а
+            # лотът твърди 1810 мм, и инвариантът „лотът е цяло число по своята
+            # дължина" пада от само себе си (виж 49206ae, 23.08).
+            held_mm = Lot._offcut_length_from_qty(product, pattern.remnant_length)
+            meters = held_mm / 1000.0
             for bar_num in range(pattern.usage_count):
                 if cap and Lot.search_count([
                         ("product_id", "=", product.id),
                         ("is_offcut", "=", True)]) >= cap:
                     break   # cap достигнат → остатъкът е скрап (без by-product)
-                lot = Lot.create({
-                    "name": "OFF-%d-P%d-%d" % (
-                        int(round(pattern.remnant_length)), pattern.id,
-                        bar_num + 1),
+                lot = Lot._create_offcut_lot({
                     "product_id": product.id,
                     "company_id": self.company_id.id,
                     "mrp_cutting_pattern_id": pattern.id,
                     "is_offcut": True,
-                    "offcut_length_mm": pattern.remnant_length,
+                    "offcut_length_mm": held_mm,
                     "ref": "Offcut (B credit-back) from %s / %s" % (
                         pattern.name, self.name),
-                })
+                }, held_mm)
                 leg = Move.create({
                     "name": self.name,
                     "product_id": product.id,
