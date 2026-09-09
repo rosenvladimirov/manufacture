@@ -1121,7 +1121,65 @@ class MrpProduction(models.Model):
                         _product.default_code or _product.id, _n)
             if _bumped:
                 _pk.action_assign()
+        self._staged_trolleys_and_export()
         return True
+
+    def _staged_trolleys_and_export(self):
+        """При пускане на пода: първо КОЛИЧКИТЕ, после ИЗНОСЪТ.
+
+        Дума на Любо: *„искам при релийзване на поръчките автоматично да се
+        прави и износ"*, и веднага след това редът: *„количките трябва да са
+        готови ПРЕДИ износа, понеже те влизат в етикетите, тоест в машинните
+        файлове."*
+
+        ⚠️ Дотук нито едното не се случваше само. Не беше „спряло да работи" —
+        никога не е било свързано в поток: 0 парчета с количка от 24 160 и 0
+        записа за изнесен машинен файл за цялото съществуване на базата.
+
+        🔑 И двете стъпки отказват МЕКО. Пускането на пода не бива да пада,
+        защото разкроят няма какво да разпредели или защото износът е сгрешил —
+        човекът вече е натиснал бутона по други причини. Провалът се пише в
+        лога и в чатъра на поръчката, вместо да отмени цялото пускане.
+        """
+        opts = self.mapped("staged_cutting_optimization_id").filtered(
+            lambda o: o.state == "done")
+        if not opts:
+            return False
+        for opt in opts:
+            if not hasattr(opt, "action_assign_trolleys"):
+                # Плъгинът с количките липсва — няма какво да се разпределя и
+                # няма как да се изнесе с верни етикети. Мълчи се нарочно.
+                return False
+            try:
+                opt.action_assign_trolleys(raise_if_empty=False)
+            except Exception as error:      # noqa: BLE001
+                _logger.warning(
+                    "Пускане на пода: количките за сесия %s не се разпределиха:"
+                    " %s", opt.id, error)
+                self._staged_export_note(opt, error, stage="колички")
+                continue
+            try:
+                opt.action_export_all()
+            except Exception as error:      # noqa: BLE001
+                _logger.warning(
+                    "Пускане на пода: износът за сесия %s не мина: %s",
+                    opt.id, error)
+                self._staged_export_note(opt, error, stage="износ")
+        return True
+
+    def _staged_export_note(self, opt, error, stage):
+        """Казва провала на човека, не само на лога.
+
+        Тихият провал при всяко пускане е точно това, от което Клаудио
+        предупреди: закачиш ли стъпката, без да я чуваш, тя ще мълчи месеци.
+        """
+        for production in self:
+            production.message_post(body=_(
+                "Release to floor: the %(stage)s step did not complete for "
+                "cutting session %(session)s. The order was released anyway. "
+                "Error: %(error)s",
+                stage=stage, session=opt.display_name, error=error,
+            ))
 
     def _staged_optimize_and_gate(self):
         """Phase 2 (дизайн Любо, msg 157090): ОПТИМИЗАЦИЯ + FEASIBILITY ГЕЙТ,
