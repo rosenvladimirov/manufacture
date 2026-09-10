@@ -27,6 +27,39 @@ class StockMove(models.Model):
     # pull rule и върнал на make_to_order → тук short-circuit-ваме, за да
     # запазим make_to_stock. Стъклото (категория Glass) минава нативно (MTO).
 
+    # 🔑 Следата пик → консумация, БЕЗ резервационна верига (④, 10.09).
+    # Дотук връзката се пазеше през `move_orig_ids`, но тя не е само следа: тя
+    # НАЛАГА ТАВАН — вързано движение резервира само каквото веригата му е
+    # доставила. Мерено по WH/MO/01641: буферът има 7,02 м свободни от верния
+    # лот в вярната локация, а консумацията стои на 1,03, защото толкова е
+    # останало от пика. Полето пази следата; резервацията вече е свободна.
+    staged_pick_move_id = fields.Many2one(
+        "stock.move", string="Staged Pick Move", index=True, copy=False,
+        ondelete="set null",
+        help="Preparation pick that was created to top up the buffer for this "
+             "consumption. A trace only — it does not cap the reservation.")
+    staged_consumption_ids = fields.One2many(
+        "stock.move", "staged_pick_move_id", string="Staged Consumptions",
+        help="Buffer consumptions this preparation pick tops up.")
+
+    def _action_done(self, cancel_backorder=False):
+        """Пикът кацна в буфера → консумациите му се резервират наново.
+
+        ⚠️ БЕЗ това разкачането е половинчато. При ВЪРЗАНО движение ядрото
+        дораздава при `done` на пика; разкачено — никой. Консумацията щеше да
+        чака човек да натисне „Check availability", а точно това чакане беше
+        симптомът, от който тръгнахме.
+
+        🔑 Locationът е срещата: пикът пълни Pre-Production, консумацията взима
+        оттам. Тук само подсещаме ядрото да погледне пак.
+        """
+        res = super()._action_done(cancel_backorder=cancel_backorder)
+        chakashti = res.mapped("staged_consumption_ids").filtered(
+            lambda m: m.state not in ("done", "cancel"))
+        if chakashti:
+            chakashti._action_assign()
+        return res
+
     def write(self, vals):
         """⛔ `picked` не се вдига на поръчка, която още не е освободена.
 

@@ -1042,9 +1042,19 @@ class MrpProduction(models.Model):
                     # Росен, 19.08) — per-МО закръгляне трупаше по 1-2 пръта на
                     # профил и даваше +4 излишни на партида.
                     M.product_uom_qty = shortage            # само недостигът
-                    # Закачаме веригата СЕГА (буфер-резервацията на N оцелява) →
-                    # при done на пика native propagation дораздели N остатъка.
-                    M.write({"move_dest_ids": [(6, 0, [N.id])]})
+                    # ⛔ ВЕРИГА НЕ СЕ ЗАКАЧА (④, решение на Росен 10.09).
+                    # `move_dest_ids` не е само следа — тя НАЛАГА ТАВАН:
+                    # вързаното движение резервира само каквото веригата му е
+                    # доставила. Доставеше ли пикът по-малко (непълен трансфер,
+                    # NO BACKORDER), консумацията оставаше заключена под тавана,
+                    # докато свободен материал от ВЕРНИЯ лот лежи в ВЯРНАТА
+                    # локация. Мерено по WH/MO/01641: 1,03 таван при 7,02 свободни.
+                    #
+                    # 🔑 Буферът е ЛОКАЦИЯ, не етап. Пикът го пълни, консумацията
+                    # взима оттам. Следата се пази в `staged_pick_move_id`, а
+                    # дораздаването при кацане прави куката в `stock.move.
+                    # _action_done` — native propagation вече няма кой да го стори.
+                    N.staged_pick_move_id = M.id
                     kept_picks |= M
                 if kept_picks:
                     # пиковете → assign към Pick Components picking (за да се
@@ -1365,7 +1375,11 @@ class MrpProduction(models.Model):
             consumptions = production.move_raw_ids.filtered(
                 lambda m: m.state not in ("done", "cancel")
                 and pbm and m.location_id.id == pbm.id)
-            picks = consumptions.mapped("move_orig_ids")
+            # Пиковете се намират по ИЗРИЧНАТА следа; `move_orig_ids` остава
+            # само за заварените поръчки отпреди ④ (10.09), които още носят
+            # верига. Без първото откатът би оставил трансферите висящи.
+            picks = (consumptions.mapped("staged_pick_move_id")
+                     | consumptions.mapped("move_orig_ids"))
             pickings = picks.mapped("picking_id")
 
             # ① Резервациите падат ПРЕДИ да местим краищата на движенията.
