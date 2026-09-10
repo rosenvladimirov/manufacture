@@ -2,7 +2,8 @@
 # License OPL-1 (Odoo Proprietary License v1.0)
 # https://www.odoo.com/documentation/user/legal/licenses/licenses.html
 
-from odoo import fields, models
+from odoo import _, fields, models
+from odoo.exceptions import UserError
 
 
 class StockMove(models.Model):
@@ -25,6 +26,53 @@ class StockMove(models.Model):
     # Native _adjust_procure_method обаче би ги match-нал срещу manufacture
     # pull rule и върнал на make_to_order → тук short-circuit-ваме, за да
     # запазим make_to_stock. Стъклото (категория Glass) минава нативно (MTO).
+
+    def write(self, vals):
+        """⛔ `picked` не се вдига на поръчка, която още не е освободена.
+
+        🔑 ЗАЩО ТУК, а не при прехода на състоянието: в ядрото `state` на МО-то е
+        ИЗЧИСЛЯЕМО поле, а не действие —
+        ```python
+        @api.depends(..., 'qty_producing', 'move_raw_ids.picked')
+        elif any(production.move_raw_ids.mapped('picked')):
+            production.state = 'progress'
+        ```
+        ⇒ Вдигне ли се `picked` където и да е, ядрото ИЗТЛАСКВА поръчката от
+        „подготовка" при следващото преизчисление. Гард „в прехода" няма къде да
+        застане; пази се входът.
+
+        ⚠️ Мерено на 10.09 (Клаудио): МО в `progress` със `staged_released =
+        False`, дванайсет неразпределени парчета и нито един разкроен прът — с
+        достъпен бутон „Produce All". Отказът на подготовката поне се вижда;
+        това минаваше ТИХО и поръчката изглеждаше наред.
+
+        ✅ Прякото производство от „подготовка" НЕ се спира: `button_mark_done`
+        вдига състоянието на `progress` ПРЕДИ да пипне движенията, тъй че щом
+        стигнат дотук, поръчката вече не е в `preparation`. Гардът лови само
+        страничното вдигане — ръчна отметка в списъка с движения, скрипт,
+        сървърно действие.
+        """
+        if vals.get("picked"):
+            zaduryani = self.env["mrp.production"]
+            for move in self:
+                mo = move.raw_material_production_id
+                if (mo and mo.staged_preparation_enabled
+                        and not mo.staged_released
+                        and mo.state == "preparation"):
+                    zaduryani |= mo
+            if zaduryani:
+                raise UserError(_(
+                    "These manufacturing orders are still in Preparation and "
+                    "have not been released:\n\n%(orders)s\n\n"
+                    "Marking a component as picked would move them into "
+                    "In Progress without ever passing through preparation — "
+                    "no cutting run, no transfer, no reservation. Press "
+                    "\"Prepare for Production\" first, or reset the order to "
+                    "draft if it should not be produced.",
+                    orders="\n".join(
+                        "  - %s" % mo.display_name for mo in zaduryani),
+                ))
+        return super().write(vals)
 
     def _staged_keep_mts(self):
         """True ако този move трябва да остане make_to_stock (staged не-глас)."""

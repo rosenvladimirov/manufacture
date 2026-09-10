@@ -9,7 +9,7 @@
         "internal component picks are deferred until 'Prepare for Production' "
         "releases the MO to the floor."
     ),
-    "version": "18.0.2.14.21",
+    "version": "18.0.2.15.0",
     "category": "Manufacturing",
     "website": "https://github.com/rosenvladimirov/manufacture-experts",
     "author": "Rosen Vladimirov, Terraros Commerce Ltd.",

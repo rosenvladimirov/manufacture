@@ -227,6 +227,30 @@ class MrpProduction(models.Model):
                 production.state = "progress"
         return super().button_mark_done()
 
+    def _staged_note_no_transfer(self, prichina):
+        """Бележка в чатъра: подготвителен трансфер НЕ е създаден, и защо.
+
+        🔑 ЗАЩО СЪЩЕСТВУВА: пикингът се ражда само за движения, които в мига на
+        подготовката тръгват от склада. Не се ли роди, дотук не оставаше НИЩО —
+        нито ред в лога, нито бележка. Мерено на 10.09 (Клаудио): 17 поръчки без
+        подготвителен трансфер, 16 от тях вече произведени.
+
+        ⚠️ И най-скъпото беше не липсата, а че причината не се пази: щом
+        подготовката веднъж пренасочи движението към Pre-Production, данните вече
+        не помнят откъде е тръгвало. Затова бележката се пише В МОМЕНТА.
+
+        ⛔ Не спира нищо. Липсата на трансфер може да е напълно редна (едностъпков
+        склад, стъкло, изцяло от остатъци) — казва се, не се съди.
+        """
+        self.ensure_one()
+        self.message_post(body=_(
+            "No preparation transfer was created for this order, because "
+            "%(reason)s. The components will be consumed straight from their "
+            "current location. If a transfer was expected here, this is the "
+            "moment it did not happen.",
+            reason=prichina,
+        ))
+
     def _staged_pattern_owner(self, pattern):
         """Детерминистичен owner-MO id на pattern-а (споделеният прът се брои
         ВЕДНЪЖ). Owner = MO с макс piece-метри на pattern-а, tie→най-малко id;
@@ -802,6 +826,13 @@ class MrpProduction(models.Model):
 
             # mrp_one_step или липсва Pre-Production → нищо за местене (no-op).
             if wh.manufacture_steps not in ("pbm", "pbm_sam") or not pbm:
+                # Двата низа са РАЗДЕЛНИ, а не избор вътре в `_()`: извличането
+                # на преводите чете литерали, не изрази.
+                if wh.manufacture_steps not in ("pbm", "pbm_sam"):
+                    prichina = _("the warehouse is set to one-step manufacturing")
+                else:
+                    prichina = _("the warehouse has no Pre-Production location")
+                production._staged_note_no_transfer(prichina)
                 production.state = "progress" if start else "preparation"
                 if start:
                     production.is_locked = True
@@ -845,11 +876,28 @@ class MrpProduction(models.Model):
             # кандидат е ФИКТИВЕН → cancel, за да не роди фантомен Stock→Pre-Prod
             # пик за несъществуващ свеж буфер. Offcut leg-ът покрива 100%.
             _fully_offcut = set(_offcut_plan) - set(_plan)
+            _bez_svezh = False
             if _fully_offcut:
                 _drop = candidates.filtered(
                     lambda m: m.product_id in _fully_offcut)
                 _drop._action_cancel()
                 candidates -= _drop
+                _bez_svezh = bool(_drop) and not candidates
+            # ⛔ Празен списък ⇒ пикинг НЕ се ражда — и дотук това ставаше
+            # мълчаливо. Мерено на 10.09 (Клаудио): 17 поръчки без подготвителен
+            # трансфер, 16 от тях ВЕЧЕ ПРОИЗВЕДЕНИ. Никъде нито ред за това.
+            # Тук бележката казва КОЙ от изходите е сработил, за да не се гадае
+            # после по данни, които вече не помнят състоянието отпреди.
+            if not candidates:
+                if _bez_svezh:
+                    prichina = _(
+                        "the whole demand is covered by offcuts, so there is "
+                        "no fresh bar to move")
+                else:
+                    prichina = _(
+                        "no component move starts from stock — they are either "
+                        "already sourced elsewhere, or excluded as glass")
+                production._staged_note_no_transfer(prichina)
             # За всеки бар-продукт делим whole-bar метрите пропорционално на
             # кандидат-move-овете; последният поема rounding остатъка. Продукт
             # БЕЗ свеж план (стъкло/обков/ръчни/fully-offcut) → без override.
@@ -1223,15 +1271,27 @@ class MrpProduction(models.Model):
         try:
             opt.action_optimize()
         except UserError as exc:
-            # FEASIBILITY ГЕЙТ: недостиг на бар-сток → ЧИСТ стоп. UserError-ът
-            # откатва цялата транзакция (вкл. opt.create/patterns) → нищо не е
-            # ангажирано. Показваме недостига на оператора (кой профил/парче).
+            # ЧИСТ СТОП: UserError-ът откатва цялата транзакция (вкл.
+            # opt.create/patterns) → нищо не е ангажирано.
+            #
+            # ⛔ ОБВИВКАТА НЕ ПОСТАВЯ ДИАГНОЗА. Дотук тя лепеше „Add bar stock
+            # (or recover offcuts) and retry" върху ВСЯКА грешка от разкроя, а
+            # `ValidationError` е наследник на `UserError` — тоест и причини,
+            # които нямат нищо общо с материала, излизаха като недостиг.
+            #
+            # ⚠️ Мерено на 10.09 (WH/MO/01687): 12 парчета на резач, маркиран
+            # „не се реже", 393 м прът на склад — и съобщението пращаше човека
+            # да купува прът. Клаудио: „текстът праща човека да гони
+            # несъществуващ проблем."
+            #
+            # 🔑 Вътрешните гардове вече казват СВОЯТА причина и своя изход
+            # (недостиг → кой профил и колко; фиктивен резач → кой резач;
+            # липсваща дължина → коя формула). Обвивката добавя само това, което
+            # знае със сигурност: къде спря и че нищо не е записано.
             detail = exc.args[0] if exc.args else str(exc)
             raise UserError(_(
-                "Cannot prepare for production — cutting is NOT feasible with "
-                "the available bar stock (including offcuts/remnants):\n\n%s\n\n"
-                "Nothing was committed. Add bar stock (or recover offcuts) and "
-                "retry.", detail))
+                "Cannot prepare for production — the cutting run refused:"
+                "\n\n%s\n\nNothing was committed.", detail))
         # Whole-bar A (Любо 157140): анкерираме живия разкрой към MO-тата — от
         # него четат whole-bar планът + forced-lot пиновете СЛЕД confirm (друга
         # транзакция).
