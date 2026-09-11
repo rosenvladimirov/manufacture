@@ -1250,8 +1250,55 @@ class MrpProduction(models.Model):
                         _product.default_code or _product.id, _n)
             if _bumped:
                 _pk.action_assign()
+        self._staged_birth_offcuts()
         self._staged_trolleys_and_export()
         return True
+
+    def _staged_offcut_opts(self):
+        """Разкроите, на които СЕГА им е ред да родят остатък.
+
+        Отделена от действието, за да е проверима: изборът е три условия и
+        всяко от тях е било причина за тих провал по някое време.
+        """
+        return self.mapped("staged_cutting_optimization_id").filtered(
+            lambda o: o.state == "done"
+            and getattr(o, "offcut_birth_mode", False) == "transfer"
+            and hasattr(o, "action_move_remnants_to_offcut"))
+
+    def _staged_birth_offcuts(self):
+        """Остатъкът се ражда и по пътя на ПОДГОТОВКАТА, не само от ръчния бутон.
+
+        🔴 ДУПКАТА (мерено от Владимир, 11.09): остатъци не се раждат от 08.09.
+        ```
+        последен offcut лот   08.09 13:06   2080-001
+        пръв счупен           10.09 15:07   WH/MO/01630 · lot_ids []
+        ```
+        Подателят `action_move_remnants_to_offcut` се викаше от ЕДНО място —
+        override-а на `action_generate_lots`, тоест от РЪЧЕН бутон. Подготовката
+        нарочно не го вика (ползва generate_piece_lots само за да пинне форсирани
+        лотове, „БЕЗ да ражда offcut лотове"). А вторият път — кредит-бекът през
+        страничен продукт — е ЗАГАСЕН на 09.09 („спираме и двата, минаваме изцяло
+        на подход 2").
+        ⇒ В потока на подготовката не се задействаше НИТО ЕДИН. Мястото го има,
+        пълнителят липсва — същото, което на 08.09 вече ни ухапа веднъж.
+
+        🔑 Веднъж на РАЗКРОЙ, не на поръчка: разкроят е споделен между МО-та, а
+        подателят работи по шарките му. Идемпотентен е — шарка с готов offcut лот
+        се прескача — тъй че повторна подготовка не дублира.
+
+        ⛔ Провалът НЕ спира пускането, но и НЕ мълчи: бележка в чатъра на
+        разкроя. Тихото падане е причината изобщо да стигнем дотук.
+        """
+        for opt in self._staged_offcut_opts():
+            try:
+                opt.action_move_remnants_to_offcut(raise_if_empty=False)
+            except Exception as err:  # noqa: BLE001
+                _logger.exception(
+                    "Staged offcut: %s не роди остатък", opt.display_name)
+                opt.message_post(body=_(
+                    "The remnant transfer could not be created during "
+                    "preparation: %s. The cut is unaffected, but the offcut "
+                    "will not appear until this is resolved.", err))
 
     def _staged_trolleys_and_export(self):
         """При пускане на пода: първо КОЛИЧКИТЕ, после ИЗНОСЪТ.
