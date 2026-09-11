@@ -227,6 +227,50 @@ class MrpProduction(models.Model):
                 production.state = "progress"
         return super().button_mark_done()
 
+    def _staged_create_buffer_pick(self, consumption, stock_loc, pbm, pg,
+                                   pbm_type, shortage):
+        """Пик за недостига на консумация, която е РОДЕНА вече в буфера.
+
+        🔑 ЗАЩО СЪЩЕСТВУВА (11.09): поръчките от точка за поръчка се раждат по
+        стандартния двустъпков път — суровините им излизат направо с
+        `location_id = Pre-Production`, в същата секунда като поръчката. Няма
+        едностъпково движение, което да се преражда в пик, тъй че подготовката
+        не създаваше НИЩО.
+        ```
+        WH/MO/01690 · 01691 · от OP/00627 и OP/00628
+        суровина 0.00 / 8.75 · буфер 0.00 · WH/Stock 10.50 м
+        Produce → „You need to supply a Lot/Serial Number"
+        ```
+        ⚠️ И екранът лъжеше в обратната посока: „Component Status: Available",
+        защото брои целия склад, а резервацията е нула.
+
+        ⇒ Мерилото е НЕДОСТИГЪТ срещу буфера, не откъде тръгва движението.
+        Пикът е обикновено попълване Склад → буфер, за липсващото.
+
+        ⛔ Невързан, като всички останали след ④: следата е `staged_pick_move_id`,
+        не `move_orig_ids`. Форсираният лот се пренася — инак пикът би донесъл
+        друг прът и проследимостта пада без грешка.
+        """
+        self.ensure_one()
+        pick = consumption.copy({
+            "location_id": stock_loc.id,
+            "location_dest_id": pbm.id,
+            "product_uom_qty": shortage,
+            "raw_material_production_id": False,
+            "workorder_id": False,
+            "group_id": pg.id,
+            "picking_id": False,
+            "picking_type_id": (pbm_type.id if pbm_type
+                                else consumption.picking_type_id.id),
+            "procure_method": "make_to_stock",
+            "move_orig_ids": False,
+            "move_dest_ids": False,
+            "forced_lot_ids": [(6, 0, consumption.forced_lot_ids.ids)],
+            "state": "draft",
+        })
+        consumption.staged_pick_move_id = pick.id
+        return pick
+
     def _staged_note_no_transfer(self, prichina):
         """Бележка в чатъра: подготвителен трансфер НЕ е създаден, и защо.
 
@@ -859,6 +903,21 @@ class MrpProduction(models.Model):
                 and not self._staged_is_glass(m.product_id)
                 and m.location_dest_id == prod_loc
                 and m.location_id == wh.lot_stock_id)
+            # 🔑 ПОРЪЧКИ ОТ СНАБДЯВАНЕТО (11.09, мерено по WH/MO/01690 и 01691):
+            # раждат се по СТАНДАРТНИЯ двустъпков път — суровините им излизат
+            # направо с `location_id = Pre-Production`, в същата секунда като МО-то.
+            # Горният филтър не намира нищо (нищо не тръгва от склада), пик не се
+            # ражда, и поръчката стои с 0.00 резервирано при пълен склад. Екранът
+            # показва „Available", защото брои целия склад, и Produce иска лот.
+            #
+            # ⇒ Подготовката се води по НЕДОСТИГА срещу буфера, не по произхода на
+            # движението. Тези тук вече СА консумации — просто нямат пик, който да
+            # се преражда, затова пикът им се СЪЗДАВА (виж по-долу).
+            v_bufera = production.move_raw_ids.filtered(
+                lambda m: m.state not in ("done", "cancel")
+                and not self._staged_is_glass(m.product_id)
+                and m.location_dest_id == prod_loc
+                and m.location_id == pbm)
 
             # Whole-bar A (Любо 157140): консумацията N зарежда ЦЕЛИ ФИЗИЧЕСКИ
             # ПРЪТИ (метри) вместо дробния полезно×(1+loss). Свежият план + offcut
@@ -888,7 +947,7 @@ class MrpProduction(models.Model):
             # трансфер, 16 от тях ВЕЧЕ ПРОИЗВЕДЕНИ. Никъде нито ред за това.
             # Тук бележката казва КОЙ от изходите е сработил, за да не се гадае
             # после по данни, които вече не помнят състоянието отпреди.
-            if not candidates:
+            if not candidates and not v_bufera:
                 if _bez_svezh:
                     prichina = _(
                         "the whole demand is covered by offcuts, so there is "
@@ -1013,7 +1072,7 @@ class MrpProduction(models.Model):
             if start:
                 production.is_locked = True  # старт → заключено (без edit/re-plan)
             production._staged_note_partial_reservation(start)
-            if pairs:
+            if pairs or v_bufera:
                 # ② Потвърждаваме консумациите и ги assign-ваме (още БЕЗ верига)
                 #    → make_to_stock N резервира наличния Pre-Production буфер.
                 #    reserved = N.quantity (core stock_move._action_assign:
@@ -1021,7 +1080,7 @@ class MrpProduction(models.Model):
                 #    СВОБОДНИЯ quant → материал, резервиран за ЧУЖДО МО, не се
                 #    пипа → правилно остава в недостига (не крадем чуждото).
                 consumptions = self.env["stock.move"].union(
-                    *[N for _, N in pairs])
+                    *[N for _, N in pairs]) | v_bufera
                 consumptions._action_confirm(merge=False)
                 consumptions._action_assign()
                 # ① B — оразмеряваме всеки пик на НЕДОСТИГА = demand − reserved.
@@ -1056,6 +1115,18 @@ class MrpProduction(models.Model):
                     # _action_done` — native propagation вече няма кой да го стори.
                     N.staged_pick_move_id = M.id
                     kept_picks |= M
+                # ⑤ Консумациите, РОДЕНИ в буфера (поръчки от снабдяването):
+                #    пик няма какво да се преражда, затова се СЪЗДАВА — и само
+                #    ако буферът не ги покрива.
+                for N in v_bufera:
+                    rounding = N.product_uom.rounding
+                    shortage = N.product_uom_qty - N.quantity
+                    if float_compare(shortage, 0.0,
+                                     precision_rounding=rounding) <= 0:
+                        covered += 1
+                        continue
+                    kept_picks |= production._staged_create_buffer_pick(
+                        N, wh.lot_stock_id, pbm, pg, pbm_type, shortage)
                 if kept_picks:
                     # пиковете → assign към Pick Components picking (за да се
                     # ПОКАЖАТ като трансфер за оператора) + резервация от Stock.
