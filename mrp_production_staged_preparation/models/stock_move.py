@@ -108,12 +108,38 @@ class StockMove(models.Model):
         return super().write(vals)
 
     def _staged_keep_mts(self):
-        """True ако този move трябва да остане make_to_stock (staged не-глас)."""
+        """Суровинните движения на staged поръчка остават make_to_stock — ВИНАГИ.
+
+        🔑 ЗАЩО И СЛЕД ОСВОБОЖДАВАНЕ (заглушаване на бродещия маршрут, 11.09):
+        стане ли движението `make_to_order`, ядрото иска снабдяване за
+        Pre-Production и правилото на склада ражда трансфер — зад гърба на
+        подготовката. Мерено на fulltest:
+        ```
+        правило 136 „Стока → Pre-Production (MTO)"    7 движения
+        правило 146 „Стока → Pre-Production"         10 движения
+                                                     ────
+                                                      17
+        ```
+        Дотук пазачът спираше само ДОКАТО поръчката не е освободена. Но точно
+        там броди маршрутът: СЛЕД подготовката движението е Pre-Production →
+        Production, ядрото вижда правило към тази локация, вдига го на MTO и
+        снабдяването тръгва. Така се роди WH/PC/00341 — от смяна на количество
+        по вече освободена поръчка, при празен WH/Stock.
+
+        ⇒ Условието `not mo.staged_released` отпада. Буферът е локация: движението
+        резервира от него, не си вика доставка. Това е същият принцип, по който
+        падна веригата (`staged_pick_move_id`, 18.0.2.16.0).
+
+        ⛔ Правилата НЕ се пипат — те важат и за други потоци. Заглушава се
+        ПОВОДЪТ, не механизмът.
+
+        ⚠️ Цената е избрана: staged МО вече не вика автоматично снабдяване за
+        липсващ компонент. По замисъл — ПфП гейтва осъществимостта, а „колко да
+        купя" е работа на точките за поръчка върху WH/Stock.
+        """
         self.ensure_one()
         mo = self.raw_material_production_id
-        if not (mo
-                and mo.picking_type_id.staged_preparation_enabled
-                and not mo.staged_released):
+        if not (mo and mo.picking_type_id.staged_preparation_enabled):
             return False
         return "Glass" not in (self.product_id.categ_id.complete_name or "")
 
