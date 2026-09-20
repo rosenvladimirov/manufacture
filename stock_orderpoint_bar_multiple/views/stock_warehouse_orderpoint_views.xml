@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Rosen Vladimirov, Terraros Commerce Ltd.
+     License OPL-1 (Odoo Proprietary License v1.0) -->
+<odoo>
+    <!--
+        Показваме заключването до самото кратно. Причината е, че „кратно 6.0"
+        изглежда еднакво независимо дали е посято от пръта, или е въведено от
+        снабдителя — а разликата е важна: посятото е заместител до въвеждането на
+        снопа, ръчното е решение.
+    -->
+    <record id="view_warehouse_orderpoint_tree_editable_bar_multiple" model="ir.ui.view">
+        <field name="name">stock.warehouse.orderpoint.list.bar.multiple</field>
+        <field name="model">stock.warehouse.orderpoint</field>
+        <field name="inherit_id" ref="stock.view_warehouse_orderpoint_tree_editable"/>
+        <field name="arch" type="xml">
+            <field name="qty_multiple" position="after">
+                <field name="manual_qty_multiple_set" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="view_warehouse_orderpoint_form_bar_multiple" model="ir.ui.view">
+        <field name="name">stock.warehouse.orderpoint.form.bar.multiple</field>
+        <field name="model">stock.warehouse.orderpoint</field>
+        <field name="inherit_id" ref="stock.view_warehouse_orderpoint_form"/>
+        <field name="arch" type="xml">
+            <field name="qty_multiple" position="after">
+                <field name="manual_qty_multiple_set"/>
+                <button name="action_reset_qty_multiple_to_bar"
+                        type="object"
+                        string="Reset to Bar Length"
+                        class="btn-link"
+                        invisible="not manual_qty_multiple_set"
+                        help="Unlock the multiple and seed it again from the standard bar length."/>
+            </field>
+        </field>
+    </record>
+</odoo>
