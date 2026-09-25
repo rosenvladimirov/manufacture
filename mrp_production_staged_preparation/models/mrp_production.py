@@ -6,7 +6,7 @@ import json
 import logging
 import math
 
-from odoo import _, fields, models
+from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from markupsafe import Markup
 from odoo.tools import float_compare
@@ -831,6 +831,48 @@ class MrpProduction(models.Model):
             "lines, or cancel the order.",
             mo=self.name, lines=lines))
 
+    @api.model
+    def _staged_first_picks(self, consumptions, pbm):
+        """Пиковете, които пълнят буфера за тези консумации.
+
+        След ④ (10.09) веригата не се закача ⇒ `move_orig_ids` е празно;
+        следата е `staged_pick_move_id`. Четат се и двете: заварените вързани
+        движения отпреди ④ още съществуват.
+        """
+        return (consumptions.staged_pick_move_id
+                | consumptions.move_orig_ids).filtered(
+            lambda m: m.location_dest_id == pbm and m.picking_id
+            and m.picking_id.state not in ("done", "cancel"))
+
+    @api.model
+    def _staged_repoint_consumptions(self, pickings, consumptions):
+        """Пренасочва следата на консумациите към живото движение на пика.
+
+        `_merge_moves` трие слетите движения, оразмеряването по плана нулира
+        всички освен първото на продукт, а `staged_pick_move_id` е
+        `ondelete="set null"` ⇒ консумацията губи пика си и куката в
+        `_action_done` не я подсеща при кацане. Кандидат: същият продукт и,
+        ако има форсиран лот, общ лот. Връща пренасочените консумации.
+        """
+        s_lot = "forced_lot_ids" in self.env["stock.move"]._fields
+        zhivi = pickings.move_ids.filtered(
+            lambda m: m.state not in ("done", "cancel")
+            and m.product_uom_qty > 0)
+        prenasocheni = self.env["stock.move"]
+        for N in consumptions.exists().filtered(
+                lambda n: n.state not in ("done", "cancel")):
+            pick = N.staged_pick_move_id.exists()
+            if pick and pick in zhivi:
+                continue
+            cand = zhivi.filtered(
+                lambda m: m.product_id == N.product_id
+                and (not s_lot or not N.forced_lot_ids
+                     or m.forced_lot_ids & N.forced_lot_ids))[:1]
+            if cand:
+                N.staged_pick_move_id = cand.id
+                prenasocheni |= N
+        return prenasocheni
+
     def _staged_do_prepare(self, start=False):
         # Ядрото на стейджинга (материализация Стока→Pre-Production). ``start``
         # идва от wizard-а: True → MO стартира (In Processing/progress + lock);
@@ -1156,6 +1198,7 @@ class MrpProduction(models.Model):
         # action_prepare_production_batch (там беше НЕДОСТИЖИМО след return —
         # „1 трансфер/ден" никога не се случваше; adversarна верификация го хвана).
         pc_pickings = self.env["stock.picking"]
+        consumptions = self.env["stock.move"]
         for production in self:
             wh = production._staged_warehouse()
             pbm = wh.pbm_loc_id if wh else False
@@ -1164,10 +1207,14 @@ class MrpProduction(models.Model):
             bridges = production.move_raw_ids.filtered(
                 lambda m: m.location_id == pbm
                 and m.state not in ("done", "cancel"))
-            first_picks = bridges.move_orig_ids.filtered(
-                lambda m: m.location_dest_id == pbm and m.picking_id
-                and m.picking_id.state not in ("done", "cancel"))
-            pc_pickings |= first_picks.picking_id
+            consumptions |= bridges
+            # 🔴 №93 (25.09): след ④ (10.09) веригата НЕ се закача ⇒
+            # `move_orig_ids` е празно и този блок не намираше НИЩО — нито
+            # сливане, нито пик по плана. Мерено на fulltest: сливани пикинги
+            # 14 от 37 (20.08–10.09) → 2 от 58 (след 10.09); разкрой 1138 излезе
+            # на три пика по недостига (498,96 м) вместо 80 пръта (520 м).
+            # Следата след ④ е `staged_pick_move_id` — търсим и по нея.
+            pc_pickings |= self._staged_first_picks(bridges, pbm).picking_id
         if len(pc_pickings) > 1:
             target = pc_pickings.sorted("id")[0]
             others = pc_pickings - target
@@ -1250,6 +1297,26 @@ class MrpProduction(models.Model):
                         _product.default_code or _product.id, _n)
             if _bumped:
                 _pk.action_assign()
+        # 🔑 Следата след сливането и оразмеряването (№93). `_merge_moves` трие
+        # слетите движения, а оразмеряването нулира всички освен първото на
+        # продукт. `staged_pick_move_id` е `ondelete="set null"` ⇒ консумацията
+        # губи пика си и куката в `_action_done` не я подсеща при кацане.
+        # Пренасочваме я към живото движение на пика за СЪЩИЯ продукт и лот.
+        pc_pickings = pc_pickings.exists()
+        if pc_pickings:
+            self._staged_repoint_consumptions(pc_pickings, consumptions)
+            # 🔒 Пикът на партидата — ТРАНСФЕР НА РАЗКРОЯ (№93, ③ и ④ на Любо).
+            # Щом е вързан, гардът `_check_not_executed` на разкроя вижда
+            # валидирания пик и отказва повторно смятане: прътите вече са на
+            # масата. И склададжията вижда от кой разкрой е пикът.
+            # Само при ЕДИН разкрой в партидата — смесена партида не се връзва
+            # към един от тях наслуки.
+            opts = self.mapped("staged_cutting_optimization_id")
+            if len(opts) == 1 and "cutting_optimization_id" in \
+                    self.env["stock.picking"]._fields:
+                pc_pickings.filtered(
+                    lambda p: not p.cutting_optimization_id
+                ).write({"cutting_optimization_id": opts.id})
         self._staged_birth_offcuts()
         self._staged_trolleys_and_export()
         return True
