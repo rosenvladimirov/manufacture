@@ -277,9 +277,15 @@ class StockWarehouseOrderpoint(models.Model):
 
     def _get_forced_lots(self):
         self.ensure_one()
+        # Точката стои на РОДИТЕЛЯ (напр. WH/Stock), а движенията тръгват от
+        # основната наличност на склада — след „Рафт“ (11.09) това е ЛИСТЪТ
+        # WH/Stock/Рафт. Точно равенство с локацията на точката ги губеше и
+        # покупката излизаше без лот. НЕ child_of: той би придърпал и лотовете
+        # на Pre-Production и Remnant/Offcut (остатъци) в покупката.
+        locations = self.location_id | self.warehouse_id.lot_stock_id
         moves = self.env["stock.move"].search([
             ("product_id", "=", self.product_id.id),
-            ("location_id", "=", self.location_id.id),
+            ("location_id", "in", locations.ids),
             ("state", "in", ("waiting", "confirmed", "partially_available")),
             ("forced_lot_ids", "!=", False),
         ])
