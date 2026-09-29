@@ -19,6 +19,17 @@ class StockMove(models.Model):
              "is set via cost_share in mrp.production._cal_price so the offcut "
              "reduces the finished product cost strictly FIFO.")
 
+    # №93: движението, с което се ражда остатъкът на един прът от разкроя.
+    # Integer, не Many2one: модулът НЕ зависи от mrp_cutting_optimization.
+    # Пази идемпотентността — повторен „Produce" не ражда втори остатък.
+    staged_remnant_bar_ref = fields.Integer(
+        "Staged Remnant Bar", copy=False, index=True,
+        help="Cutting-plan bar whose remnant this move carries from the "
+             "component location to the remnant location.")
+    staged_remnant_lot_id = fields.Many2one(
+        "stock.lot", string="Staged Remnant Lot", copy=False,
+        help="Lot of the remnant, named after its length in millimetres.")
+
     # ── Hybrid staged endpoint-swap (виж mrp_production._get_move_raw_values) ─
     # В intermediate фазата (staged_preparation_enabled и НЕ staged_released)
     # не-стъклените raw moves са swap-нати на Stock→Production (1-step,
