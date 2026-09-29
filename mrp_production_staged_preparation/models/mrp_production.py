@@ -9,7 +9,7 @@ import math
 from odoo import _, api, fields, models
 from odoo.exceptions import UserError
 from markupsafe import Markup
-from odoo.tools import float_compare, float_round
+from odoo.tools import float_compare
 
 _logger = logging.getLogger(__name__)
 
@@ -576,93 +576,44 @@ class MrpProduction(models.Model):
         return legs
 
     # ── №93: остатъкът се ражда при РЯЗАНЕТО, не при PfP ─────────────────
-    def _staged_remnant_qty(self, opt, product, length_mm):
-        """Дължина в мм → количество в мярката на продукта, закръглено.
+    def _cutting_remnant_born_at_produce(self, optimization):
+        """Куката на плъгина (cutting_plugin_mrp_production 18.0.1.52.0):
+        остатъците на разкроя се раждат ТУК, при „Produce", ⇒ подателят на
+        плъгина (`action_move_remnants_to_offcut`, и през „Generate Lots") не
+        ги ражда втори път с лот „NNNN-001".
 
-        🔑 ЕДНО число с плъгина (1.51.0, `_cut_allocation_plan`): там новият
-        остатък се вади от консумацията като
-        `float_round(remnant_mm/1000, uom.rounding)` на ПРЪТ. Разминат ли се
-        двете, разликата остава ничия в буфера. Затова се ползва неговият
-        помощник, когато го има.
+        ⚠️ Двата модула не зависят един от друг, тъй че редът им в MRO не е
+        гарантиран — затова и двете страни питат `super()`, ако го има, вместо
+        да разчитат коя е отгоре.
         """
-        if hasattr(opt, "_remnant_qty_in_uom"):
-            qty = opt._remnant_qty_in_uom(product, length_mm)
-        else:
-            meter = self.env.ref("uom.product_uom_meter",
-                                 raise_if_not_found=False)
-            qty = meter._compute_quantity(
-                length_mm / 1000.0, product.uom_id, round=False)
-        return float_round(
-            qty, precision_rounding=product.uom_id.rounding or 0.01)
-
-    def _staged_remnant_lot(self, product, qty):
-        """Лотът на остатъка: ИМЕТО е дължината в мм, без суфикс (ADR-0049).
-
-        Като „6500" за целия прът: лотът казва каква дължина държи, и всички
-        остатъци с тази дължина са в ЕДИН лот. Съществуващ се преизползва.
-
-        🔴 Дължината се извежда от КОЛИЧЕСТВОТО, не от плана: мярката „m" е с
-        rounding 0.01 ⇒ остатък 4638 мм се държи като 4,64 м и лотът е „4640".
-        Иначе инвариантът на Любо („лотът е цяло число по своята дължина") пада
-        чисто от закръгление — 2 парчета × 4,64 м в лот „4638" са 2,0009 парчета.
-        """
-        Lot = self.env["stock.lot"]
-        meter = self.env.ref("uom.product_uom_meter")
-        length_mm = product.uom_id._compute_quantity(
-            qty, meter, round=False) * 1000.0
-        name = "%d" % int(round(length_mm))
-        lot = Lot.search([
-            ("product_id", "=", product.id),
-            ("name", "=", name),
-            ("company_id", "in", (self.company_id.id, False)),
-        ], limit=1)
-        if lot:
-            return lot
-        vals = {"name": name, "product_id": product.id,
-                "company_id": self.company_id.id}
-        if "is_offcut" in Lot._fields:
-            vals["is_offcut"] = True
-        if "offcut_length_mm" in Lot._fields:
-            vals["offcut_length_mm"] = float(int(round(length_mm)))
-        return Lot.create(vals)
+        self.ensure_one()
+        parent = getattr(super(), "_cutting_remnant_born_at_produce", None)
+        if parent and parent(optimization):
+            return True
+        return bool(
+            optimization
+            and self.staged_cutting_optimization_id == optimization
+            and getattr(optimization, "offcut_birth_mode", False) == "transfer")
 
     def _staged_remnant_bars(self):
         """Прътите на разкроя, чиито остатъци СЕГА се раждат от тази поръчка.
 
-        Правилото е ДОСЛОВНО това на плъгина (иначе метрите остават ничии):
-        продукт в мярка за дължина · прът с парче на ТАЗИ поръчка ·
-        `disposition == 'offcut'` · `remnant_mm >= min_offcut_length`.
-        ⛔ НЕ се проверяват `offcut_keep_cap`, `_offcut_eligible` и „остатъкът
-        вече съществува" — плъгинът ги няма; всеки отказ тук би оставил метри
-        в буфера, които никой не изписва и никой не мести.
-        Връща [(bar, qty)].
+        🔑 Правилото е ЕДНО и живее в плъгина (`_remnant_bars`, 1.52.0) — там
+        го чете и сметката, която вади остатъка от консумацията. Дотук тук
+        стоеше негово копие; разминат ли се двете, разликата остава ничия в
+        буфера. Без плъгина — нищо (без него няма и разкрой).
+        Връща [(bar, qty, лот-източник, вид)].
         """
         self.ensure_one()
         opt = self.staged_cutting_optimization_id
-        Bar = self.env.get("mrp.cutting.bar")
-        if (not opt or Bar is None or opt.state != "done"
-                or getattr(opt, "offcut_birth_mode", False) != "transfer"):
+        if (not opt or opt.state != "done"
+                or getattr(opt, "offcut_birth_mode", False) != "transfer"
+                or not hasattr(opt, "_remnant_bars")):
             return []
-        meter = self.env.ref("uom.product_uom_meter", raise_if_not_found=False)
-        born = []
-        for bar in Bar.search([("optimization_id", "=", opt.id)], order="id"):
-            if self not in bar.line_ids.mapped("production_id"):
-                continue
-            if bar.disposition != "offcut" or not bar.remnant_mm or \
-                    bar.remnant_mm < (opt.min_offcut_length or 0.0):
-                continue
-            product = bar.pattern_id.bar_product_id
-            if not product or not meter \
-                    or product.uom_id.category_id != meter.category_id:
-                continue
-            qty = self._staged_remnant_qty(opt, product, bar.remnant_mm)
-            if qty <= 0:
-                continue
-            born.append((bar, qty))
-        return born
+        return opt._remnant_bars(self)
 
     def _staged_birth_remnants_at_cut(self):
-        """Ражда остатъците на разкроя: Pre-Production → Remnant/Offcut.
+        """Ражда остатъците на разкроя: оттам, където е рязан → Remnant/Offcut.
 
         🔴 ДЕФЕКТЪТ (fulltest 28.09, разкрой 1141, 11 МО PVC): при PfP се
         раждаше и STOR/00262 **WH/Stock/Рафт → Remnant/Offcut** с лота на ЦЕЛИЯ
@@ -672,12 +623,21 @@ class MrpProduction(models.Model):
           (б) лотът е на цял прът ⇒ следващото МО гребе остатъка като цял прът.
 
         🔑 ПРАВИЛОТО: 1) PfP пренася ЦЕЛИТЕ пръти (лот 6500) — не се пипа тук;
-        2) остатъкът се ражда при РЯЗАНЕТО, от буфера (`location_src_id`), по
-        ЕДНО движение на остатък, с лот = дължината в мм (ADR-0049); 3) консумацията
+        2) остатъкът се ражда при РЯЗАНЕТО, по ЕДНО движение на остатък, с лот =
+        дължината в мм (ADR-0049, `_remnant_lot` на плъгина); 3) консумацията
         (пръти − нови остатъци) е в плъгина — тук не се пише.
 
-        🔧 ЛОТЪТ: едно движение носи ЕДИН лот. Затова в буфера метрите се
-        преетикетират от лота на пръта към лота на остатъка (два реда в
+        📍 ОТКЪДЕ (№93, 29.09): остатъкът излиза от ЛОТА, от който е рязан, там,
+        където този лот се изписва — същото правило като сметката на плъгина.
+          • от цял прът — от буфера (`location_src_id`);
+          • от СТАР остатък — от остатъчната локация, където лежи старият лот и
+            откъдето го изписва кракът на PfP (`_staged_offcut_consumptions`).
+            Дотук такъв прът се прескачаше, а плъгинът вадеше остатъка му от
+            буфера ⇒ метрите оставаха ничии. Трансферът тогава е Remnant →
+            Remnant: парчето физически се връща от триона на рафта.
+
+        🔧 ЛОТЪТ: едно движение носи ЕДИН лот. Затова на мястото метрите се
+        преетикетират от лота-източник към лота на остатъка (два реда в
         квантите, без стойност — `lot_id` в SVL е празно), и чак тогава се
         местят с НОВИЯ лот. Трансферът остава готов, не валидиран — потвърждава
         го човек, когато парчето физически влезе в остатъчната локация (решение
@@ -699,37 +659,28 @@ class MrpProduction(models.Model):
         offcut_loc = self.env.ref(
             "cutting_plugin_mrp_production.stock_location_offcut",
             raise_if_not_found=False)
-        src = self.location_src_id
-        if not offcut_loc or not src:
+        buffer = self.location_src_id
+        if not offcut_loc or not buffer:
             self.message_post(body=_(
                 "Remnants of cutting run %(run)s were not moved: the remnant "
                 "location or the order's component location is missing.",
                 run=opt.display_name))
             return Move
         done_refs = set(Move.search([
-            ("staged_remnant_bar_ref", "in", [b.id for b, _q in born]),
+            ("staged_remnant_bar_ref", "in", [b[0].id for b in born]),
             ("state", "!=", "cancel"),
         ]).mapped("staged_remnant_bar_ref"))
-        Lot = self.env["stock.lot"]
         Quant = self.env["stock.quant"]
-        moves = Move
-        for bar, qty in born:
+        by_src = {}
+        for bar, qty, src_lot, kind in born:
             if bar.id in done_refs:
                 continue
             pattern = bar.pattern_id
             product = pattern.bar_product_id
-            src_lot = Lot
-            if pattern.source_model == "stock.lot" and pattern.source_id:
-                src_lot = Lot.browse(pattern.source_id).exists()
-            # Остатък от ОСТАТЪК лежи в остатъчната локация, не в буфера —
-            # тук не се ражда (кракът на PfP го изписва оттам).
-            if getattr(pattern, "source_offcut_lot_id", False) \
-                    or bar.is_leftover or getattr(src_lot, "is_offcut", False):
-                skipped.append((bar, _("cut from an existing offcut")))
-                continue
             if not src_lot:
                 skipped.append((bar, _("the source bar lot is unknown")))
                 continue
+            src = offcut_loc if kind == "offcut_source" else buffer
             rounding = product.uom_id.rounding or 0.01
             free = Quant._get_available_quantity(
                 product, src, lot_id=src_lot, strict=True)
@@ -738,13 +689,13 @@ class MrpProduction(models.Model):
                     "only %(free)s of lot %(lot)s is free in %(loc)s",
                     free=free, lot=src_lot.name, loc=src.display_name)))
                 continue
-            new_lot = self._staged_remnant_lot(product, qty)
-            # Преетикетиране в буфера: лотът на пръта → лотът на остатъка.
+            new_lot = opt._remnant_lot(product, qty, self.company_id)
+            # Преетикетиране на място: лотът-източник → лотът на остатъка.
             Quant._update_available_quantity(
                 product, src, -qty, lot_id=src_lot)
             Quant._update_available_quantity(
                 product, src, qty, lot_id=new_lot)
-            moves |= Move.create({
+            move = Move.create({
                 "name": "%s — %s" % (pattern.name, new_lot.name),
                 "product_id": product.id,
                 "product_uom": product.uom_id.id,
@@ -757,8 +708,11 @@ class MrpProduction(models.Model):
                 "staged_remnant_lot_id": new_lot.id,
                 "procure_method": "make_to_stock",
             })
-        if moves:
-            self._staged_remnant_picking(moves, src, offcut_loc, opt)
+            by_src[src] = by_src.get(src, Move) | move
+        moves = Move
+        for src, src_moves in by_src.items():
+            self._staged_remnant_picking(src_moves, src, offcut_loc, opt)
+            moves |= src_moves
         if skipped:
             _logger.warning(
                 "Остатъци на %s от %s: не родени — %s", opt.display_name,
@@ -767,7 +721,7 @@ class MrpProduction(models.Model):
             self.message_post(body=_(
                 "Some remnants of cutting run %(run)s were not born and stay in "
                 "%(loc)s: %(list)s",
-                run=opt.display_name, loc=src.display_name,
+                run=opt.display_name, loc=buffer.display_name,
                 list="; ".join("%s: %s" % (b.display_name, why)
                                for b, why in skipped)))
         return moves

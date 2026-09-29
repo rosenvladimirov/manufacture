@@ -231,3 +231,80 @@ class TestRemnantIsBornAtCut(TransactionCase):
             except Exception:  # noqa: BLE001 — тук се мери само викането
                 pass
         self.assertEqual(razhdane.call_count, 1)
+
+    # ⑥ Едно раждане (29.09) ───────────────────────────────────────────
+    def test_the_plugin_does_not_birth_what_is_born_at_produce(self):
+        """🔴 Двойното раждане: бутонът „Generate Lots" на плъгина раждаше
+        „NNNN-001" с трансфер от мястото на пръта, а „Produce" — „NNNN" от
+        буфера. Куката казва на плъгина, че остатъкът се ражда тук."""
+        mo = self._mo()
+        opt = self._run(mo, [(4638.0, 'offcut', [(mo, 1800.0)])])
+        self.assertTrue(mo._cutting_remnant_born_at_produce(opt))
+        self.assertTrue(opt._remnant_born_at_produce())
+        with patch.object(type(opt), 'action_move_remnants_to_offcut',
+                          return_value=False) as podatel:
+            opt.action_generate_lots()
+        self.assertEqual(podatel.call_count, 0,
+                         "плъгинът роди остатък, който се ражда при Produce")
+
+    def test_the_hook_is_off_for_another_mode_or_run(self):
+        mo = self._mo()
+        opt = self._run(mo, [(4638.0, 'offcut', [(mo, 1800.0)])],
+                        mode='inventory')
+        self.assertFalse(mo._cutting_remnant_born_at_produce(opt))
+        other = self._run(self._mo(), [(4638.0, 'offcut', [(mo, 1800.0)])])
+        self.assertFalse(mo._cutting_remnant_born_at_produce(other),
+                         "чужд разкрой — не е наш да го раждаме")
+
+    # ⑦ Остатък от СТАР остатък (29.09) ──────────────────────────────────
+    def test_a_remnant_of_an_offcut_is_born_where_the_offcut_lies(self):
+        """Стар остатък „4640" (4,64 м) → парче 2,90 → нов остатък „1640".
+
+        Кракът на PfP изписва 3,00 от „4640" в Remnant/Offcut; 1,64 остават и
+        се преетикетират в „1640" — там, не от буфера. Прътът 6500 до него
+        ражда своя „4640" от буфера. Два трансфера, по един на източник.
+        """
+        self._stock(self.buf, 6.5)
+        lot_old = self.env['stock.lot'].create({
+            'name': 'T93R-OLD-4640', 'product_id': self.bar.id,
+            'company_id': self.env.company.id, 'is_offcut': True,
+            'offcut_length_mm': 4640.0})
+        self._stock(self.off, 4.64, lot=lot_old)
+        mo = self._mo()
+        opt = self._run(mo, [(4638.0, 'offcut', [(mo, 1800.0)])])
+        pattern = self.env['mrp.cutting.pattern'].create({
+            'optimization_id': opt.id, 'name': 'T93R — P54', 'usage_count': 1,
+            'bar_capacity_mm': 4640.0, 'cuts_json': '{}',
+            'bar_product_id': self.bar.id, 'source_model': 'stock.lot',
+            'source_id': lot_old.id, 'source_offcut_lot_id': lot_old.id})
+        self.env['mrp.cutting.bar'].create({
+            'pattern_id': pattern.id, 'bar_index': 1, 'capacity_mm': 4640.0,
+            'remnant_mm': 1640.0, 'disposition': 'offcut', 'is_leftover': True,
+            'line_ids': [(0, 0, {'length_mm': 2900.0,
+                                 'production_id': mo.id})]})
+        main = mo.move_raw_ids.filtered(lambda m: m.product_id == self.bar)
+        # огледало на `_staged_offcut_consumptions`: кракът от остатъчната
+        leg = main.copy({'location_id': self.off.id, 'product_uom_qty': 4.64,
+                         'raw_material_production_id': mo.id,
+                         'state': 'draft'})
+        leg._action_confirm(merge=False)
+        opt._build_cut_allocations()
+        self.assertAlmostEqual(leg.product_uom_qty, 3.00, places=2,
+                               msg="постановката: кракът изписва и новия остатък")
+
+        moves = mo._staged_birth_remnants_at_cut()
+
+        self.assertEqual(len(moves), 2, "по едно движение на остатък")
+        from_off = moves.filtered(lambda m: m.location_id == self.off)
+        self.assertEqual(len(from_off), 1,
+                         "остатъкът от стар остатък не е роден")
+        self.assertEqual(from_off.move_line_ids.lot_id.name, '1640')
+        self.assertAlmostEqual(from_off.product_uom_qty, 1.64, places=2)
+        self.assertEqual((moves - from_off).location_id, self.buf)
+        self.assertEqual((moves - from_off).move_line_ids.lot_id.name, '4640')
+        self.assertEqual(len(moves.picking_id), 2, "един трансфер на източник")
+        # Старият лот държи точно изписваното от крака; буферът — пръта без
+        # остатъка си.
+        self.assertAlmostEqual(self._qty(self.off, lot_old), 3.00, places=2)
+        self.assertAlmostEqual(self._qty(self.buf, self.lot_bar), 1.86,
+                               places=2)
