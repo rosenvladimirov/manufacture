@@ -1,0 +1,153 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* stock_lot_relabel
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0-20260908\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-29 10:32+0000\n"
+"PO-Revision-Date: 2026-09-29 10:32+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: bg_BG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid "A lot relabel needs two different lots of %(product)s."
+msgstr "Смяната на лот изисква два различни лота на %(product)s."
+
+#. module: stock_lot_relabel
+#: model:ir.model,name:stock_lot_relabel.model_res_company
+msgid "Companies"
+msgstr "Фирми"
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields.selection,name:stock_lot_relabel.selection__stock_move__lot_relabel_role__in
+msgid "In (target lot)"
+msgstr "Вход (лот-цел)"
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,field_description:stock_lot_relabel.field_stock_move__lot_relabel_pair_id
+msgid "Lot Relabel Counterpart"
+msgstr "Насрещно движение на смяната на лот"
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,field_description:stock_lot_relabel.field_res_company__lot_relabel_location_id
+msgid "Lot Relabel Location"
+msgstr "Локация за смяна на лот"
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,field_description:stock_lot_relabel.field_stock_move__lot_relabel_role
+msgid "Lot Relabel Role"
+msgstr "Роля в смяната на лот"
+
+#. module: stock_lot_relabel
+#: model:ir.model,name:stock_lot_relabel.model_stock_lot
+msgid "Lot/Serial"
+msgstr "Партида/Сериен номер"
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid "Lots %(src)s and %(dst)s must both belong to %(product)s."
+msgstr "Лотовете %(src)s и %(dst)s трябва да са на %(product)s."
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid ""
+"Only %(free)s %(uom)s of lot %(lot)s is free in %(location)s; %(qty)s "
+"%(uom)s cannot be relabelled."
+msgstr ""
+"Само %(free)s %(uom)s от лот %(lot)s са свободни в %(location)s; %(qty)s "
+"%(uom)s не могат да сменят лота си."
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid "Only storable products can be relabelled; %(product)s is not."
+msgstr "Лот се сменя само на складируеми продукти; %(product)s не е такъв."
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields.selection,name:stock_lot_relabel.selection__stock_move__lot_relabel_role__out
+msgid "Out (source lot)"
+msgstr "Изход (лот-източник)"
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,field_description:stock_lot_relabel.field_stock_move__lot_relabel_src_lot_id
+msgid "Relabelled From"
+msgstr "Сменен от лот"
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,field_description:stock_lot_relabel.field_stock_move__lot_relabel_dst_lot_id
+msgid "Relabelled To"
+msgstr "Сменен към лот"
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,help:stock_lot_relabel.field_stock_move__lot_relabel_role
+msgid ""
+"Set on the two moves of a lot relabel: the one that takes the source lot "
+"out, and the one that brings the target lot back."
+msgstr ""
+"Попълва се на двете движения на смяната на лот: това, което изважда лота-"
+"източник, и това, което връща лота-цел."
+
+#. module: stock_lot_relabel
+#: model:ir.model,name:stock_lot_relabel.model_stock_move
+msgid "Stock Move"
+msgstr "Движение на наличности"
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid ""
+"Stock can be relabelled only in an internal location; %(location)s is not "
+"one."
+msgstr "Лотът се сменя само във вътрешна локация; %(location)s не е такава."
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid ""
+"The location %(location)s has no incoming or outgoing valuation account. Set"
+" both accounts on it before relabelling %(product)s, which uses automated "
+"inventory valuation."
+msgstr ""
+"Локацията %(location)s няма входяща или изходяща сметка за оценка. Задайте и"
+" двете сметки, преди да сменяте лота на %(product)s — той е с автоматична "
+"оценка на наличностите."
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid "The lot relabel move %(move)s could not be validated."
+msgstr "Движението за смяна на лот %(move)s не можа да бъде валидирано."
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,help:stock_lot_relabel.field_stock_move__lot_relabel_pair_id
+msgid "The other move of the same lot relabel."
+msgstr "Другото движение на същата смяна на лот."
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid "The quantity to relabel must be positive."
+msgstr "Количеството за смяна на лот трябва да е положително."
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,help:stock_lot_relabel.field_res_company__lot_relabel_location_id
+msgid ""
+"Virtual location through which stock changes its lot in place: it leaves "
+"with the old lot and comes back with the new one. Set its incoming and "
+"outgoing valuation accounts before the first relabel of a product with "
+"automated valuation."
+msgstr ""
+"Виртуална локация, през която наличността сменя лота си на място: излиза със"
+" стария лот и се връща с новия. Задайте входящата и изходящата ѝ сметка за "
+"оценка преди първата смяна на лот на продукт с автоматична оценка."

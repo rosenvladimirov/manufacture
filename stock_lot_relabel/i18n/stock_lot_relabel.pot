@@ -1,0 +1,142 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* stock_lot_relabel
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0-20260908\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-29 10:32+0000\n"
+"PO-Revision-Date: 2026-09-29 10:32+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid "A lot relabel needs two different lots of %(product)s."
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model,name:stock_lot_relabel.model_res_company
+msgid "Companies"
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields.selection,name:stock_lot_relabel.selection__stock_move__lot_relabel_role__in
+msgid "In (target lot)"
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,field_description:stock_lot_relabel.field_stock_move__lot_relabel_pair_id
+msgid "Lot Relabel Counterpart"
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,field_description:stock_lot_relabel.field_res_company__lot_relabel_location_id
+msgid "Lot Relabel Location"
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,field_description:stock_lot_relabel.field_stock_move__lot_relabel_role
+msgid "Lot Relabel Role"
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model,name:stock_lot_relabel.model_stock_lot
+msgid "Lot/Serial"
+msgstr ""
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid "Lots %(src)s and %(dst)s must both belong to %(product)s."
+msgstr ""
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid ""
+"Only %(free)s %(uom)s of lot %(lot)s is free in %(location)s; %(qty)s "
+"%(uom)s cannot be relabelled."
+msgstr ""
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid "Only storable products can be relabelled; %(product)s is not."
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields.selection,name:stock_lot_relabel.selection__stock_move__lot_relabel_role__out
+msgid "Out (source lot)"
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,field_description:stock_lot_relabel.field_stock_move__lot_relabel_src_lot_id
+msgid "Relabelled From"
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,field_description:stock_lot_relabel.field_stock_move__lot_relabel_dst_lot_id
+msgid "Relabelled To"
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,help:stock_lot_relabel.field_stock_move__lot_relabel_role
+msgid ""
+"Set on the two moves of a lot relabel: the one that takes the source lot "
+"out, and the one that brings the target lot back."
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model,name:stock_lot_relabel.model_stock_move
+msgid "Stock Move"
+msgstr ""
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid ""
+"Stock can be relabelled only in an internal location; %(location)s is not "
+"one."
+msgstr ""
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid ""
+"The location %(location)s has no incoming or outgoing valuation account. Set"
+" both accounts on it before relabelling %(product)s, which uses automated "
+"inventory valuation."
+msgstr ""
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid "The lot relabel move %(move)s could not be validated."
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,help:stock_lot_relabel.field_stock_move__lot_relabel_pair_id
+msgid "The other move of the same lot relabel."
+msgstr ""
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid "The quantity to relabel must be positive."
+msgstr ""
+
+#. module: stock_lot_relabel
+#: model:ir.model.fields,help:stock_lot_relabel.field_res_company__lot_relabel_location_id
+msgid ""
+"Virtual location through which stock changes its lot in place: it leaves "
+"with the old lot and comes back with the new one. Set its incoming and "
+"outgoing valuation accounts before the first relabel of a product with "
+"automated valuation."
+msgstr ""
