@@ -16,7 +16,8 @@ STOR/00262          WH/Stock/Рафт → Remnant/Offcut        лот 6500   Г
   ① подготовката (PfP) НЕ вика подателя на остатъци — нито трансфер от рафта;
   ② при рязането: Pre-Production → Remnant/Offcut, по едно движение на
     остатък, лот = дължината в мм, без суфикс. Дължината е тази, която
-    складът държи: 4638 мм → 4,64 м → лот „4640" (ADR-0049, закръглението);
+    складът държи: 4638 мм → 4,63 м → лот „4630" (ADR-0049; закръглението е
+    НАДОЛУ — решение на Росен, 29.09);
   ③ количеството е СЪЩОТО число, което плъгинът вади от консумацията;
   ④ повторно рязане не ражда втори остатък; два остатъка с една дължина — един
     лот;
@@ -131,7 +132,10 @@ class TestRemnantIsBornAtCut(TransactionCase):
 
     # ② ③ ─────────────────────────────────────────────────────────────────
     def test_the_remnant_is_born_from_the_buffer_with_its_length_lot(self):
-        """Pre-Production → Remnant/Offcut, лот „4640", 4,64 м — като плъгина."""
+        """Pre-Production → Remnant/Offcut, лот „4630", 4,63 м — като плъгина.
+
+        4638 мм се закръгля НАДОЛУ (№93, 29.09): лот „4640" би обещал 2 мм,
+        които парчето няма."""
         self._stock(self.rack, 6.5)
         self._stock(self.buf, 13.0)       # PfP е кацнал: два пръта в буфера
         mo = self._mo()
@@ -140,7 +144,7 @@ class TestRemnantIsBornAtCut(TransactionCase):
         new_off = sum(opt.allocation_ids.filtered(
             lambda a: a.production_id == mo and a.kind == 'offcut_new'
         ).mapped('quantity'))
-        self.assertAlmostEqual(new_off, 4.64, places=2,
+        self.assertAlmostEqual(new_off, 4.63, places=2,
                                msg="постановката: плъгинът не вади остатъка")
 
         moves = mo._staged_birth_remnants_at_cut()
@@ -152,15 +156,15 @@ class TestRemnantIsBornAtCut(TransactionCase):
         self.assertAlmostEqual(moves.product_uom_qty, new_off, places=2,
                                msg="друго число от това, което плъгинът вади")
         lines = moves.move_line_ids
-        self.assertEqual(lines.mapped('lot_id.name'), ['4640'],
+        self.assertEqual(lines.mapped('lot_id.name'), ['4630'],
                          "лотът не е дължината в мм")
         self.assertEqual(lines.location_id, self.buf)
-        self.assertAlmostEqual(sum(lines.mapped('quantity')), 4.64, places=2)
+        self.assertAlmostEqual(sum(lines.mapped('quantity')), 4.63, places=2)
         self.assertEqual(moves.picking_id.state, 'assigned')
         # Рафтът — непипнат; в буфера лотът на пръта е намалял с остатъка.
         self.assertAlmostEqual(self._qty(self.rack, self.lot_bar), 6.5, places=2)
-        self.assertAlmostEqual(self._qty(self.buf, self.lot_bar), 8.36, places=2)
-        self.assertAlmostEqual(self._qty(self.buf, lines.lot_id), 4.64, places=2)
+        self.assertAlmostEqual(self._qty(self.buf, self.lot_bar), 8.37, places=2)
+        self.assertAlmostEqual(self._qty(self.buf, lines.lot_id), 4.63, places=2)
 
     # ④ ─────────────────────────────────────────────────────────────────
     def test_a_second_cut_does_not_birth_twice(self):
@@ -262,7 +266,7 @@ class TestRemnantIsBornAtCut(TransactionCase):
 
         Кракът на PfP изписва 3,00 от „4640" в Remnant/Offcut; 1,64 остават и
         се преетикетират в „1640" — там, не от буфера. Прътът 6500 до него
-        ражда своя „4640" от буфера. Два трансфера, по един на източник.
+        ражда своя „4630" (4638 мм, надолу) от буфера. Два трансфера, по един на източник.
         """
         self._stock(self.buf, 6.5)
         lot_old = self.env['stock.lot'].create({
@@ -301,10 +305,10 @@ class TestRemnantIsBornAtCut(TransactionCase):
         self.assertEqual(from_off.move_line_ids.lot_id.name, '1640')
         self.assertAlmostEqual(from_off.product_uom_qty, 1.64, places=2)
         self.assertEqual((moves - from_off).location_id, self.buf)
-        self.assertEqual((moves - from_off).move_line_ids.lot_id.name, '4640')
+        self.assertEqual((moves - from_off).move_line_ids.lot_id.name, '4630')
         self.assertEqual(len(moves.picking_id), 2, "един трансфер на източник")
         # Старият лот държи точно изписваното от крака; буферът — пръта без
         # остатъка си.
         self.assertAlmostEqual(self._qty(self.off, lot_old), 3.00, places=2)
-        self.assertAlmostEqual(self._qty(self.buf, self.lot_bar), 1.86,
+        self.assertAlmostEqual(self._qty(self.buf, self.lot_bar), 1.87,
                                places=2)
