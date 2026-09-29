@@ -1,0 +1,133 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* mrp_production_staged_preparation
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0-20260908\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-09-29 10:32+0000\n"
+"PO-Revision-Date: 2026-09-29 10:32+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: bg_BG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Cannot undo the preparation of %(mos)s: the remnant transfer %(picks)s is "
+"already validated, so the bars are already cut."
+msgstr ""
+"Подготовката на %(mos)s не може да бъде отменена: трансферът на остатъците "
+"%(picks)s е вече валидиран, значи прътите вече са нарязани."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_relabel_bar_ref
+msgid "Cutting-plan bar whose remnant this lot relabel belongs to."
+msgstr "Прътът от разкроя, чийто остатък е тази смяна на лот."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_remnant_bar_ref
+msgid ""
+"Cutting-plan bar whose remnant this move carries from the component location"
+" to the remnant location."
+msgstr ""
+"Прътът от разкроя, чийто остатък това движение пренася от локацията на "
+"компонентите в остатъчната локация."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_remnant_src_lot_id
+msgid ""
+"Lot of the bar the remnant is cut from. The remnant transfer waits until "
+"this lot has been relabelled to the remnant lot."
+msgstr ""
+"Лотът на пръта, от който е отрязан остатъкът. Трансферът на остатъка чака, "
+"докато този лот бъде сменен към лота на остатъка."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_remnant_lot_id
+msgid "Lot of the remnant, named after its length in millimetres."
+msgstr "Лотът на остатъка — наречен по дължината му в милиметри."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Preparation undone for %(mos)s: %(moves)s remnant move(s) cancelled, "
+"%(relabels)s lot relabel(s) reversed."
+msgstr ""
+"Подготовката на %(mos)s е отменена: отказани движения на остатъци — "
+"%(moves)s, върнати смени на лот — %(relabels)s."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Remnants %s"
+msgstr "Остатъци %s"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Some remnants of cutting run %(run)s did not get their own lot and their "
+"transfer stays waiting: %(list)s"
+msgstr ""
+"Някои остатъци от разкрой %(run)s не получиха свой лот и трансферът им "
+"остава чакащ: %(list)s"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__staged_relabel_bar_ref
+msgid "Staged Relabel Bar"
+msgstr "Прът на смяната на лот"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__staged_relabel_undo
+msgid "Staged Relabel Undo"
+msgstr "Обратна смяна на лот"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__staged_remnant_bar_ref
+msgid "Staged Remnant Bar"
+msgstr "Прът на остатъка"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__staged_remnant_lot_id
+msgid "Staged Remnant Lot"
+msgstr "Лот на остатъка"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__staged_remnant_src_lot_id
+msgid "Staged Remnant Source Lot"
+msgstr "Лот-източник на остатъка"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"The remnants of cutting run %(run)s were not planned: the remnant location "
+"or the component location of %(mo)s is missing."
+msgstr ""
+"Остатъците от разкрой %(run)s не са планирани: липсва остатъчната локация "
+"или локацията на компонентите на %(mo)s."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_relabel_undo
+msgid "This lot relabel reverses an earlier one (Undo Preparation)."
+msgstr "Тази смяна на лот връща по-ранна (отмяна на подготовката)."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "only %(free)s of lot %(lot)s is free in %(loc)s, %(qty)s needed"
+msgstr "само %(free)s от лот %(lot)s са свободни в %(loc)s, нужни са %(qty)s"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "the source bar lot is unknown"
+msgstr "лотът на пръта-източник не е известен"

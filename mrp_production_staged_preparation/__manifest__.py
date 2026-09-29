@@ -9,7 +9,7 @@
         "internal component picks are deferred until 'Prepare for Production' "
         "releases the MO to the floor."
     ),
-    "version": "18.0.2.22.0",
+    "version": "18.0.2.23.0",
     "category": "Manufacturing",
     "website": "https://github.com/rosenvladimirov/manufacture-experts",
     "author": "Rosen Vladimirov, Terraros Commerce Ltd.",
@@ -20,6 +20,9 @@
     "depends": [
         "mrp",
         "stock",
+        # №93: смяната на лота на остатъка (6500 → 4630) — две движения през
+        # „Lot Relabel", с равна стойност.
+        "stock_lot_relabel",
     ],
     "data": [
         "security/ir.model.access.csv",

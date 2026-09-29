@@ -4,6 +4,7 @@
 
 from odoo import _, fields, models
 from odoo.exceptions import UserError
+from odoo.tools import float_compare
 
 
 class StockMove(models.Model):
@@ -21,7 +22,7 @@ class StockMove(models.Model):
 
     # №93: движението, с което се ражда остатъкът на един прът от разкроя.
     # Integer, не Many2one: модулът НЕ зависи от mrp_cutting_optimization.
-    # Пази идемпотентността — повторен „Produce" не ражда втори остатък.
+    # Пази идемпотентността — повторна подготовка не ражда втори остатък.
     staged_remnant_bar_ref = fields.Integer(
         "Staged Remnant Bar", copy=False, index=True,
         help="Cutting-plan bar whose remnant this move carries from the "
@@ -29,6 +30,20 @@ class StockMove(models.Model):
     staged_remnant_lot_id = fields.Many2one(
         "stock.lot", string="Staged Remnant Lot", copy=False,
         help="Lot of the remnant, named after its length in millimetres.")
+    # №93 (18.0.2.23.0): лотът, от който остатъкът е отрязан („6500"). Докато
+    # в буфера не е сменен към `staged_remnant_lot_id`, движението не резервира.
+    staged_remnant_src_lot_id = fields.Many2one(
+        "stock.lot", string="Staged Remnant Source Lot", copy=False,
+        help="Lot of the bar the remnant is cut from. The remnant transfer "
+             "waits until this lot has been relabelled to the remnant lot.")
+    # Следата на смяната на лота (движенията на `stock.lot._relabel`) към
+    # пръта, чийто остатък е — и дали е обратна смяна (Undo Preparation).
+    staged_relabel_bar_ref = fields.Integer(
+        "Staged Relabel Bar", copy=False, index=True,
+        help="Cutting-plan bar whose remnant this lot relabel belongs to.")
+    staged_relabel_undo = fields.Boolean(
+        "Staged Relabel Undo", copy=False,
+        help="This lot relabel reverses an earlier one (Undo Preparation).")
 
     # ── Hybrid staged endpoint-swap (виж mrp_production._get_move_raw_values) ─
     # В intermediate фазата (staged_preparation_enabled и НЕ staged_released)
@@ -65,11 +80,105 @@ class StockMove(models.Model):
         оттам. Тук само подсещаме ядрото да погледне пак.
         """
         res = super()._action_done(cancel_backorder=cancel_backorder)
+        # №93: ПЪРВО смяната на лота на остатъците — метрите им се запазват
+        # под своя лот, преди консумациите да гребнат свободното.
+        self._staged_relabel_after_landing(res)
         chakashti = res.mapped("staged_consumption_ids").filtered(
             lambda m: m.state not in ("done", "cancel"))
         if chakashti:
             chakashti._action_assign()
         return res
+
+    def _staged_relabel_after_landing(self, moves):
+        """Прътите кацнаха в буфера ⇒ сменя се лотът на остатъците на разкроя.
+
+        🔑 Разкроят се намира по пикинга, от който е кацнало: по следата към
+        консумациите (`staged_consumption_ids`, `move_dest_ids`) и по
+        `cutting_optimization_id`. Backorder-ът не носи нито едното — затова се
+        качваме до първия пикинг по `backorder_id`. Дали целият PC е кацнал,
+        решава `mrp.production._staged_relabel_remnants`.
+        """
+        landed = moves.filtered(
+            lambda m: m.state == "done" and m.picking_id
+            and not m.staged_remnant_lot_id and not m.lot_relabel_role
+            and m.location_dest_id.usage == "internal")
+        if not landed:
+            return
+        roots = landed.picking_id
+        parents = roots.backorder_id - roots
+        while parents:
+            roots |= parents
+            parents = roots.backorder_id - roots
+        family = roots.move_ids
+        mos = (family.staged_consumption_ids
+               | family.move_dest_ids).raw_material_production_id
+        opts = mos.staged_cutting_optimization_id
+        if "cutting_optimization_id" in self.env["stock.picking"]._fields:
+            opts |= roots.cutting_optimization_id
+        Production = self.env["mrp.production"]
+        for opt in opts:
+            if not Production._staged_run_productions(opt):
+                continue
+            run = Production._staged_run_productions(opt).filtered(
+                lambda p: p.staged_cutting_optimization_id == opt)
+            if run and opt in run._staged_remnant_runs():
+                run._staged_relabel_remnants(opt)
+
+    def _action_assign(self, force_qty=False):
+        # №93: движенията на трансфера на остатъците резервират САМО своя лот
+        # („4630") и само след смяната му — не каквото ядрото намери в буфера.
+        remnant = self.filtered(
+            lambda m: m.staged_remnant_lot_id
+            and m.state in ("confirmed", "waiting", "partially_available"))
+        rest = self - remnant
+        res = super(StockMove, rest)._action_assign(force_qty=force_qty) \
+            if rest else None
+        if remnant:
+            remnant._staged_assign_remnant()
+        return res
+
+    def _staged_assign_remnant(self):
+        """Резервира ТОЧНО лота на остатъка под локацията на движението.
+
+        ⏳ Докато лотът на пръта не е сменен (`staged_remnant_src_lot_id` и
+        нето смени = 0) — нищо: трансферът чака. Заварените движения отпреди
+        18.0.2.23.0 (без лот-източник) не чакат смяна — лотът им е готов.
+        ⛔ Без остатъчната локация (дете на буфера на живо): там лежат вече
+        валидирани остатъци със същото име на лота.
+        """
+        Quant = self.env["stock.quant"]
+        Production = self.env["mrp.production"]
+        off = Production._staged_offcut_location()
+        for move in self:
+            if move.staged_remnant_src_lot_id and \
+                    Production._staged_bar_relabel_net(
+                        move.staged_remnant_bar_ref) <= 0:
+                continue
+            lot = move.staged_remnant_lot_id
+            rounding = move.product_id.uom_id.rounding
+            need = move.product_qty - sum(
+                move.move_line_ids.mapped("quantity_product_uom"))
+            if float_compare(need, 0.0, precision_rounding=rounding) <= 0:
+                continue
+            root = move.location_id
+            quants = Quant.search([
+                ("product_id", "=", move.product_id.id),
+                ("lot_id", "=", lot.id),
+                ("location_id", "child_of", root.id),
+                ("location_id.usage", "=", "internal"),
+                ("quantity", ">", 0),
+            ], order="in_date, id")
+            if off and not (root.parent_path or "").startswith(
+                    off.parent_path or "/-/"):
+                quants = quants.filtered(
+                    lambda q: not (q.location_id.parent_path or "").startswith(
+                        off.parent_path or "/-/"))
+            for location in quants.location_id.sorted(lambda l: l != root):
+                if float_compare(need, 0.0, precision_rounding=rounding) <= 0:
+                    break
+                need -= move._update_reserved_quantity(
+                    need, location, lot_id=lot, strict=True) or 0.0
+        self._recompute_state()
 
     def write(self, vals):
         """⛔ `picked` не се вдига на поръчка, която още не е освободена.

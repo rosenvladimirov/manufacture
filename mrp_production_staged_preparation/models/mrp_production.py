@@ -220,11 +220,9 @@ class MrpProduction(models.Model):
         # на готовия продукт СТРОГО FIFO. Идемпотентно (guard на входа).
         for production in self:
             production._staged_create_offcut_byproducts()
-        # №93: остатъкът се РАЖДА при рязането — Pre-Production → Remnant/Offcut
-        # с лот = дължината. Преди super(): консумацията (плъгинът) взима само
-        # „пръти − нови остатъци", тъй че метрите на остатъка са свободни тук.
-        for production in self:
-            production._staged_birth_remnants_at_cut()
+        # №93 (18.0.2.23.0): „Produce" НЕ ражда остатък. Той е роден при PfP
+        # (трансферът „Remnants <разкрой>"), а лотът му е сменен при кацането на
+        # прътите. Консумацията (плъгинът) изписва само „пръти − остатъци".
         # #10: производството да работи И от 'preparation' (native очаква
         # confirmed/progress). Директен mark_done от Preparation → авто-старт.
         for production in self:
@@ -575,16 +573,36 @@ class MrpProduction(models.Model):
             legs._staged_pin_offcut_lot()
         return legs
 
-    # ── №93: остатъкът се ражда при РЯЗАНЕТО, не при PfP ─────────────────
+    # ── №93: остатъкът се ражда при PfP, лотът се сменя при кацането ─────
+    #
+    # ⚓ РЕШЕНИЕТО (Любо, ТГ 167821/167822/167824/167825; Росен, 29.09 —
+    # „вариант А, логиката е като инвентаризация"):
+    #   ① при PfP — ЕДИН трансфер „Remnants <разкрой>" на целия разкрой:
+    #      Pre-Production → Remnant/Offcut, по едно движение на остатък, лот =
+    #      дължината („4630"). Чака.
+    #   ② щом прътите кацнат в Pre-Production (PC валидиран) — лотът на
+    #      остатъка се сменя там: 6500 → 4630 през `stock.lot._relabel`
+    #      (модул `stock_lot_relabel`: две движения, равна стойност). После
+    #      трансферът резервира ТОЧНО 4630 и става „Готов".
+    #   ③ „Produce" изписва своя дял − остатъка (плъгинът) и НЕ ражда нищо.
+    #   ④ трансфера валидира човек, когато парчето е на рафта.
+    #
+    # 🔴 ЗАЩО НЕ ПРИ „PRODUCE" (18.0.2.21–22): раждането там беше по един
+    # трансфер на МО и смяната на лота ставаше направо в квантите — без
+    # движение и без слой. Лотът „изчезваше" и „се появяваше" без следа.
+
     def _cutting_remnant_born_at_produce(self, optimization):
         """Куката на плъгина (cutting_plugin_mrp_production 18.0.1.52.0):
-        остатъците на разкроя се раждат ТУК, при „Produce", ⇒ подателят на
-        плъгина (`action_move_remnants_to_offcut`, и през „Generate Lots") не
-        ги ражда втори път с лот „NNNN-001".
+        остатъците на този разкрой ги ражда ТОЗИ модул ⇒ подателят на плъгина
+        (`action_move_remnants_to_offcut`, и през „Generate Lots") мълчи.
 
-        ⚠️ Двата модула не зависят един от друг, тъй че редът им в MRO не е
-        гарантиран — затова и двете страни питат `super()`, ако го има, вместо
-        да разчитат коя е отгоре.
+        📌 Името е историческо — от 18.0.2.23.0 раждането е при PfP, не при
+        „Produce". Смисълът на куката е „друг модул ражда остатъка", тъй че
+        името се пази, за да не се разминат двете страни (модулите не зависят
+        един от друг и се обновяват поотделно).
+
+        ⚠️ Редът в MRO не е гарантиран — затова и двете страни питат
+        `super()`, ако го има, вместо да разчитат коя е отгоре.
         """
         self.ensure_one()
         parent = getattr(super(), "_cutting_remnant_born_at_produce", None)
@@ -595,141 +613,124 @@ class MrpProduction(models.Model):
             and self.staged_cutting_optimization_id == optimization
             and getattr(optimization, "offcut_birth_mode", False) == "transfer")
 
-    def _staged_remnant_bars(self):
-        """Прътите на разкроя, чиито остатъци СЕГА се раждат от тази поръчка.
+    def _staged_remnant_runs(self):
+        """Разкроите на поръчките, чиито остатъци ражда този модул."""
+        return self.mapped("staged_cutting_optimization_id").filtered(
+            lambda o: o.state == "done"
+            and getattr(o, "offcut_birth_mode", False) == "transfer"
+            and hasattr(o, "_remnant_bars") and hasattr(o, "_remnant_lot"))
 
-        🔑 Правилото е ЕДНО и живее в плъгина (`_remnant_bars`, 1.52.0) — там
-        го чете и сметката, която вади остатъка от консумацията. Дотук тук
-        стоеше негово копие; разминат ли се двете, разликата остава ничия в
-        буфера. Без плъгина — нищо (без него няма и разкрой).
-        Връща [(bar, qty, лот-източник, вид)].
-        """
-        self.ensure_one()
-        opt = self.staged_cutting_optimization_id
-        if (not opt or opt.state != "done"
-                or getattr(opt, "offcut_birth_mode", False) != "transfer"
-                or not hasattr(opt, "_remnant_bars")):
-            return []
-        return opt._remnant_bars(self)
-
-    def _staged_birth_remnants_at_cut(self):
-        """Ражда остатъците на разкроя: оттам, където е рязан → Remnant/Offcut.
-
-        🔴 ДЕФЕКТЪТ (fulltest 28.09, разкрой 1141, 11 МО PVC): при PfP се
-        раждаше и STOR/00262 **WH/Stock/Рафт → Remnant/Offcut** с лота на ЦЕЛИЯ
-        прът („6500"):
-          (а) излизаше от рафта ПРЕДИ рязането, докато прътът вече е в PfP към
-              буфера ⇒ от рафта на хартия излизат повече метри;
-          (б) лотът е на цял прът ⇒ следващото МО гребе остатъка като цял прът.
-
-        🔑 ПРАВИЛОТО: 1) PfP пренася ЦЕЛИТЕ пръти (лот 6500) — не се пипа тук;
-        2) остатъкът се ражда при РЯЗАНЕТО, по ЕДНО движение на остатък, с лот =
-        дължината в мм (ADR-0049, `_remnant_lot` на плъгина); 3) консумацията
-        (пръти − нови остатъци) е в плъгина — тук не се пише.
-
-        📍 ОТКЪДЕ (№93, 29.09): остатъкът излиза от ЛОТА, от който е рязан, там,
-        където този лот се изписва — същото правило като сметката на плъгина.
-          • от цял прът — от буфера (`location_src_id`);
-          • от СТАР остатък — от остатъчната локация, където лежи старият лот и
-            откъдето го изписва кракът на PfP (`_staged_offcut_consumptions`).
-            Дотук такъв прът се прескачаше, а плъгинът вадеше остатъка му от
-            буфера ⇒ метрите оставаха ничии. Трансферът тогава е Remnant →
-            Remnant: парчето физически се връща от триона на рафта.
-
-        🔧 ЛОТЪТ: едно движение носи ЕДИН лот. Затова на мястото метрите се
-        преетикетират от лота-източник към лота на остатъка (два реда в
-        квантите, без стойност — `lot_id` в SVL е празно), и чак тогава се
-        местят с НОВИЯ лот. Трансферът остава готов, не валидиран — потвърждава
-        го човек, когато парчето физически влезе в остатъчната локация (решение
-        на Любо, 23.08). До тогава метрите са под „4640", резервирани за
-        трансфера, и не могат да бъдат взети като цял прът.
-
-        ⛔ Отказът НЕ спира производството, но и НЕ мълчи — бележка в чатъра.
-        Идемпотентно: прът с живо движение за раждане се прескача.
-        """
-        self.ensure_one()
-        Move = self.env["stock.move"]
-        born = self._staged_remnant_bars()
-        skipped = []
-        if not born:
-            return Move
-        opt = self.staged_cutting_optimization_id
+    @api.model
+    def _staged_offcut_location(self):
         # ⚠️ БЕЗ резерва към склада: помощникът на адаптера пада към WH/Stock,
         # а тогава всеки остатък би кацнал обратно при целите пръти.
-        offcut_loc = self.env.ref(
+        return self.env.ref(
             "cutting_plugin_mrp_production.stock_location_offcut",
             raise_if_not_found=False)
-        buffer = self.location_src_id
-        if not offcut_loc or not buffer:
-            self.message_post(body=_(
-                "Remnants of cutting run %(run)s were not moved: the remnant "
-                "location or the order's component location is missing.",
-                run=opt.display_name))
-            return Move
-        done_refs = set(Move.search([
-            ("staged_remnant_bar_ref", "in", [b[0].id for b in born]),
-            ("state", "!=", "cancel"),
-        ]).mapped("staged_remnant_bar_ref"))
-        Quant = self.env["stock.quant"]
-        by_src = {}
-        for bar, qty, src_lot, kind in born:
-            if bar.id in done_refs:
+
+    @api.model
+    def _staged_run_productions(self, opt):
+        """Поръчките на разкроя — и тези по прътите му."""
+        Bar = self.env.get("mrp.cutting.bar")
+        mos = opt.production_ids
+        if Bar is not None:
+            mos |= Bar.search([("optimization_id", "=", opt.id)]
+                              ).line_ids.production_id
+        return mos
+
+    def _staged_birth_remnants_at_pfp(self):
+        """PfP: ЕДИН трансфер на остатъците за всеки разкрой на партидата.
+
+        🔑 По едно движение на остатък от ЦЕЛИЯ разкрой (всички МО), в количество
+        ТОЧНО `offcut_new` на плъгина: изборът на прътите, количеството
+        (надолу до стъпката на мярката) и лотът идват от ЕДНОТО правило
+        (`opt._remnant_bars()` + `opt._remnant_lot()`). Движението носи
+        лота-източник (`staged_remnant_src_lot_id`, „6500") и лота-цел
+        (`staged_remnant_lot_id`, „4630").
+
+        ⏳ Трансферът се ражда ЧАКАЩ, без резервация: в буфера още няма нито
+        прът, нито „4630". Лотът се сменя, когато прътите кацнат
+        (`_staged_relabel_remnants`), и чак тогава трансферът резервира.
+
+        📍 Прът от СТАР остатък (посочен лот, напр. „4640" в Remnant/Offcut):
+        той не пътува към буфера — кракът на PfP го изписва направо от
+        остатъчната локация, където лежи. Новият остатък („1640") остава там,
+        тъй че място за местене няма: лотът се сменя НА МЯСТО, веднага (кракът
+        вече е резервирал своя дял нето от остатъка), и движение в трансфера
+        не се ражда.
+
+        Идемпотентно: прът с живо движение (или вече сменен лот) се прескача.
+        """
+        Move = self.env["stock.move"]
+        born = Move
+        offcut_loc = self._staged_offcut_location()
+        for opt in self._staged_remnant_runs():
+            mos = self.filtered(
+                lambda p: p.staged_cutting_optimization_id == opt).sorted("id")
+            anchor = mos[:1]
+            buffer = anchor.location_src_id
+            if not offcut_loc or not buffer:
+                opt.message_post(body=_(
+                    "The remnants of cutting run %(run)s were not planned: the "
+                    "remnant location or the component location of %(mo)s is "
+                    "missing.", run=opt.display_name, mo=anchor.display_name))
                 continue
-            pattern = bar.pattern_id
-            product = pattern.bar_product_id
-            if not src_lot:
-                skipped.append((bar, _("the source bar lot is unknown")))
-                continue
-            src = offcut_loc if kind == "offcut_source" else buffer
-            rounding = product.uom_id.rounding or 0.01
-            free = Quant._get_available_quantity(
-                product, src, lot_id=src_lot, strict=True)
-            if float_compare(free, qty, precision_rounding=rounding) < 0:
-                skipped.append((bar, _(
-                    "only %(free)s of lot %(lot)s is free in %(loc)s",
-                    free=free, lot=src_lot.name, loc=src.display_name)))
-                continue
-            new_lot = opt._remnant_lot(product, qty, self.company_id)
-            # Преетикетиране на място: лотът-източник → лотът на остатъка.
-            Quant._update_available_quantity(
-                product, src, -qty, lot_id=src_lot)
-            Quant._update_available_quantity(
-                product, src, qty, lot_id=new_lot)
-            move = Move.create({
-                "name": "%s — %s" % (pattern.name, new_lot.name),
-                "product_id": product.id,
-                "product_uom": product.uom_id.id,
-                "product_uom_qty": qty,
-                "location_id": src.id,
-                "location_dest_id": offcut_loc.id,
-                "company_id": self.company_id.id,
-                "origin": "%s / %s" % (opt.name, self.name),
-                "staged_remnant_bar_ref": bar.id,
-                "staged_remnant_lot_id": new_lot.id,
-                "procure_method": "make_to_stock",
-            })
-            by_src[src] = by_src.get(src, Move) | move
-        moves = Move
-        for src, src_moves in by_src.items():
-            self._staged_remnant_picking(src_moves, src, offcut_loc, opt)
-            moves |= src_moves
-        if skipped:
-            _logger.warning(
-                "Остатъци на %s от %s: не родени — %s", opt.display_name,
-                self.name, "; ".join("%s: %s" % (b.display_name, why)
-                                     for b, why in skipped[:10]))
-            self.message_post(body=_(
-                "Some remnants of cutting run %(run)s were not born and stay in "
-                "%(loc)s: %(list)s",
-                run=opt.display_name, loc=buffer.display_name,
-                list="; ".join("%s: %s" % (b.display_name, why)
-                               for b, why in skipped)))
-        return moves
+            bars = opt._remnant_bars()
+            live = Move.search([
+                ("staged_remnant_bar_ref", "in", [b[0].id for b in bars]),
+                ("staged_remnant_lot_id", "!=", False),
+                ("state", "!=", "cancel"),
+            ])
+            planned = set(live.mapped("staged_remnant_bar_ref"))
+            moves = Move
+            in_place = []
+            skipped = []
+            for bar, qty, src_lot, kind in bars:
+                if bar.id in planned:
+                    continue
+                product = bar.pattern_id.bar_product_id
+                if not src_lot:
+                    skipped.append((bar, _("the source bar lot is unknown")))
+                    continue
+                new_lot = opt._remnant_lot(product, qty, anchor.company_id)
+                if kind == "offcut_source":
+                    in_place.append((bar, qty, src_lot, new_lot))
+                    continue
+                moves |= Move.create({
+                    "name": "%s — %s" % (bar.pattern_id.name, new_lot.name),
+                    "product_id": product.id,
+                    "product_uom": product.uom_id.id,
+                    "product_uom_qty": qty,
+                    "location_id": buffer.id,
+                    "location_dest_id": offcut_loc.id,
+                    "company_id": anchor.company_id.id,
+                    "origin": _("Remnants %s", opt.name),
+                    "staged_remnant_bar_ref": bar.id,
+                    "staged_remnant_lot_id": new_lot.id,
+                    "staged_remnant_src_lot_id": src_lot.id,
+                    "procure_method": "make_to_stock",
+                })
+            if moves:
+                anchor._staged_remnant_picking(moves, buffer, offcut_loc, opt)
+                born |= moves
+            for bar, qty, src_lot, new_lot in in_place:
+                if self._staged_bar_relabel_net(bar.id) > 0:
+                    continue
+                anchor._staged_relabel_one(
+                    opt, bar, qty, src_lot, new_lot, offcut_loc, skipped,
+                    offcut_side=True)
+            anchor._staged_note_remnants(opt, skipped)
+            # Прътите може вече да са в буфера (пикът отменен — буферът
+            # покрива всичко): тогава лотът се сменя веднага.
+            mos._staged_relabel_remnants(opt)
+        return born
 
     def _staged_remnant_picking(self, moves, src, offcut_loc, opt):
-        """Един вътрешен трансфер за остатъците от това рязане, готов за
-        валидиране. Редът е ЗАКОВАН в буфера — остатъчната локация на живо е
-        дете на буфера и `child_of` би резервирал от самата дестинация."""
+        """ЕДИН вътрешен трансфер „Remnants <разкрой>", вързан за разкроя.
+
+        Движенията се потвърждават без резервация — резервира ги
+        `stock.move._staged_assign_remnant`, и то само след смяната на лота."""
+        self.ensure_one()
         ptype = self.picking_type_id.warehouse_id.int_type_id or \
             self.env["stock.picking.type"].search([
                 ("code", "=", "internal"),
@@ -738,7 +739,7 @@ class MrpProduction(models.Model):
             "picking_type_id": ptype.id,
             "location_id": src.id,
             "location_dest_id": offcut_loc.id,
-            "origin": "%s / %s" % (opt.name, self.name),
+            "origin": _("Remnants %s", opt.name),
             "company_id": self.company_id.id,
         }
         if "cutting_optimization_id" in self.env["stock.picking"]._fields:
@@ -746,19 +747,231 @@ class MrpProduction(models.Model):
         picking = self.env["stock.picking"].create(vals)
         moves.write({"picking_id": picking.id})
         moves._action_confirm(merge=False)
-        if moves.move_line_ids:
-            moves._do_unreserve()
-        self.env["stock.move.line"].create([{
-            "move_id": move.id,
-            "picking_id": picking.id,
-            "product_id": move.product_id.id,
-            "product_uom_id": move.product_uom.id,
-            "location_id": src.id,
-            "location_dest_id": offcut_loc.id,
-            "lot_id": move.staged_remnant_lot_id.id,
-            "quantity": move.product_uom_qty,
-        } for move in moves])
         return picking
+
+    def _staged_run_bars_pending(self, opt):
+        """Пиковете на прътите за разкроя, които още НЕ са кацнали.
+
+        🔑 Смяната на лота ЧАКА ЦЕЛИЯ PC (решение за частичния, 29.09):
+        остатъкът е сметнат върху целия разкрой, а при частично кацане не
+        се знае кои пръти са дошли. Сменен рано, лотът би взел метри, които
+        консумацията очаква, и тя би останала непокрита. С backorder —
+        чака и backorder-а; без backorder (останалото отказано) PC е
+        приключен и смяната тръгва с каквото е кацнало (липсващото се казва).
+
+        Пиковете се намират по следата (`staged_pick_move_id`, `move_orig_ids`
+        отпреди ④), по връзката на пикинга с разкроя и по backorder-ите им —
+        backorder-ът не наследява нито следата, нито `cutting_optimization_id`.
+        ⚠️ Само продуктите с остатък: стъклото и обковът (MTO, идват на монтаж)
+        не бива да задържат смяната.
+        """
+        Move = self.env["stock.move"]
+        Picking = self.env["stock.picking"]
+        products = self.env["product.product"].union(
+            *[b[0].pattern_id.bar_product_id for b in opt._remnant_bars()])
+        if not products:
+            return Move
+        raw = self._staged_run_productions(opt).move_raw_ids.filtered(
+            lambda m: m.product_id in products)
+        picks = (raw.staged_pick_move_id | raw.move_orig_ids).filtered(
+            lambda m: m.product_id in products)
+        pickings = picks.picking_id
+        if "cutting_optimization_id" in Picking._fields:
+            pickings |= Picking.search([("cutting_optimization_id", "=", opt.id)])
+        todo = pickings
+        while todo:
+            todo = todo.backorder_ids - pickings
+            pickings |= todo
+        return (picks | pickings.move_ids).filtered(
+            lambda m: m.product_id in products
+            and m.state not in ("done", "cancel")
+            and not m.staged_remnant_lot_id)
+
+    def _staged_relabel_remnants(self, opt):
+        """Прътите кацнаха ⇒ лотът на всеки остатък се сменя В БУФЕРА.
+
+        За всяко чакащо движение на трансфера: `stock.lot._relabel` 6500 →
+        4630 за количеството на остатъка, там, където лежи свободният лот на
+        пръта (буферът или негово дете — НЕ остатъчната локация, макар да е
+        дете на буфера). После `_action_assign` резервира ТОЧНО 4630 ⇒ „Готов".
+
+        ⛔ Не стига ли свободният лот на пръта — бележка в чатъра на разкроя и
+        в лога; другите остатъци продължават. ⚠️ Празни сметки на „Lot
+        Relabel" при автоматична оценка НЕ се преглъщат — грешката на
+        `_relabel` спира валидирането: конфигурацията липсва, не материалът.
+        """
+        Move = self.env["stock.move"]
+        if self._staged_run_bars_pending(opt):
+            return Move
+        Bar = self.env["mrp.cutting.bar"]
+        bar_ids = [b[0].id for b in opt._remnant_bars()]
+        waiting = Move.search([
+            ("staged_remnant_bar_ref", "in", bar_ids),
+            ("staged_remnant_lot_id", "!=", False),
+            ("staged_remnant_src_lot_id", "!=", False),
+            ("state", "not in", ("done", "cancel")),
+        ], order="id")
+        if not waiting:
+            return Move
+        anchor = self.sorted("id")[:1] or self._staged_run_productions(
+            opt).sorted("id")[:1]
+        skipped = []
+        relabelled = Move
+        for move in waiting:
+            if self._staged_bar_relabel_net(move.staged_remnant_bar_ref) > 0:
+                continue
+            bar = Bar.browse(move.staged_remnant_bar_ref).exists()
+            relabelled |= anchor._staged_relabel_one(
+                opt, bar, move.product_uom_qty, move.staged_remnant_src_lot_id,
+                move.staged_remnant_lot_id, move.location_id, skipped)
+        waiting._action_assign()
+        anchor._staged_note_remnants(opt, skipped)
+        return relabelled
+
+    def _staged_relabel_one(self, opt, bar, qty, src_lot, dst_lot, root,
+                            skipped, offcut_side=False, undo=False):
+        """Една смяна на лота за един прът, със следа към него.
+
+        Мястото е първата локация под `root` (самата `root` първо), където
+        свободният `src_lot` стига за цялото количество. Без остатъчната
+        локация, освен ако `offcut_side` — там лежи старият остатък."""
+        Move = self.env["stock.move"]
+        product = src_lot.product_id
+        location, free = self._staged_relabel_location(
+            product, src_lot, qty, root, offcut_side)
+        if not location:
+            skipped.append((bar, _(
+                "only %(free)s of lot %(lot)s is free in %(loc)s, "
+                "%(qty)s needed",
+                free=free, lot=src_lot.name, loc=root.display_name, qty=qty)))
+            return Move
+        reference = "%s · %s: %s → %s" % (
+            opt.name, bar.pattern_id.name if bar else "?", src_lot.name,
+            dst_lot.name)
+        pair = self.env["stock.lot"]._relabel(
+            product, qty, location, src_lot, dst_lot, reference)
+        pair.write({"staged_relabel_bar_ref": bar.id if bar else 0,
+                    "staged_relabel_undo": undo})
+        return pair
+
+    @api.model
+    def _staged_relabel_location(self, product, lot, qty, root, offcut_side):
+        """(локация, свободно общо) — къде `lot` стига свободен за `qty`."""
+        Quant = self.env["stock.quant"]
+        off = self._staged_offcut_location()
+        quants = Quant.search([
+            ("product_id", "=", product.id),
+            ("lot_id", "=", lot.id),
+            ("location_id", "child_of", root.id),
+            ("location_id.usage", "=", "internal"),
+            ("quantity", ">", 0),
+        ], order="in_date, id")
+        if off and not offcut_side:
+            quants = quants.filtered(
+                lambda q: not (q.location_id.parent_path or "").startswith(
+                    off.parent_path or "/-/"))
+        locations = quants.location_id.sorted(lambda l: l != root)
+        rounding = product.uom_id.rounding
+        total = 0.0
+        for location in locations:
+            free = Quant._get_available_quantity(
+                product, location, lot_id=lot, strict=True)
+            total += free
+            if float_compare(free, qty, precision_rounding=rounding) >= 0:
+                return location, free
+        return self.env["stock.location"], total
+
+    @api.model
+    def _staged_bar_relabel_net(self, bar_id):
+        """Колко пъти е сменен лотът на остатъка на този прът, нето от
+        обратните смени (Undo). >0 ⇒ остатъкът носи своя лот."""
+        outs = self.env["stock.move"].search([
+            ("staged_relabel_bar_ref", "=", bar_id),
+            ("lot_relabel_role", "=", "out"),
+            ("state", "=", "done"),
+        ])
+        back = outs.filtered("staged_relabel_undo")
+        return len(outs - back) - len(back)
+
+    def _staged_note_remnants(self, opt, skipped):
+        """Отказът НЕ спира нищо, но и НЕ мълчи — чатърът на разкроя и логът."""
+        if not skipped:
+            return
+        _logger.warning(
+            "Остатъци на %s: лотът не е сменен — %s", opt.display_name,
+            "; ".join("%s: %s" % (b.display_name if b else "?", why)
+                      for b, why in skipped[:10]))
+        opt.message_post(body=_(
+            "Some remnants of cutting run %(run)s did not get their own lot "
+            "and their transfer stays waiting: %(list)s",
+            run=opt.display_name,
+            list="; ".join("%s: %s" % (b.display_name if b else "?", why)
+                           for b, why in skipped)))
+
+    def _staged_undo_remnants(self):
+        """Undo Preparation: трансферът на остатъците се отказва, а сменените
+        лотове се връщат обратно (4630 → 6500) — пак през `_relabel`, със
+        следа и равна стойност.
+
+        Засегнати са прътите с парче на отменяните поръчки. ⛔ Валидиран
+        трансфер на остатък значи, че прътите вече са нарязани (Любо, 23.08)
+        — тогава отказ: подготовката не може да се върне.
+        """
+        Move = self.env["stock.move"]
+        Bar = self.env.get("mrp.cutting.bar")
+        if Bar is None:
+            return Move
+        undone = Move
+        for opt in self._staged_remnant_runs():
+            mos = self.filtered(lambda p: p.staged_cutting_optimization_id == opt)
+            bars = Bar.search([("optimization_id", "=", opt.id)]).filtered(
+                lambda b: b.line_ids.production_id & mos)
+            if not bars:
+                continue
+            moves = Move.search([
+                ("staged_remnant_bar_ref", "in", bars.ids),
+                ("staged_remnant_lot_id", "!=", False),
+                ("state", "!=", "cancel"),
+            ])
+            done = moves.filtered(lambda m: m.state == "done")
+            if done:
+                raise UserError(_(
+                    "Cannot undo the preparation of %(mos)s: the remnant "
+                    "transfer %(picks)s is already validated, so the bars are "
+                    "already cut.",
+                    mos=", ".join(mos.mapped("name")),
+                    picks=", ".join(done.picking_id.mapped("name"))))
+            moves._action_cancel()
+            skipped = []
+            reversed_pairs = Move
+            off = self._staged_offcut_location()
+            for bar in bars:
+                if self._staged_bar_relabel_net(bar.id) <= 0:
+                    continue
+                fwd = Move.search([
+                    ("staged_relabel_bar_ref", "=", bar.id),
+                    ("lot_relabel_role", "=", "out"),
+                    ("staged_relabel_undo", "=", False),
+                    ("state", "=", "done"),
+                ], order="id desc", limit=1)
+                back_in = fwd.lot_relabel_pair_id
+                where = back_in.location_dest_id
+                # Обратно там, където е станала смяната — и само там: в буфера
+                # не се бърка „4630" от остатъчната локация (чужди, валидирани).
+                in_off = bool(off) and (where.parent_path or "").startswith(
+                    off.parent_path or "/-/")
+                reversed_pairs |= mos[:1]._staged_relabel_one(
+                    opt, bar, back_in.product_uom_qty,
+                    fwd.lot_relabel_dst_lot_id, fwd.lot_relabel_src_lot_id,
+                    where, skipped, offcut_side=in_off, undo=True)
+            mos[:1]._staged_note_remnants(opt, skipped)
+            opt.message_post(body=_(
+                "Preparation undone for %(mos)s: %(moves)s remnant move(s) "
+                "cancelled, %(relabels)s lot relabel(s) reversed.",
+                mos=", ".join(mos.mapped("name")), moves=len(moves),
+                relabels=len(reversed_pairs) // 2))
+            undone |= reversed_pairs
+        return undone
 
     def _cal_price(self, consumed_moves):
         """Whole-bar B credit-back (Любо 157140): offcut by-product move-овете
@@ -1507,11 +1720,11 @@ class MrpProduction(models.Model):
                 pc_pickings.filtered(
                     lambda p: not p.cutting_optimization_id
                 ).write({"cutting_optimization_id": opts.id})
-        # ⛔ Остатъкът НЕ се ражда тук (№93, 28.09). При PfP прътът още лежи на
-        # рафта и не е рязан: подателят на плъгина тръгваше от рафта (STOR/00262
-        # WH/Stock/Рафт → Remnant/Offcut, лот „6500") — хартиено излизане на
-        # метри, които PfP вече е пренесъл в буфера. Раждането е при рязането —
-        # виж `_staged_birth_remnants_at_cut` в `button_mark_done`.
+        # №93 (29.09): остатъците се раждат ТУК — един трансфер на разкроя,
+        # Pre-Production → Remnant/Offcut, чакащ. ⛔ НЕ подателят на плъгина: той
+        # тръгваше от рафта (STOR/00262 WH/Stock/Рафт → Remnant/Offcut, лот
+        # „6500") — хартиено излизане на метри, които PfP вече пренася в буфера.
+        self._staged_birth_remnants_at_pfp()
         self._staged_trolleys_and_export()
         return True
 
@@ -1687,6 +1900,11 @@ class MrpProduction(models.Model):
             raise UserError(_(
                 "Unknown target state '%(state)s' for unprepare; expected "
                 "'draft' or 'confirmed'.", state=target_state))
+        # №93: трансферът на остатъците се отказва, сменените лотове се връщат
+        # (4630 → 6500) — ПРЕДИ движенията на поръчките да се разглобят.
+        self.filtered(
+            lambda p: p.staged_preparation_enabled
+            and p.state not in ("done", "cancel"))._staged_undo_remnants()
         for production in self:
             if not production.staged_preparation_enabled:
                 raise UserError(_(
