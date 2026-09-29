@@ -131,3 +131,31 @@ msgstr "само %(free)s от лот %(lot)s са свободни в %(loc)s, 
 #: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 msgid "the source bar lot is unknown"
 msgstr "лотът на пръта-източник не е известен"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__staged_offcut_src_lot_id
+msgid "Staged Old Remnant Lot"
+msgstr "Лот на стар остатък (подготовка)"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_offcut_src_lot_id
+msgid ""
+"Existing remnant lot this preparation pick carries from the remnant location "
+"into the buffer, like a full bar."
+msgstr ""
+"Съществуващият лот на остатък, който този пик на подготовката пренася от "
+"локацията за остатъци в буфера — като цял прът."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__staged_offcut_production_id
+msgid "Staged Old Remnant Order"
+msgstr "Поръчка на стария остатък (подготовка)"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_offcut_production_id
+msgid ""
+"Manufacturing order whose preparation carries this old remnant into the "
+"buffer."
+msgstr ""
+"Производствената поръчка, чиято подготовка пренася този стар остатък в "
+"буфера."

@@ -4,3 +4,4 @@ from . import test_wandering_route_is_silenced
 from . import test_buffer_born_gets_a_pick
 from . import test_remnant_is_born_at_pfp
 from . import test_batch_pick_by_trace
+from . import test_old_remnant_is_a_bar

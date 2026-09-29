@@ -36,6 +36,18 @@ class StockMove(models.Model):
         "stock.lot", string="Staged Remnant Source Lot", copy=False,
         help="Lot of the bar the remnant is cut from. The remnant transfer "
              "waits until this lot has been relabelled to the remnant lot.")
+    # №93 (18.0.2.24.0): движение на PC, което носи СТАР остатък („4640")
+    # от Remnant / Offcut в буфера — като цял прът (Любо, ТГ 167875).
+    # Резервира само този лот и само в остатъчната локация.
+    staged_offcut_src_lot_id = fields.Many2one(
+        "stock.lot", string="Staged Old Remnant Lot", copy=False, index=True,
+        help="Existing remnant lot this preparation pick carries from the "
+             "remnant location into the buffer, like a full bar.")
+    staged_offcut_production_id = fields.Many2one(
+        "mrp.production", string="Staged Old Remnant Order", copy=False,
+        index=True, ondelete="set null",
+        help="Manufacturing order whose preparation carries this old "
+             "remnant into the buffer.")
     # Следата на смяната на лота (движенията на `stock.lot._relabel`) към
     # пръта, чийто остатък е — и дали е обратна смяна (Undo Preparation).
     staged_relabel_bar_ref = fields.Integer(
@@ -83,11 +95,32 @@ class StockMove(models.Model):
         # №93: ПЪРВО смяната на лота на остатъците — метрите им се запазват
         # под своя лот, преди консумациите да гребнат свободното.
         self._staged_relabel_after_landing(res)
-        chakashti = res.mapped("staged_consumption_ids").filtered(
+        chakashti = (res.mapped("staged_consumption_ids")
+                     | res._staged_offcut_consumers()).filtered(
             lambda m: m.state not in ("done", "cancel"))
         if chakashti:
             chakashti._action_assign()
         return res
+
+    def _staged_offcut_consumers(self):
+        """Консумациите, които чакат кацналите стари остатъци (№93).
+
+        Старият остатък е ЕДНО движение за pattern-а, а го режат парчета на
+        няколко поръчки от разкроя — следата `staged_pick_move_id` сочи само
+        една. Затова: всички живи консумации на разкроя за същия продукт от
+        буфера, в който е кацнал."""
+        Production = self.env["mrp.production"]
+        out = self.env["stock.move"]
+        for pick in self.filtered(
+                lambda m: m.staged_offcut_src_lot_id and m.state == "done"):
+            mo = pick.staged_offcut_production_id
+            opt = mo.staged_cutting_optimization_id
+            mos = (Production._staged_run_productions(opt) if opt else mo)
+            out |= mos.move_raw_ids.filtered(
+                lambda m: m.product_id == pick.product_id
+                and m.location_id == pick.location_dest_id
+                and m.state not in ("done", "cancel") and not m.picked)
+        return out
 
     def _staged_relabel_after_landing(self, moves):
         """Прътите кацнаха в буфера ⇒ сменя се лотът на остатъците на разкроя.
@@ -111,7 +144,8 @@ class StockMove(models.Model):
             parents = roots.backorder_id - roots
         family = roots.move_ids
         mos = (family.staged_consumption_ids
-               | family.move_dest_ids).raw_material_production_id
+               | family.move_dest_ids).raw_material_production_id \
+            | family.staged_offcut_production_id
         opts = mos.staged_cutting_optimization_id
         if "cutting_optimization_id" in self.env["stock.picking"]._fields:
             opts |= roots.cutting_optimization_id
@@ -130,12 +164,96 @@ class StockMove(models.Model):
         remnant = self.filtered(
             lambda m: m.staged_remnant_lot_id
             and m.state in ("confirmed", "waiting", "partially_available"))
-        rest = self - remnant
+        # №93: PC на подготовката — заковано към лота и подлокацията.
+        pc = (self - remnant).filtered(lambda m: m._staged_is_pc())
+        rest = self - remnant - pc
         res = super(StockMove, rest)._action_assign(force_qty=force_qty) \
             if rest else None
+        if pc:
+            pc._staged_assign_pc()
         if remnant:
             remnant._staged_assign_remnant()
         return res
+
+    def _staged_is_pc(self):
+        """Движение на PC на подготовката (Stock → Pre-Production)?
+
+        Пикът за цели пръти (сочи го консумация — `staged_consumption_ids`)
+        или старият остатък (`staged_offcut_src_lot_id`). Само свободно
+        попълване: без верига (`move_orig_ids`) — заварените вързани пикове
+        отпреди ④ остават на ядрото."""
+        self.ensure_one()
+        return bool(
+            (self.staged_consumption_ids or self.staged_offcut_src_lot_id)
+            and not self.raw_material_production_id
+            and not self.move_orig_ids
+            and self.state in ("confirmed", "waiting", "partially_available")
+            and self.location_dest_id.usage == "internal")
+
+    def _staged_assign_pc(self):
+        """Резервацията на PC: правилният лот от правилната подлокация.
+
+        🔴 ЗАЩО НЕ ЯДРОТО (ТГ 167877): PC тръгва от WH/Stock, а на живо
+        буферът (WH/Stock/Pre-Production) е ПОД WH/Stock — ядрото търси
+        `child_of` и може да „вземе" кванти, които вече са в самата
+        дестинация; а `forced_lot_ids` не ограничава резервацията (пълни лот
+        само на празните редове СЛЕД ядрото).
+
+        ⇒ Тук, по квантова локация и `strict=True`:
+          • никога от поддървото на дестинацията (буфера);
+          • старият остатък (`staged_offcut_src_lot_id`) — САМО този лот и
+            САМО в Remnant / Offcut;
+          • цял прът — само форсираните лотове (ако ги има) и НЕ от
+            Remnant / Offcut (там лежат остатъци с лот на прът след
+            компенсацията, 24.09).
+        """
+        Quant = self.env["stock.quant"]
+        off = self.env["mrp.production"]._staged_offcut_location()
+
+        def under(location, root):
+            return bool(root) and (location.parent_path or "").startswith(
+                root.parent_path or "/-/")
+
+        s_lot = "forced_lot_ids" in self._fields
+        for move in self:
+            rounding = move.product_id.uom_id.rounding
+            need = move.product_qty - sum(
+                move.move_line_ids.mapped("quantity_product_uom"))
+            if float_compare(need, 0.0, precision_rounding=rounding) <= 0:
+                continue
+            lots = move.staged_offcut_src_lot_id or (
+                move.forced_lot_ids if s_lot else self.env["stock.lot"])
+            domain = [
+                ("product_id", "=", move.product_id.id),
+                ("location_id", "child_of", move.location_id.id),
+                ("location_id.usage", "=", "internal"),
+                ("quantity", ">", 0),
+            ]
+            if lots:
+                domain.append(("lot_id", "in", lots.ids))
+            quants = Quant.search(domain, order="in_date, id").filtered(
+                lambda q: not under(q.location_id, move.location_dest_id)
+                and (not q.owner_id
+                     or q.owner_id == move.restrict_partner_id))
+            if move.staged_offcut_src_lot_id:
+                quants = quants.filtered(lambda q: under(q.location_id, off))
+            elif off:
+                quants = quants.filtered(
+                    lambda q: not under(q.location_id, off))
+            seen = set()
+            for quant in quants:
+                if float_compare(need, 0.0, precision_rounding=rounding) <= 0:
+                    break
+                key = (quant.location_id, quant.lot_id, quant.package_id,
+                       quant.owner_id)
+                if key in seen:
+                    continue
+                seen.add(key)
+                need -= move._update_reserved_quantity(
+                    need, quant.location_id, lot_id=quant.lot_id,
+                    package_id=quant.package_id, owner_id=quant.owner_id,
+                    strict=True) or 0.0
+        self._recompute_state()
 
     def _staged_assign_remnant(self):
         """Резервира ТОЧНО лота на остатъка под локацията на движението.

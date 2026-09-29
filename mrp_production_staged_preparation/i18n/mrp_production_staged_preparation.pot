@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0-20260908\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-29 10:32+0000\n"
-"PO-Revision-Date: 2026-09-29 10:32+0000\n"
+"POT-Creation-Date: 2026-09-29 12:41+0000\n"
+"PO-Revision-Date: 2026-09-29 12:41+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -158,6 +158,13 @@ msgid "Enable Staged Preparation"
 msgstr ""
 
 #. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_offcut_src_lot_id
+msgid ""
+"Existing remnant lot this preparation pick carries from the remnant location"
+" into the buffer, like a full bar."
+msgstr ""
+
+#. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__id
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__id
 msgid "ID"
@@ -235,6 +242,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__production_ids
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__production_ids
 msgid "Manufacturing Orders"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_offcut_production_id
+msgid ""
+"Manufacturing order whose preparation carries this old remnant into the "
+"buffer."
 msgstr ""
 
 #. module: mrp_production_staged_preparation
@@ -371,6 +385,16 @@ msgstr ""
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__is_staged_offcut
 msgid "Staged Offcut By-product"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__staged_offcut_src_lot_id
+msgid "Staged Old Remnant Lot"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__staged_offcut_production_id
+msgid "Staged Old Remnant Order"
 msgstr ""
 
 #. module: mrp_production_staged_preparation
@@ -586,13 +610,6 @@ msgstr ""
 #. odoo-python
 #: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 msgid "the warehouse is set to one-step manufacturing"
-msgstr ""
-
-#. module: mrp_production_staged_preparation
-#. odoo-python
-#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
-msgid ""
-"the whole demand is covered by offcuts, so there is no fresh bar to move"
 msgstr ""
 
 #. module: mrp_production_staged_preparation

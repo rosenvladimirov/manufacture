@@ -337,7 +337,8 @@ class MrpProduction(models.Model):
         """Whole-bar консумация (costing A, Любо 157140) per бар-продукт, UoM=м.
 
         Връща {product: (whole_bar_meters, [source_lots])} за СВЕЖИ цели пръти на
-        self (source_offcut_lot_id празно; offcut-ите → отделен leg). Анкер =
+        self (source_offcut_lot_id празно; старите остатъци → `_staged_offcut_plan`,
+        пътуват с PC). Анкер =
         staged_cutting_optimization_id. meters = Σ(usage_count × bar_capacity_mm)
         /1000 за pattern-и, чийто owner (_staged_pattern_owner) е MO∈self.
         Инвариант: Σ_batch == total_bars_used × capacity/1000 (валидирано 572/88).
@@ -423,54 +424,78 @@ class MrpProduction(models.Model):
             by_lot[lot] = by_lot.get(lot, 0.0) + meters
         return plan
 
-    def _staged_offcut_consumptions(self, offcut_plan, ref_by_product):
-        """Стъпка 6: Offcut→Production консумационни леги за pattern-и с
-        source_offcut_lot_id SET. Отделен, ADDITIVE leg — НЕ през Pre-Production
-        буфера, а ДИРЕКТНО от 'Remnant/Offcut' локацията (adapter._offcut_
-        location), forced към offcut лота, веднага резервиран (лотът физически
-        седи там от credit-back на предишно MO). offcut_plan={product:{lot:m}};
-        ref_by_product={product:(uom_id, wo_id, op_id)} снет ПРЕДИ мутациите.
+    def _staged_offcut_picks(self, offcut_plan, stock_loc, pbm, pg, pbm_type,
+                             attach_to=None):
+        """Старият остатък пътува с PC, като цял прът (№93, Любо ТГ 167875).
+
+        ⚓ „За стария остатък не би трябвало да има разлика от цял прът":
+        прът, рязан от стар остатък („4640" в Remnant / Offcut), влиза в
+        буфера със СЪЩИЯ PC като целите пръти, а МО-то го изписва оттам —
+        4,64 − 1,64 = 3,00; новият остатък („1640") се ражда в буфера и се
+        връща с трансфера „Remnants <разкрой>".
+
+        По едно движение на (продукт, стар остатък): WH/Stock → Pre-Production,
+        форсиран лот = старият остатък, количество = метрите на pattern-ите
+        му (`_staged_offcut_plan`, собственикът на pattern-а го носи — сборът
+        по партидата е точно разкроят). Редът се резервира САМО от
+        Remnant / Offcut и САМО с този лот (`stock.move._staged_assign_pc`).
+
+        📍 Движението тръгва от WH/Stock (като пикинга), когато остатъчната
+        локация е под него (ADR-0051); иначе — от самата остатъчна локация.
+
+        `attach_to` — движение на PC на същото МО: старият остатък влиза в
+        НЕГОВИЯ пикинг (един PC, два източника). Без такова — пикинг се ражда
+        по правилата (`_assign_picking`), а сливането на партидата го събира.
+
+        ⛔ Заменя крака Offcut → Production (`_staged_offcut_consumptions`,
+        до 18.0.2.23.0): той изписваше стария остатък направо от остатъчната
+        локация, покрай буфера. Заварените крака остават и се четат от
+        плъгина, както досега; нови не се раждат.
         """
         self.ensure_one()
         Move = self.env["stock.move"]
         if not offcut_plan or "forced_lot_ids" not in Move._fields:
             return Move
-        adapter = self.env.get("cutting.source.adapter.mrp_production")
-        if adapter is None:
+        off = self._staged_offcut_location()
+        if not off:
             return Move
-        offcut_loc = adapter._offcut_location()
-        prod_loc = self.production_location_id
-        pg = self.procurement_group_id
-        legs = Move
+        src = stock_loc if (off.parent_path or "").startswith(
+            stock_loc.parent_path or "/-/") else off
+        picks = Move
         for product, by_lot in offcut_plan.items():
-            uom_id, wo_id, op_id = ref_by_product.get(
-                product, (product.uom_id.id, False, False))
             for lot, meters in by_lot.items():
                 if meters <= 0.0 or not lot:
                     continue
-                leg = Move.create({
-                    "name": self.name,
+                picks |= Move.create({
+                    "name": "%s — %s" % (self.name, lot.name),
                     "product_id": product.id,
-                    "product_uom": uom_id,
+                    "product_uom": product.uom_id.id,
                     "product_uom_qty": meters,
-                    "location_id": offcut_loc.id,
-                    "location_dest_id": prod_loc.id,
+                    "location_id": src.id,
+                    "location_dest_id": pbm.id,
                     "procure_method": "make_to_stock",
-                    "raw_material_production_id": self.id,
                     "group_id": pg.id if pg else False,
-                    "picking_type_id": self.picking_type_id.id,
-                    "workorder_id": wo_id,
-                    "operation_id": op_id,
+                    "picking_type_id": (pbm_type.id if pbm_type
+                                        else self.picking_type_id.id),
                     "company_id": self.company_id.id,
+                    "origin": self.name,
                     "forced_lot_ids": [(6, 0, lot.ids)],
+                    "staged_offcut_src_lot_id": lot.id,
+                    "staged_offcut_production_id": self.id,
                     "state": "draft",
                 })
-                leg.manual_consumption = False
-                legs |= leg
-        if legs:
-            legs._action_confirm(merge=False)
-            legs._action_assign()   # резервира от Remnant/Offcut локацията
-        return legs
+        if not picks:
+            return picks
+        # Като пиковете на целите пръти: потвърждение без снабдяване, после
+        # пикингът — чуждият (на целите пръти) или по правилата.
+        picks.write({"state": "confirmed"})
+        picking = attach_to.picking_id if attach_to else False
+        if picking:
+            picks.write({"picking_id": picking.id})
+        else:
+            picks._assign_picking()
+        picks._action_assign()
+        return picks
 
     def _staged_create_offcut_byproducts(self):
         """Стъпка 7 (Whole-bar B credit-back): offcut остатъкът → by-product
@@ -586,6 +611,10 @@ class MrpProduction(models.Model):
     #      трансферът резервира ТОЧНО 4630 и става „Готов".
     #   ③ „Produce" изписва своя дял − остатъка (плъгинът) и НЕ ражда нищо.
     #   ④ трансфера валидира човек, когато парчето е на рафта.
+    #   ⑤ прът от СТАР остатък — ТОЧНО като цял прът (Любо, ТГ 167875,
+    #      18.0.2.24.0): PC го носи Remnant/Offcut → Pre-Production („4640"),
+    #      в буфера 4640 → 1640, „1640" се връща със същия трансфер, МО-то
+    #      изписва 4,64 − 1,64 = 3,00 от буфера. Без смяна на място и без крак.
     #
     # 🔴 ЗАЩО НЕ ПРИ „PRODUCE" (18.0.2.21–22): раждането там беше по един
     # трансфер на МО и смяната на лота ставаше направо в квантите — без
@@ -652,12 +681,11 @@ class MrpProduction(models.Model):
         прът, нито „4630". Лотът се сменя, когато прътите кацнат
         (`_staged_relabel_remnants`), и чак тогава трансферът резервира.
 
-        📍 Прът от СТАР остатък (посочен лот, напр. „4640" в Remnant/Offcut):
-        той не пътува към буфера — кракът на PfP го изписва направо от
-        остатъчната локация, където лежи. Новият остатък („1640") остава там,
-        тъй че място за местене няма: лотът се сменя НА МЯСТО, веднага (кракът
-        вече е резервирал своя дял нето от остатъка), и движение в трансфера
-        не се ражда.
+        📍 Прът от СТАР остатък („4640"): като цял прът (Любо, ТГ 167875) —
+        PC го носи от Remnant / Offcut в буфера, там лотът на новия остатък
+        се сменя 4640 → 1640 и „1640" се връща със СЪЩИЯ трансфер.
+        Смяната на място в Remnant / Offcut (до 18.0.2.23.0) отпада; прът,
+        чийто лот вече е сменен така (заварени поръчки), се прескача.
 
         Идемпотентно: прът с живо движение (или вече сменен лот) се прескача.
         """
@@ -683,19 +711,19 @@ class MrpProduction(models.Model):
             ])
             planned = set(live.mapped("staged_remnant_bar_ref"))
             moves = Move
-            in_place = []
             skipped = []
-            for bar, qty, src_lot, kind in bars:
+            for bar, qty, src_lot, _kind in bars:
                 if bar.id in planned:
+                    continue
+                # Заварено (до 18.0.2.23.0): стар остатък, сменен на място ⇒
+                # остатъкът му вече носи своя лот и лежи в Remnant / Offcut.
+                if self._staged_bar_relabel_net(bar.id) > 0:
                     continue
                 product = bar.pattern_id.bar_product_id
                 if not src_lot:
                     skipped.append((bar, _("the source bar lot is unknown")))
                     continue
                 new_lot = opt._remnant_lot(product, qty, anchor.company_id)
-                if kind == "offcut_source":
-                    in_place.append((bar, qty, src_lot, new_lot))
-                    continue
                 moves |= Move.create({
                     "name": "%s — %s" % (bar.pattern_id.name, new_lot.name),
                     "product_id": product.id,
@@ -713,12 +741,6 @@ class MrpProduction(models.Model):
             if moves:
                 anchor._staged_remnant_picking(moves, buffer, offcut_loc, opt)
                 born |= moves
-            for bar, qty, src_lot, new_lot in in_place:
-                if self._staged_bar_relabel_net(bar.id) > 0:
-                    continue
-                anchor._staged_relabel_one(
-                    opt, bar, qty, src_lot, new_lot, offcut_loc, skipped,
-                    offcut_side=True)
             anchor._staged_note_remnants(opt, skipped)
             # Прътите може вече да са в буфера (пикът отменен — буферът
             # покрива всичко): тогава лотът се сменя веднага.
@@ -771,10 +793,13 @@ class MrpProduction(models.Model):
             *[b[0].pattern_id.bar_product_id for b in opt._remnant_bars()])
         if not products:
             return Move
-        raw = self._staged_run_productions(opt).move_raw_ids.filtered(
-            lambda m: m.product_id in products)
+        run = self._staged_run_productions(opt)
+        raw = run.move_raw_ids.filtered(lambda m: m.product_id in products)
         picks = (raw.staged_pick_move_id | raw.move_orig_ids).filtered(
             lambda m: m.product_id in products)
+        # №93: и старите остатъци в PC — лотът на новия остатък („1640") се
+        # сменя, щом кацне и стария („4640").
+        picks |= Move.search([("staged_offcut_production_id", "in", run.ids)])
         pickings = picks.picking_id
         if "cutting_optimization_id" in Picking._fields:
             pickings |= Picking.search([("cutting_optimization_id", "=", opt.id)])
@@ -834,7 +859,8 @@ class MrpProduction(models.Model):
 
         Мястото е първата локация под `root` (самата `root` първо), където
         свободният `src_lot` стига за цялото количество. Без остатъчната
-        локация, освен ако `offcut_side` — там лежи старият остатък."""
+        локация, освен ако `offcut_side` — само за обратната смяна на заварен
+        стар остатък, сменен на място до 18.0.2.23.0 (Undo)."""
         Move = self.env["stock.move"]
         product = src_lot.product_id
         location, free = self._staged_relabel_location(
@@ -1267,8 +1293,11 @@ class MrpProduction(models.Model):
             pick = N.staged_pick_move_id.exists()
             if pick and pick in zhivi:
                 continue
+            # №93: движението на стар остатък не е пик за цели пръти — то
+            # носи само своя лот (консумация без свои пръти вече го сочи).
             cand = zhivi.filtered(
                 lambda m: m.product_id == N.product_id
+                and not m.staged_offcut_src_lot_id
                 and (not s_lot or not N.forced_lot_ids
                      or m.forced_lot_ids & N.forced_lot_ids))[:1]
             if cand:
@@ -1369,38 +1398,22 @@ class MrpProduction(models.Model):
             # планът се четат ВЕДНАГА (offcut-ите координират override-а).
             _plan = production._staged_whole_bar_plan()
             _offcut_plan = production._staged_offcut_plan()
-            # Ref (uom/workorder/operation) per продукт ПРЕДИ мутациите —
-            # offcut leg-ът го ползва (fully-offcut кандидатите се cancel-ват).
-            _ref_by_product = {}
-            for _m in candidates:
-                _ref_by_product.setdefault(_m.product_id, (
-                    _m.product_uom.id, _m.workorder_id.id, _m.operation_id.id))
-            # Fully-offcut продукти (в offcut-плана, но НЕ в свежия): целият
-            # demand идва от offcut лотове → свежият Stock→Virtual-Production
-            # кандидат е ФИКТИВЕН → cancel, за да не роди фантомен Stock→Pre-Prod
-            # пик за несъществуващ свеж буфер. Offcut leg-ът покрива 100%.
+            # Изцяло от стари остатъци (в offcut-плана, но НЕ в свежия): цял
+            # прът от склада не трябва. №93 (Любо, ТГ 167875): консумацията
+            # (буфер → производство) СЕ РАЖДА, както за всеки прът — старият
+            # остатък пристига в буфера с PC. Пикът за цели пръти (M) се
+            # отказва по-долу, щом консумацията е родена. Дотук кандидатът се
+            # отказваше изцяло и остатъкът се изписваше с крак покрай буфера.
             _fully_offcut = set(_offcut_plan) - set(_plan)
-            _bez_svezh = False
-            if _fully_offcut:
-                _drop = candidates.filtered(
-                    lambda m: m.product_id in _fully_offcut)
-                _drop._action_cancel()
-                candidates -= _drop
-                _bez_svezh = bool(_drop) and not candidates
             # ⛔ Празен списък ⇒ пикинг НЕ се ражда — и дотук това ставаше
             # мълчаливо. Мерено на 10.09 (Клаудио): 17 поръчки без подготвителен
             # трансфер, 16 от тях ВЕЧЕ ПРОИЗВЕДЕНИ. Никъде нито ред за това.
             # Тук бележката казва КОЙ от изходите е сработил, за да не се гадае
             # после по данни, които вече не помнят състоянието отпреди.
-            if not candidates and not v_bufera:
-                if _bez_svezh:
-                    prichina = _(
-                        "the whole demand is covered by offcuts, so there is "
-                        "no fresh bar to move")
-                else:
-                    prichina = _(
-                        "no component move starts from stock — they are either "
-                        "already sourced elsewhere, or excluded as glass")
+            if not candidates and not v_bufera and not _offcut_plan:
+                prichina = _(
+                    "no component move starts from stock — they are either "
+                    "already sourced elsewhere, or excluded as glass")
                 production._staged_note_no_transfer(prichina)
             # За всеки бар-продукт делим whole-bar метрите пропорционално на
             # кандидат-move-овете; последният поема rounding остатъка. Продукт
@@ -1434,6 +1447,9 @@ class MrpProduction(models.Model):
                     if _prod not in _plan:
                         continue
                     _target = _plan[_prod][0]           # цели свежи пръти, метри
+                    # №93: старите остатъци на МО-то — също цели „пръти" от
+                    # буфера (пътуват с PC), не отделен крак.
+                    _target += sum(_offcut_plan.get(_prod, {}).values())
                     if _target <= 0.0:
                         continue
                     _moves = _moves.sorted("id")
@@ -1497,7 +1513,7 @@ class MrpProduction(models.Model):
                 # (manual_consumption=False). Иначе workorder-attached tracked
                 # move става manual_consumption=True и Produce All иска ръчно
                 # регистриране на лота → „supply Lot/Serial" грешка (Любо го хвана).
-                if N.forced_lot_ids:
+                if N.forced_lot_ids or N.product_id in _offcut_plan:
                     N.manual_consumption = False
                 # ① съществуващият move → ПЪРВИ ПИКИНГ: Stock → Pre-Production.
                 #    Десният край се отлепя от Virtual-Prod; Stock-краят (и
@@ -1534,8 +1550,10 @@ class MrpProduction(models.Model):
                 for M, N in pairs:
                     rounding = N.product_uom.rounding
                     shortage = N.product_uom_qty - N.quantity
-                    if float_compare(shortage, 0.0,
-                                     precision_rounding=rounding) <= 0:
+                    # №93: изцяло от стари остатъци ⇒ цял прът от склада не
+                    # трябва; недостигът идва със стария остатък в PC.
+                    if N.product_id in _fully_offcut or float_compare(
+                            shortage, 0.0, precision_rounding=rounding) <= 0:
                         # Буферът покрива всичко → пик НЕ е нужен (идемпотентно:
                         # повторен Prepare не дублира пик — лекува 161-164).
                         M._action_cancel()
@@ -1583,16 +1601,31 @@ class MrpProduction(models.Model):
                     "за недостига, %d покрити изцяло от Pre-Production буфер",
                     production.name, len(pairs), len(kept_picks), covered)
 
-            # ── Стъпка 6: Offcut-sourced консумационни леги (additive) ──
-            # Патерни рязани от съществуващ offcut → Offcut→Production leg,
-            # резервиран ДИРЕКТНО от Remnant/Offcut локацията (не Pre-Prod буфер).
-            offcut_legs = production._staged_offcut_consumptions(
-                _offcut_plan, _ref_by_product)
-            if offcut_legs:
-                _logger.info(
-                    "Staged offcut (6): MO %s → %d Offcut→Production leg(а) "
-                    "(forced offcut лотове, резервирани от Remnant/Offcut).",
-                    production.name, len(offcut_legs))
+            # ── Стъпка 6 (№93, 18.0.2.24.0): старите остатъци — в PC ──
+            # Remnant / Offcut → Pre-Production, в пикинга на целите пръти на
+            # МО-то (един PC, два източника). МО-то ги изписва от буфера, като
+            # цели пръти. Крак Offcut → Production вече НЕ се ражда.
+            if _offcut_plan:
+                _mine = production.move_raw_ids.filtered(
+                    lambda m: m.location_id == pbm
+                    and m.state not in ("done", "cancel"))
+                _attach = self._staged_first_picks(_mine, pbm)[:1]
+                offcut_picks = production._staged_offcut_picks(
+                    _offcut_plan, wh.lot_stock_id, pbm, pg, pbm_type,
+                    attach_to=_attach)
+                for _N in _mine.filtered(lambda n: not n.staged_pick_move_id):
+                    # Консумацията, която няма пик за цели пръти, държи следата
+                    # към стария остатък — за да я подсети кацането.
+                    _cand = offcut_picks.filtered(
+                        lambda m: m.product_id == _N.product_id)[:1]
+                    if _cand:
+                        _N.staged_pick_move_id = _cand.id
+                if offcut_picks:
+                    _logger.info(
+                        "Staged (6): MO %s → %d стар(и) остатък(а) в PC %s "
+                        "(Remnant/Offcut → Pre-Production, форсиран лот).",
+                        production.name, len(offcut_picks),
+                        ", ".join(offcut_picks.picking_id.mapped("name")))
 
         # ── CROSS-MO АГРЕГАЦИЯ → 1 Stock→Pre-Production трансфер/ден (Phase 2) ──
         # Wizard-ът вика self.production_ids._staged_do_prepare на ЦЯЛАТА партида
@@ -1618,6 +1651,12 @@ class MrpProduction(models.Model):
             # на три пика по недостига (498,96 м) вместо 80 пръта (520 м).
             # Следата след ④ е `staged_pick_move_id` — търсим и по нея.
             pc_pickings |= self._staged_first_picks(bridges, pbm).picking_id
+            # №93: и пикингът на стария остатък, ако МО-то няма цели пръти.
+            pc_pickings |= self.env["stock.move"].search([
+                ("staged_offcut_production_id", "=", production.id),
+                ("state", "not in", ("done", "cancel")),
+                ("picking_id", "!=", False)]).picking_id.filtered(
+                lambda p: p.state not in ("done", "cancel"))
         if len(pc_pickings) > 1:
             target = pc_pickings.sorted("id")[0]
             others = pc_pickings - target
@@ -1655,8 +1694,11 @@ class MrpProduction(models.Model):
         for _pk in pc_pickings.exists():
             _bumped = False
             _by_product = {}
+            # №93: старият остатък носи СВОЯ лот и своите метри — планът на
+            # целите пръти не го оразмерява.
             for _mv in _pk.move_ids.filtered(
-                    lambda m: m.state not in ("done", "cancel")):
+                    lambda m: m.state not in ("done", "cancel")
+                    and not m.staged_offcut_src_lot_id):
                 _by_product.setdefault(_mv.product_id, self.env["stock.move"])
                 _by_product[_mv.product_id] |= _mv
             for _product, _moves in _by_product.items():
@@ -1938,6 +1980,14 @@ class MrpProduction(models.Model):
             live_picks = picks.filtered(lambda m: m.state == "assigned")
             if live_picks:
                 live_picks._do_unreserve()
+            # №93: старите остатъци в PC — движения на подготовката, отпадат.
+            off_picks = self.env["stock.move"].search([
+                ("staged_offcut_production_id", "=", production.id),
+                ("state", "not in", ("done", "cancel"))])
+            if off_picks:
+                pickings |= off_picks.picking_id
+                off_picks._do_unreserve()
+                off_picks._action_cancel()
 
             # ② Всяка двойка се сглобява обратно в ЕДНО едностъпково движение.
             drop = self.env["stock.move"]

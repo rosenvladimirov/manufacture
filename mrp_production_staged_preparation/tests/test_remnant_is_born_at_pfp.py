@@ -13,8 +13,11 @@
   ④ „Produce" не ражда нищо.
   ⑤ Undo Preparation отказва трансфера и връща лота (4630 → 6500), пак със
     следа и равна стойност.
-  ⑥ прът от стар остатък: лотът се сменя НА МЯСТО, в Remnant/Offcut, още при
-    PfP — движение в трансфера за него няма.
+  ⑥ прът от стар остатък — като цял прът (Любо, ТГ 167875, 18.0.2.24.0):
+    движение в трансфера (лот-източник „4640" → „1640"), смяна в буфера след
+    PC; смяна на място няма. Заварена смяна на място (до 18.0.2.23.0) не се
+    ражда втори път, а Undo я връща там, където е станала. Целият поток през
+    PfP — в `test_old_remnant_is_a_bar`.
   ⑦ липсващи сметки ⇒ валидирането на PC пада с ясна грешка;
     не стига прът ⇒ бележка на разкроя, другите остатъци продължават.
 """
@@ -78,10 +81,11 @@ class TestRemnantIsBornAtPfp(TransactionCase):
         cls.buf = Loc.create({'name': 'Pre-Production T93P',
                               'usage': 'internal',
                               'location_id': cls.wh.lot_stock_id.id})
-        # Като на живо: остатъчната локация е ДЕТЕ на буфера.
+        # Като на живо след ADR-0051: остатъчната локация е под WH/Stock,
+        # до буфера — не под него.
         cls.off = cls.env.ref(
             'cutting_plugin_mrp_production.stock_location_offcut')
-        cls.off.location_id = cls.buf
+        cls.off.location_id = cls.wh.lot_stock_id
         cls.lot_bar = cls.env['stock.lot'].create({
             'name': 'T93P-6500', 'product_id': cls.bar.id,
             'company_id': company.id})
@@ -440,12 +444,9 @@ class TestRemnantIsBornAtPfp(TransactionCase):
             (mo1 | mo2)._staged_undo_remnants()
 
     # ⑥ ─────────────────────────────────────────────────────────────────
-    def test_a_remnant_of_an_old_offcut_is_relabelled_in_place(self):
-        """Стар остатък „4640" (4,64 м) → парче 2,90 → нов остатък „1640".
-
-        Кракът изписва 3,00 от „4640" в Remnant/Offcut; 1,64 остават там и
-        лотът им се сменя НА МЯСТО още при PfP. Прътът 6500 до него ражда
-        своя „4630" в трансфера на разкроя и чака PC."""
+    def _old_offcut_run(self):
+        """Цял прът 6500 (→ „4630") + стар остатък „4640" (→ парче 2,90,
+        остатък „1640")."""
         self._stock(self.rack, 6.5)
         lot_old = self.env['stock.lot'].create({
             'name': 'T93P-OLD-4640', 'product_id': self.bar.id,
@@ -459,42 +460,57 @@ class TestRemnantIsBornAtPfp(TransactionCase):
             'bar_capacity_mm': 4640.0, 'cuts_json': '{}',
             'bar_product_id': self.bar.id, 'source_model': 'stock.lot',
             'source_id': lot_old.id, 'source_offcut_lot_id': lot_old.id})
-        self.env['mrp.cutting.bar'].create({
+        old_bar = self.env['mrp.cutting.bar'].create({
             'pattern_id': pattern.id, 'bar_index': 1, 'capacity_mm': 4640.0,
             'remnant_mm': 1640.0, 'disposition': 'offcut', 'is_leftover': True,
             'line_ids': [(0, 0, {'length_mm': 2900.0,
                                  'production_id': mo.id})]})
-        main = mo.move_raw_ids.filtered(lambda m: m.product_id == self.bar)
-        # огледало на `_staged_offcut_consumptions`: кракът от остатъчната
-        leg = main.copy({'location_id': self.off.id, 'product_uom_qty': 4.64,
-                         'raw_material_production_id': mo.id,
-                         'state': 'draft'})
-        leg._action_confirm(merge=False)
         opt._build_cut_allocations()
-        self.assertAlmostEqual(leg.quantity, 3.00, places=2,
-                               msg="постановката: кракът не е резервиран нето")
-        pc = self._pc(mo, 6.5)
+        return mo, opt, lot_old, old_bar
+
+    def test_a_remnant_of_an_old_offcut_rides_the_transfer(self):
+        """Стар остатък „4640" → нов „1640": движение в трансфера, както за
+        целия прът; при PfP нищо не се сменя на място."""
+        mo, opt, lot_old, old_bar = self._old_offcut_run()
+        self._pc(mo, 6.5)
 
         moves = mo._staged_birth_remnants_at_pfp()
 
-        self.assertEqual(len(moves), 1, "движение за стария остатък")
-        self.assertEqual(moves.staged_remnant_lot_id.name, '4630')
-        self.assertEqual(moves.picking_id.state, 'confirmed')
-        lot_1640 = self.env['stock.lot'].search([
-            ('product_id', '=', self.bar.id), ('name', '=', '1640')])
-        relabels = self._relabels(lot_src=lot_old)
-        self.assertEqual(len(relabels), 2, "лотът на стария остатък не е сменен")
-        self.assertEqual(set(relabels.mapped('location_id')
-                             | relabels.mapped('location_dest_id')),
-                         {self.off, self.relabel_loc})
+        self.assertEqual(len(moves), 2, "старият остатък няма движение")
+        by_src = {m.staged_remnant_src_lot_id: m for m in moves}
+        m_old = by_src[lot_old]
+        self.assertEqual(m_old.staged_remnant_lot_id.name, '1640')
+        self.assertAlmostEqual(m_old.product_uom_qty, 1.64, places=2)
+        self.assertEqual(m_old.location_id, self.buf)
+        self.assertEqual(m_old.location_dest_id, self.off)
+        self.assertEqual(by_src[self.lot_bar].staged_remnant_lot_id.name,
+                         '4630')
+        self.assertEqual(len(moves.picking_id), 1, "един трансфер на разкроя")
+        self.assertFalse(self._relabels(), "смяна при PfP, преди PC")
+        self.assertAlmostEqual(self._qty(self.off, lot_old), 4.64, places=2)
+
+    def test_a_legacy_in_place_relabel_is_not_born_again(self):
+        """ЗАВАРЕНО (до 18.0.2.23.0): лотът на стария остатък е сменен НА
+        МЯСТО в Remnant/Offcut още при PfP. Повторно раждане не го пипа, а
+        Undo го връща там, където е станала смяната."""
+        mo, opt, lot_old, old_bar = self._old_offcut_run()
+        lot_1640 = opt._remnant_lot(self.bar, 1.64)
+        mo._staged_relabel_one(opt, old_bar, 1.64, lot_old, lot_1640,
+                               self.off, [], offcut_side=True)
         self.assertAlmostEqual(self._qty(self.off, lot_1640), 1.64, places=2)
-        self.assertAlmostEqual(self._qty(self.off, lot_old), 3.00, places=2)
-        self.assertAlmostEqual(leg.quantity, 3.00, places=2,
-                               msg="смяната открадна от крака")
-        # Целият прът чака своя PC.
-        self._validate(pc)
-        self.assertEqual(moves.picking_id.state, 'assigned')
-        self.assertEqual(len(self._relabels(lot_src=self.lot_bar)), 2)
+
+        moves = mo._staged_birth_remnants_at_pfp()
+
+        self.assertEqual(moves.staged_remnant_src_lot_id, self.lot_bar,
+                         "заварената смяна на място се роди втори път")
+        mo._staged_undo_remnants()
+        self.assertAlmostEqual(self._qty(self.off, lot_1640), 0.0, places=2)
+        self.assertAlmostEqual(self._qty(self.off, lot_old), 4.64, places=2)
+        back = self._relabels(lot_src=lot_1640)
+        self.assertEqual(len(back), 2, "Undo не върна заварената смяна")
+        self.assertEqual(set(back.mapped('location_id')
+                             | back.mapped('location_dest_id')),
+                         {self.off, self.relabel_loc})
 
     # ⑦ ─────────────────────────────────────────────────────────────────
     def test_missing_accounts_stop_the_landing_with_a_clear_error(self):
