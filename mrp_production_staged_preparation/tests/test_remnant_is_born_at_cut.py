@@ -73,10 +73,12 @@ class TestRemnantIsBornAtCut(TransactionCase):
             ('product_id', '=', self.bar.id), ('lot_id', '=', lot.id),
             ('location_id', '=', location.id)]).mapped('quantity'))
 
-    def _mo(self):
-        mo = self.env['mrp.production'].create({
-            'product_id': self.window.id, 'product_qty': 1.0,
-            'bom_id': self.bom.id, 'location_src_id': self.buf.id})
+    def _mo(self, picking_type=None):
+        vals = {'product_id': self.window.id, 'product_qty': 1.0,
+                'bom_id': self.bom.id, 'location_src_id': self.buf.id}
+        if picking_type:
+            vals['picking_type_id'] = picking_type.id
+        mo = self.env['mrp.production'].create(vals)
         mo.action_confirm()
         return mo
 
@@ -111,11 +113,22 @@ class TestRemnantIsBornAtCut(TransactionCase):
     # ① ─────────────────────────────────────────────────────────────────
     def test_preparation_does_not_birth_the_remnant(self):
         """🔴 Коренът: PfP викаше подателя ⇒ Рафт → Remnant с лот 6500."""
+        # 🔴 №107: тук се превключваше СПОДЕЛЕНИЯТ склад на една стъпка. Ядрото
+        # тогава АРХИВИРА неговата Pre-Production, а на жива база в нея има
+        # наличност ⇒ UserError („still contain products") още преди теста.
+        # В празна база складът по подразбиране вече е на една стъпка и редът
+        # не се изпълняваше — затова не се виждаше.
+        # ⇒ Свой склад на една стъпка и МО по неговия тип производство:
+        # `_staged_warehouse` чете склада от типа, тъй че пътят е същият, а
+        # чуждата конфигурация не се пипа.
+        wh = self.env['stock.warehouse'].create({
+            'name': 'WH T107', 'code': 'T107',
+            'manufacture_steps': 'mrp_one_step'})
+        self.assertEqual(wh.manufacture_steps, 'mrp_one_step')
         self._stock(self.rack, 6.5)
-        mo = self._mo()
+        mo = self._mo(picking_type=wh.manu_type_id)
+        self.assertEqual(mo._staged_warehouse(), wh)
         opt = self._run(mo, [(4638.0, 'offcut', [(mo, 1800.0)])])
-        if self.wh.manufacture_steps != 'mrp_one_step':
-            self.wh.manufacture_steps = 'mrp_one_step'
         mo.picking_type_id.staged_preparation_enabled = True
         mo.state = 'preparation'
         mo.staged_released = False
