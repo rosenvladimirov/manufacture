@@ -317,8 +317,14 @@ class TestOldRemnantIsABar(TransactionCase):
         pc = self._pc(opt)
         old_pick = pc.move_ids.filtered('staged_offcut_src_lot_id')
         mo.action_unprepare_production(target_state='confirmed')
-        self.assertEqual(old_pick.state, 'cancel')
-        self.assertFalse(old_pick.move_line_ids)
+        # №93 (2.25.0): откатът трие опразнения PC цял — с отказаните му
+        # движения. Същината е същата: старият остатък не е задържан.
+        self.assertFalse(pc.exists(), "PC-то остана след отката")
+        self.assertTrue(not old_pick.exists() or old_pick.state == 'cancel')
+        self.assertFalse(self.env['stock.move.line'].search([
+            ('lot_id', '=', self.lot_old.id), ('location_id', '=', self.off.id),
+            ('state', 'not in', ('done', 'cancel'))]),
+            "старият остатък остана резервиран")
 
     # ⑥ ─────────────────────────────────────────────────────────────────
     def test_the_pc_never_reserves_from_the_buffer(self):

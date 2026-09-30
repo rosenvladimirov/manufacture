@@ -11,7 +11,8 @@
                 <div class="alert alert-warning" role="alert">
                     Undoing the preparation releases the reservations, deletes
                     the Stock to Pre-Production transfer and puts the components
-                    back on a single step.
+                    back on a single step. Orders prepared together share one
+                    transfer and must be undone together.
                 </div>
                 <group>
                     <field name="production_count" string="Orders affected"/>

@@ -627,3 +627,16 @@ msgid ""
 "⚠ Prepared while later-operation components are not yet available (%s). They"
 " should arrive before consumption (e.g. glass at installation)."
 msgstr ""
+
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Cannot undo the preparation: the transfer %(picks)s is already partly done —"
+" the bars are already on the table."
+msgstr ""
+
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"The transfer %(picks)s also carries %(others)s. Undo the preparation of all "
+"these orders together — undoing only some of them would leave the transfer "
+"half-emptied."
+msgstr ""

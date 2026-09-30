@@ -1942,11 +1942,6 @@ class MrpProduction(models.Model):
             raise UserError(_(
                 "Unknown target state '%(state)s' for unprepare; expected "
                 "'draft' or 'confirmed'.", state=target_state))
-        # №93: трансферът на остатъците се отказва, сменените лотове се връщат
-        # (4630 → 6500) — ПРЕДИ движенията на поръчките да се разглобят.
-        self.filtered(
-            lambda p: p.staged_preparation_enabled
-            and p.state not in ("done", "cancel"))._staged_undo_remnants()
         for production in self:
             if not production.staged_preparation_enabled:
                 raise UserError(_(
@@ -1957,96 +1952,138 @@ class MrpProduction(models.Model):
                     "MO %(name)s is '%(state)s' — nothing to unprepare.",
                     name=production.name, state=production.state))
 
+        # 🔴 №93 (30.09, тестът на Клаудио): партидната подготовка слива
+        # PC-тата на всички МО в ЕДИН пикинг, а `_merge_moves` — и движенията
+        # между МО-тата. Откатът МО по МО пипаше само движенията, вързани с
+        # консумациите на поръчката, превръщаше ОБЩОТО движение в суров ред на
+        # първото МО, а останалото (нулираните при оразмеряването, обков,
+        # стъкла) държеше PC жив ⇒ новото Prepare се сливаше в него ⇒ ×2.
+        # ⇒ PC-тата се отказват ЦЕЛИ, веднъж за всички МО; консумациите стават
+        # пак едностъпкови. Отказ с имена, ако PC носи и чужди поръчки или
+        # нещо в него вече е изпълнено — ПРЕДИ да се пипне каквото и да е.
+        pickings = self._staged_prep_pickings()
+        done = pickings.move_ids.filtered(lambda m: m.state == "done")
+        if done:
+            raise UserError(_(
+                "Cannot undo the preparation: the transfer %(picks)s is already "
+                "partly done — the bars are already on the table.",
+                picks=", ".join(done.picking_id.mapped("name"))))
+        chuzhdi = self._staged_prep_owners(pickings) - self
+        if chuzhdi:
+            raise UserError(_(
+                "The transfer %(picks)s also carries %(others)s. Undo the "
+                "preparation of all these orders together — undoing only some "
+                "of them would leave the transfer half-emptied.",
+                picks=", ".join(pickings.mapped("name")),
+                others=", ".join(chuzhdi.mapped("name"))))
+
+        # №93: трансферът на остатъците се отказва, сменените лотове се връщат
+        # (4630 → 6500) — ПРЕДИ движенията на поръчките да се разглобят.
+        self._staged_undo_remnants()
+
+        # ① PC-тата — цели: резервациите падат, веригите се откачат (иначе
+        # отказът на пика се пренася по `move_dest_ids` в консумацията), движенията
+        # се отказват.
+        live = pickings.move_ids.filtered(
+            lambda m: m.state not in ("done", "cancel"))
+        if live:
+            live._do_unreserve()
+            live.write({"move_dest_ids": [(5, 0, 0)]})
+            live._action_cancel()
+
+        Alloc = self.env.get("mrp.cutting.allocation")
+        for production in self:
             wh = production._staged_warehouse()
             pbm = wh.pbm_loc_id if wh else False
-            prod_loc = production.production_location_id
             # ⚠️ НЕ ``location_src_id`` — при staged МО той сочи самия
             # Pre-Production буфер. Едностъпковото движение тръгва от Stock.
             stock_loc = wh.lot_stock_id if wh else production.location_src_id
 
-            # Консумациите са raw move-овете, които тръгват ОТ буфера.
+            # ② Консумациите (буфер → производство) стават пак ЕДНОСТЪПКОВИ
+            # (Stock → Production, make_to_stock) и носят същото количество.
+            # Дотук на тяхно място се преизползваше пикът — а при сливане той
+            # е общ за няколко МО.
+            production.do_unreserve()
             consumptions = production.move_raw_ids.filtered(
                 lambda m: m.state not in ("done", "cancel")
                 and pbm and m.location_id.id == pbm.id)
-            # Пиковете се намират по ИЗРИЧНАТА следа; `move_orig_ids` остава
-            # само за заварените поръчки отпреди ④ (10.09), които още носят
-            # верига. Без първото откатът би оставил трансферите висящи.
-            picks = (consumptions.mapped("staged_pick_move_id")
-                     | consumptions.mapped("move_orig_ids"))
-            pickings = picks.mapped("picking_id")
+            consumptions.write({
+                "location_id": stock_loc.id,
+                "procure_method": "make_to_stock",
+                "move_orig_ids": [(5, 0, 0)],
+                "staged_pick_move_id": False,
+            })
+            # Заварените (отпреди ④) чакаха пика по веригата — без нея не чакат.
+            consumptions._recompute_state()
 
-            # ① Резервациите падат ПРЕДИ да местим краищата на движенията.
-            production.do_unreserve()
-            live_picks = picks.filtered(lambda m: m.state == "assigned")
-            if live_picks:
-                live_picks._do_unreserve()
-            # №93: старите остатъци в PC — движения на подготовката, отпадат.
-            off_picks = self.env["stock.move"].search([
-                ("staged_offcut_production_id", "=", production.id),
-                ("state", "not in", ("done", "cancel"))])
-            if off_picks:
-                pickings |= off_picks.picking_id
-                off_picks._do_unreserve()
-                off_picks._action_cancel()
+            # ③ Разкроят пуска поръчката. Резервацията и изписването четат
+            # разпределенията по МО + продукт във ВСИЧКИ разкрои — оставени,
+            # старият и новият разкрой се сумират (MO/01814: 147,05 + 147,05).
+            if Alloc is not None:
+                Alloc.search([("production_id", "=", production.id)]).unlink()
+            production.staged_cutting_optimization_id = False
 
-            # ② Всяка двойка се сглобява обратно в ЕДНО едностъпково движение.
-            drop = self.env["stock.move"]
-            for N in consumptions:
-                M = N.move_orig_ids.filtered(
-                    lambda m: m.state not in ("done", "cancel"))[:1]
-                if M:
-                    # Живият пик става пак raw move Stock→Production и носи
-                    # ПЪЛНОТО количество: подготовката го е свила до недостига
-                    # (``M.product_uom_qty = shortage``), а тук няма буфер.
-                    M.write({
-                        "move_dest_ids": [(5, 0, 0)],
-                        # ``location_id`` СЕ ЗАПИСВА ИЗРИЧНО: щом движението
-                        # стане raw (``raw_material_production_id``), Odoo му
-                        # налага ``location_src_id`` на МО-то = буфера, и пикът
-                        # се превръща в Pre-Production→Production вместо да се
-                        # върне на едностъпково. Мерено при теста на 19.08.
-                        "location_id": stock_loc.id,
-                        "location_dest_id": prod_loc.id,
-                        "raw_material_production_id": production.id,
-                        "workorder_id": N.workorder_id.id,
-                        "picking_id": False,
-                        "picking_type_id": production.picking_type_id.id,
-                        "product_uom_qty": N.product_uom_qty,
-                        "procure_method": "make_to_stock",
-                    })
-                    drop |= N
-                else:
-                    # Пикът е бил отменен, защото буферът е покривал всичко
-                    # (``M._action_cancel()`` в подготовката). Няма какво да
-                    # връщаме — самата консумация става едностъпкова, за да не
-                    # изчезне движението изобщо.
-                    N.write({
-                        "location_id": stock_loc.id,
-                        "procure_method": "make_to_stock",
-                    })
-
-            # ③ Излишните консумации отпадат.
-            if drop:
-                drop._action_cancel()
-                drop.unlink()
-
-            # ④ Пикингът за зареждане в Pre-Production се маха, ако е опразнен.
-            dropped_pickings = 0
-            for picking in pickings:
-                if not picking.move_ids.filtered(lambda m: m.state != "cancel"):
-                    picking.unlink()
-                    dropped_pickings += 1
-
-            # ⑤ Флагът пада → ``_staged_keep_mts`` пак важи и следващият
-            #    confirm ще построи движенията едностъпково.
+            # ④ Флагът пада → ``_staged_keep_mts`` пак важи. ПЛАНИРАНО МО се
+            # връща в „preparation“: Plan е скрит (is_planned), а Prepare иска
+            # точно това състояние — иначе от екрана няма изход (Клаудио, 30.09).
             production.staged_released = False
-            production.state = target_state
-
+            production.state = (
+                "preparation"
+                if target_state == "confirmed" and production.is_planned
+                else target_state)
             _logger.info(
                 "Staged preparation ОТКАТ: MO %s → %s; %d консумация(и) "
-                "махнати, %d пикинг(а) изтрити",
-                production.name, target_state, len(drop), dropped_pickings)
+                "върнати на една стъпка", production.name, production.state,
+                len(consumptions))
+
+        # ⑤ Опразнените PC-та се махат.
+        pickings = pickings.exists()
+        prazni = pickings.filtered(
+            lambda p: not p.move_ids.filtered(lambda m: m.state != "cancel"))
+        prazni.unlink()
+        _logger.info("Staged preparation ОТКАТ: %d PC пикинг(а) изтрити",
+                     len(prazni))
         return True
+
+    def _staged_prep_pickings(self):
+        """PC-тата (Stock → Pre-Production) на тези поръчки, още неприключени.
+
+        Следата е `staged_pick_move_id` на консумациите; `move_orig_ids` — за
+        заварените отпреди ④ (10.09); плюс движенията на стария остатък.
+        ⚠️ Същото правило ползва и визардът („Transfers to delete“) — иначе
+        броят на екрана лъже (показваше 0 при жив PC).
+        """
+        Move = self.env["stock.move"]
+        pickings = self.env["stock.picking"]
+        for production in self:
+            wh = production._staged_warehouse()
+            pbm = wh.pbm_loc_id if wh else False
+            if not pbm:
+                continue
+            consumptions = production.move_raw_ids.filtered(
+                lambda m: m.state not in ("done", "cancel")
+                and m.location_id.id == pbm.id)
+            pickings |= (consumptions.staged_pick_move_id
+                         | consumptions.move_orig_ids).filtered(
+                lambda m: m.location_dest_id == pbm).picking_id
+            pickings |= Move.search([
+                ("staged_offcut_production_id", "=", production.id),
+                ("picking_id", "!=", False)]).picking_id
+        return pickings.filtered(lambda p: p.state not in ("done", "cancel"))
+
+    def _staged_prep_owners(self, pickings):
+        """Всички поръчки, чиито консумации пълнят тези PC-та."""
+        Move = self.env["stock.move"]
+        moves = pickings.move_ids
+        owners = Move.search([
+            ("staged_pick_move_id", "in", moves.ids),
+            ("state", "not in", ("done", "cancel")),
+        ]).raw_material_production_id
+        owners |= moves.move_dest_ids.filtered(
+            lambda m: m.state not in ("done", "cancel")
+        ).raw_material_production_id
+        owners |= moves.staged_offcut_production_id
+        return owners
 
     def action_unprepare_production_batch(self, target_state="draft"):
         """Откат за МАРКИРАНИТЕ МО-та — огледало на
