@@ -140,8 +140,8 @@ msgstr "Лот на стар остатък (подготовка)"
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_offcut_src_lot_id
 msgid ""
-"Existing remnant lot this preparation pick carries from the remnant location"
-" into the buffer, like a full bar."
+"Existing remnant lot this preparation pick carries from the remnant location "
+"into the buffer, like a full bar."
 msgstr ""
 "Съществуващият лот на остатък, който този пик на подготовката пренася от "
 "локацията за остатъци в буфера — като цял прът."
@@ -160,20 +160,14 @@ msgstr ""
 "Производствената поръчка, чиято подготовка пренася този стар остатък в "
 "буфера."
 
+#. module: mrp_production_staged_preparation
+#. odoo-python
 #: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
-msgid ""
-"Cannot undo the preparation: the transfer %(picks)s is already partly done —"
-" the bars are already on the table."
-msgstr ""
-"Подготовката не може да се отмени: трансферът %(picks)s вече е частично "
-"изпълнен — прътите вече са на масата."
+msgid "Cannot undo the preparation: the transfer %(picks)s is already partly done — the bars are already on the table."
+msgstr "Подготовката не може да се отмени: трансферът %(picks)s вече е частично изпълнен — прътите вече са на масата."
 
+#. module: mrp_production_staged_preparation
+#. odoo-python
 #: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
-msgid ""
-"The transfer %(picks)s also carries %(others)s. Undo the preparation of all "
-"these orders together — undoing only some of them would leave the transfer "
-"half-emptied."
-msgstr ""
-"Трансферът %(picks)s носи и %(others)s. Отменете подготовката на всички тези"
-" поръчки заедно — отмяна само на част от тях би оставила трансфера "
-"наполовина празен."
+msgid "The transfer %(picks)s also carries %(others)s. Undo the preparation of all these orders together — undoing only some of them would leave the transfer half-emptied."
+msgstr "Трансферът %(picks)s носи и %(others)s. Отменете подготовката на всички тези поръчки заедно — отмяна само на част от тях би оставила трансфера наполовина празен."
