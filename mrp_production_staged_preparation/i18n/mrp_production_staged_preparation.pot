@@ -639,3 +639,8 @@ msgstr ""
 #: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 msgid "The transfer %(picks)s also carries %(others)s. Undo the preparation of all these orders together — undoing only some of them would leave the transfer half-emptied."
 msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_picking_form_bars
+msgid "Bars"
+msgstr ""

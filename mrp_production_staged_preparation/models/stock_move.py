@@ -2,7 +2,7 @@
 # License OPL-1 (Odoo Proprietary License v1.0)
 # https://www.odoo.com/documentation/user/legal/licenses/licenses.html
 
-from odoo import _, fields, models
+from odoo import api, _, fields, models
 from odoo.exceptions import UserError
 from odoo.tools import float_compare
 
@@ -343,7 +343,38 @@ class StockMove(models.Model):
                     orders="\n".join(
                         "  - %s" % mo.display_name for mo in zaduryani),
                 ))
-        return super().write(vals)
+        res = super().write(vals)
+        # №117: количеството на реда се сменя при обновяване на подготовката —
+        # опаковката-прът трябва да стои и тогава.
+        if {"product_uom_qty", "picking_type_id", "product_id"} & set(vals):
+            self._staged_set_bar_packaging()
+        return res
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        moves = super().create(vals_list)
+        moves._staged_set_bar_packaging()
+        return moves
+
+    def _staged_set_bar_packaging(self):
+        """№117 (Любо, 01.10): редът на Pick Components носи опаковката-прът.
+
+        Складът вижда пръти, не само метри (PC/00458: HUS 72770 420 m = 70
+        пръта по „6000“). Опаковката-прът е по ADR-0050: ЕДИНСТВЕНАТА опаковка
+        на продукта, по-голяма от 1 единица (прът 6 m = qty 6.0) — две опаковки
+        значат две дължини и нищо не казва коя. Не се закръгля нищо: нецял
+        брой пръти се вижда като дроб в колона „Пръти“ (product_packaging_qty).
+        Сложена на ръка опаковка не се пипа.
+        """
+        for move in self:
+            if move.product_packaging_id or move.state in ("done", "cancel"):
+                continue
+            wh = move.picking_type_id.warehouse_id
+            if not wh or not wh.pbm_type_id or move.picking_type_id != wh.pbm_type_id:
+                continue
+            opakovki = move.product_id.packaging_ids
+            if len(opakovki) == 1 and opakovki.qty > 1.0:
+                move.product_packaging_id = opakovki
 
     def _staged_keep_mts(self):
         """Суровинните движения на staged поръчка остават make_to_stock — ВИНАГИ.

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- №117 (Любо, 01.10): „не виждам бройките“ — до метрите колона „Пръти“:
+         броят по опаковката-прът (product_packaging_qty). Нецял брой се
+         вижда като дроб — нищо не се закръгля тихо. -->
+    <record id="view_picking_form_bars" model="ir.ui.view">
+        <field name="name">stock.picking.form.staged.bars</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='move_ids_without_package']/list/field[@name='product_uom_qty']" position="after">
+                <field name="product_packaging_qty" string="Bars" optional="show"
+                       groups="product.group_stock_packaging"
+                       invisible="not product_packaging_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
