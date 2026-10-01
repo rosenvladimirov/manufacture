@@ -88,6 +88,19 @@
         </field>
     </record>
 
+    <!-- №119: „Plan“ от списъка носи знак, че е натиснат оттам — след него
+         списъкът се отваря наново с филтъра „In Preparation“. -->
+    <record id="mrp_production_tree_plan_to_preparation" model="ir.ui.view">
+        <field name="name">mrp.production.list.plan.to.preparation</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='button_plan']" position="attributes">
+                <attribute name="context">{'staged_plan_from_list': True}</attribute>
+            </xpath>
+        </field>
+    </record>
+
     <!-- Филтър „Released to floor" + групиране в търсенето на МО. -->
     <record id="mrp_production_search_staged_preparation" model="ir.ui.view">
         <field name="name">mrp.production.search.staged.preparation</field>

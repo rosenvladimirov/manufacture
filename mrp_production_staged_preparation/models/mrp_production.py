@@ -187,13 +187,30 @@ class MrpProduction(models.Model):
                     "(prevents duplicate transfers / negative stock).",
                     production.name))
         result = super().button_plan()
+        moved = self.browse()
         for production in self:
             if (
                 production.staged_preparation_enabled
                 and production.state == "confirmed"
             ):
                 production.state = "preparation"
-        return result
+                moved |= production
+        return self._staged_plan_list_action(moved) or result
+
+    def _staged_plan_list_action(self, moved):
+        """№119 (Любо, 01.10): „Plan“ от СПИСЪКА → списъкът наново с филтъра
+        „In Preparation“, не „To Do“ — планираните МО отиват точно там.
+
+        Само когато бутонът е натиснат от списъка (контекстът го носи от
+        изгледа) и поне едно МО е минало в подготовка. От формата — нищо не се
+        сменя: човекът остава на своето МО.
+        """
+        if not (moved and self.env.context.get("staged_plan_from_list")):
+            return False
+        action = self.env["ir.actions.act_window"]._for_xml_id("mrp.mrp_production_action")
+        action["context"] = {"search_default_staged_in_preparation": 1}
+        action["target"] = "main"
+        return action
 
     def button_mark_done(self):
         # Produce ГАРД (Phase 2, B+A — дизайн Любо, msg 157110): staged MO НЕ
