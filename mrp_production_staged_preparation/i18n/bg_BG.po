@@ -196,6 +196,122 @@ msgid "Cutting Patterns"
 msgstr "Схеми на рязане"
 
 #. module: mrp_production_staged_preparation
+#. odoo-python
 #: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 msgid "View Cutting"
 msgstr "Виж разкроя"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "There is nothing to show: the orders or the cutting module are gone."
+msgstr "Няма какво да се покаже: поръчките или модулът за разкрой липсват."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Trial: %s"
+msgstr "Проба: %s"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Trial Cutting (nothing saved)"
+msgstr "Пробен разкрой (нищо не е записано)"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Bars:"
+msgstr "Пръти:"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Waste:"
+msgstr "Отпадък:"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Profile"
+msgstr "Профил"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Bar (mm)"
+msgstr "Прът (mm)"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Pieces (mm)"
+msgstr "Парчета (mm)"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Remnant (mm)"
+msgstr "Остатък (mm)"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Pieces that do not fit"
+msgstr "Парчета, които не влизат"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Order"
+msgstr "Поръчка"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Length (mm)"
+msgstr "Дължина (mm)"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__production_ids
+msgid "Manufacturing Orders"
+msgstr "Производствени поръчки"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__problems_text
+msgid "Why It Was Refused"
+msgstr "Защо е отказан"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__report_html
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_cutting_trial_form
+msgid "Trial Cutting"
+msgstr "Пробен разкрой"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model,name:mrp_production_staged_preparation.model_mrp_production_cutting_trial
+msgid "Trial cutting run (nothing saved)"
+msgstr "Пробен разкрой (нищо не е записано)"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_cutting_trial_form
+msgid "Trial run only — nothing was saved and no stock was touched."
+msgstr "Само проба — нищо не е записано и складът не е пипан."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_cutting_trial_form
+msgid "Close"
+msgstr "Затвори"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.actions.server,name:mrp_production_staged_preparation.action_staged_cutting_trial
+msgid "View Cutting (trial)"
+msgstr "Виж разкроя (проба)"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "The source produced no pieces to cut"
+msgstr "Източникът не даде парчета за рязане"

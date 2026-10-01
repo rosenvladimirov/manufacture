@@ -241,6 +241,7 @@ msgstr ""
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__production_ids
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__production_ids
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__production_ids
 msgid "Manufacturing Orders"
 msgstr ""
 
@@ -664,6 +665,118 @@ msgid "Cutting Patterns"
 msgstr ""
 
 #. module: mrp_production_staged_preparation
+#. odoo-python
 #: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 msgid "View Cutting"
+msgstr ""
+
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "There is nothing to show: the orders or the cutting module are gone."
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Trial: %s"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Trial Cutting (nothing saved)"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Bars:"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Waste:"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Profile"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Bar (mm)"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Pieces (mm)"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Remnant (mm)"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Pieces that do not fit"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Order"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Length (mm)"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__problems_text
+msgid "Why It Was Refused"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__report_html
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_cutting_trial_form
+msgid "Trial Cutting"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model,name:mrp_production_staged_preparation.model_mrp_production_cutting_trial
+msgid "Trial cutting run (nothing saved)"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_cutting_trial_form
+msgid "Trial run only — nothing was saved and no stock was touched."
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_cutting_trial_form
+msgid "Close"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.actions.server,name:mrp_production_staged_preparation.action_staged_cutting_trial
+msgid "View Cutting (trial)"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "The source produced no pieces to cut"
 msgstr ""

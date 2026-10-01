@@ -7,7 +7,7 @@ import logging
 import math
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import RedirectWarning, UserError
 from markupsafe import Markup
 from odoo.tools import float_compare
 
@@ -1952,9 +1952,17 @@ class MrpProduction(models.Model):
             # липсваща дължина → коя формула). Обвивката добавя само това, което
             # знае със сигурност: къде спря и че нищо не е записано.
             detail = exc.args[0] if exc.args else str(exc)
-            raise UserError(_(
-                "Cannot prepare for production — the cutting run refused:"
-                "\n\n%s\n\nNothing was committed.", detail))
+            # №116 (Любо, 01.10): „искам бутон към оптимизацията, за да видя
+            # какво се е получило". Отказът пак откатва всичко; бутонът пуска
+            # ПРОБАТА наново, в отделна транзакция (`_staged_cutting_trial`).
+            raise RedirectWarning(
+                _("Cannot prepare for production — the cutting run refused:"
+                  "\n\n%s\n\nNothing was committed.", detail),
+                self.env.ref(
+                    "mrp_production_staged_preparation."
+                    "action_staged_cutting_trial").id,
+                _("View Cutting"),
+                {"staged_trial_mo_ids": with_pieces.ids})
         # Whole-bar A (Любо 157140): анкерираме живия разкрой към MO-тата — от
         # него четат whole-bar планът + forced-lot пиновете СЛЕД confirm (друга
         # транзакция).
@@ -1982,6 +1990,115 @@ class MrpProduction(models.Model):
             "Staged Phase 2: разкрой + feasibility OK за %s (%d МО) → confirm.",
             opt.name, len(with_pieces))
         return opt
+
+    @api.model
+    def _staged_cutting_trial_action(self, mo_ids):
+        """„Виж разкроя“ от отказа — ПРОБЕН разкрой, нищо не се записва (№116).
+
+        Отказът на гейта е откатил всичко, затова разкроят се пуска наново, в
+        savepoint, с `trial=True` (ядрото не вдига при недостиг, а връща и
+        непобраните парчета). Резултатът се преписва в прозорец ПРЕДИ отката —
+        после savepoint-ът маха и разкроя, и всичко, което адаптерът е родил
+        по пътя (парчета от рецептата). В склада не остава нищо.
+        """
+        productions = self.browse(mo_ids).exists()
+        Opt = self.env.get("mrp.cutting.optimization")
+        if not productions or Opt is None:
+            raise UserError(_("There is nothing to show: the orders or the "
+                              "cutting module are gone."))
+
+        class _Otkat(Exception):
+            """Връща savepoint-а — пробата не бива да остава."""
+
+        problems, report = "", ""
+        try:
+            with self.env.cr.savepoint():
+                opt = Opt.create({
+                    "name": _("Trial: %s")
+                    % (", ".join(productions.mapped("name"))[:60]),
+                    "material_domain": "mrp_production",
+                    "production_ids": [(6, 0, productions.ids)],
+                })
+                adapter = opt._adapter()
+                groups = adapter.collect_groups(opt)
+                if groups:
+                    res = opt._run_optimization(groups, trial=True)
+                    problems = res.get("problems_text") or ""
+                    report = self._staged_trial_report(res)
+                else:
+                    # Празното има повече от една причина — адаптерът знае
+                    # своя домейн (същото като `action_optimize` на ядрото).
+                    problems = (hasattr(adapter, "explain_empty")
+                                and adapter.explain_empty(opt)) or _(
+                        "The source produced no pieces to cut")
+                raise _Otkat()
+        except _Otkat:
+            pass
+        except UserError as exc:
+            # Пробата сама отказа (не недостиг: няма парчета, фиктивен
+            # резач…) — казва се нейната причина.
+            problems = exc.args[0] if exc.args else str(exc)
+        wizard = self.env["mrp.production.cutting.trial"].create({
+            "production_ids": [(6, 0, productions.ids)],
+            "problems_text": problems,
+            "report_html": report,
+        })
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Trial Cutting (nothing saved)"),
+            "res_model": "mrp.production.cutting.trial",
+            "res_id": wizard.id,
+            "view_mode": "form",
+            "target": "new",
+        }
+
+    @api.model
+    def _staged_trial_report(self, res):
+        """Пробата като таблица: по прът — парчетата и остатъкът; отделно —
+        парчетата, които НЕ влизат (МО, дължина). Числата идват от
+        разкроя както е, нищо не се закръгля."""
+        Product = self.env["product.product"]
+
+        def ime(bt):
+            pid = bt.get("product_id")
+            return Product.browse(pid).display_name if pid else "?"
+
+        def mo(ref):
+            prod = getattr(ref, "production_id", False)
+            return prod.name if prod else ""
+
+        bins = res.get("bins") or []
+        waste = sum(e["bin"].waste() for e in bins)
+        rows = []
+        for n, e in enumerate(bins, 1):
+            b, bt = e["bin"], e["bt"]
+            rows.append(Markup(
+                "<tr><td>%s</td><td>%s</td><td>%.0f</td><td>%s</td>"
+                "<td>%.0f</td><td>%s</td></tr>") % (
+                n, ime(bt), bt.get("length") or 0.0,
+                " · ".join("%.0f" % length for length, _ref in b.pieces),
+                b.remnant or 0.0, b.disposition or ""))
+        html = Markup("<p><b>%s</b> %s · <b>%s</b> %.2f m</p>") % (
+            _("Bars:"), len(bins), _("Waste:"), waste / 1000.0)
+        html += Markup(
+            "<table class='table table-sm'><thead><tr><th>#</th><th>%s</th>"
+            "<th>%s</th><th>%s</th><th>%s</th><th></th></tr></thead>"
+            "<tbody>%s</tbody></table>") % (
+            _("Profile"), _("Bar (mm)"), _("Pieces (mm)"),
+            _("Remnant (mm)"), Markup("").join(rows))
+        unplaced = res.get("unplaced") or []
+        if unplaced:
+            html += Markup("<h4>%s</h4>") % _("Pieces that do not fit")
+            html += Markup(
+                "<table class='table table-sm'><thead><tr><th>%s</th>"
+                "<th>%s</th><th>%s</th></tr></thead><tbody>%s</tbody>"
+                "</table>") % (
+                _("Profile"), _("Order"), _("Length (mm)"),
+                Markup("").join(
+                    Markup("<tr><td>%s</td><td>%s</td><td>%.0f</td></tr>")
+                    % (label, mo(ref), length)
+                    for label, length, ref in unplaced))
+        return html
 
     # ── Откат на подготовката ───────────────────────────────────────────
     def action_unprepare_production(self, target_state="draft"):

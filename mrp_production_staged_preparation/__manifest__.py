@@ -28,6 +28,7 @@
         "security/ir.model.access.csv",
         "wizards/mrp_production_prepare_wizard_views.xml",
         "wizards/mrp_production_unprepare_wizard_views.xml",
+        "wizards/mrp_production_cutting_trial_views.xml",
         "views/stock_picking_type_views.xml",
         "views/mrp_production_views.xml",
         "views/stock_picking_views.xml",
