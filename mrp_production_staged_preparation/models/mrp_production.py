@@ -613,9 +613,17 @@ class MrpProduction(models.Model):
             held_mm = Lot._offcut_length_from_qty(product, pattern.remnant_length)
             meters = held_mm / 1000.0
             for bar_num in range(pattern.usage_count):
-                if cap and Lot.search_count([
+                # №91 (опасност ⑤): таванът е в ПАРЧЕТА — лотът на остатъка е
+                # общ по дължина (ADR-0049), броят на лотовете вече не казва
+                # колко парчета лежат. Ядро без броенето — по лотове, както
+                # досега.
+                if hasattr(Lot, "_offcut_piece_count"):
+                    held_pieces = Lot._offcut_piece_count(product)
+                else:
+                    held_pieces = Lot.search_count([
                         ("product_id", "=", product.id),
-                        ("is_offcut", "=", True)]) >= cap:
+                        ("is_offcut", "=", True)])
+                if cap and held_pieces >= cap:
                     break   # cap достигнат → остатъкът е скрап (без by-product)
                 lot = Lot._create_offcut_lot({
                     "product_id": product.id,
