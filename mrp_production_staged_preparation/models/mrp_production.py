@@ -415,6 +415,41 @@ class MrpProduction(models.Model):
                     pattern.usage_count * pattern.bar_capacity_mm / 1000.0)
         return plan
 
+    @api.model
+    def _staged_buffer_reserved(self, consumptions, product, pbm,
+                                skip_lots=None):
+        """Колко от продукта консумациите ВЕЧЕ държат в буфера (№120).
+
+        Броят се резервираните редове на консумациите на партидата в `pbm`
+        (и поддървото му), в мерната единица на движението. Редове на лотовете
+        в ``skip_lots`` (старите остатъци — те пътуват с отделен крак) не се
+        броят. Резервираното за ЧУЖДО МО не е в ``consumptions`` ⇒ не се брои.
+        """
+        skip_lots = skip_lots or self.env["stock.lot"]
+        prefix = pbm.parent_path or "/-/"
+        lines = consumptions.filtered(
+            lambda m: m.product_id == product
+            and m.state not in ("done", "cancel")).move_line_ids.filtered(
+            lambda ml: (ml.location_id.parent_path or "").startswith(prefix)
+            and ml.lot_id not in skip_lots)
+        return sum(ml.product_uom_id._compute_quantity(
+            ml.quantity, ml.move_id.product_uom) for ml in lines)
+
+    @api.model
+    def _staged_plan_pick_target(self, planned, reserved, bar_m):
+        """Пикът по плана: планът минус буфера, в ЦЕЛИ пръти (№120).
+
+        Складът вади цели пръти, затова недостигът се закръгля НАГОРЕ до
+        прът; буферът покрива всичко ⇒ 0. Делението се изчиства от шума на
+        плаващата запетая (209,10 / 6,15 = 33,999… или 34,000…1), иначе
+        закръглянето нагоре би добавило прът отгоре.
+        """
+        need = max((planned or 0.0) - (reserved or 0.0), 0.0)
+        bars = need / bar_m
+        if abs(bars - round(bars)) < 1e-6:
+            bars = round(bars)
+        return math.ceil(bars) * bar_m
+
     def _staged_offcut_plan(self):
         """Offcut-sourced консумация per (bar_product, source_offcut_lot): метри.
         Патерни с source_offcut_lot_id SET (режат от СЪЩЕСТВУВАЩ offcut лот).
@@ -1708,6 +1743,10 @@ class MrpProduction(models.Model):
         # ⚠️ Планът се чете АГРЕГИРАНО за партидата: сумата е вярна, разбивката
         # по собственик — не (вж. _staged_batch_bar_plan).
         _batch_plan = self._staged_batch_bar_plan()
+        # №120: старите остатъци на партидата имат свой крак — резервираното
+        # от тях в буфера не намалява пика на целите пръти.
+        _offcut_lots = self.mapped(
+            "staged_cutting_optimization_id.pattern_ids.source_offcut_lot_id")
         for _pk in pc_pickings.exists():
             _bumped = False
             _by_product = {}
@@ -1728,8 +1767,17 @@ class MrpProduction(models.Model):
                 _current = sum(_moves.mapped("product_uom_qty"))
                 _planned = _batch_plan.get(_product)
                 if _planned:
-                    _target = _planned                       # ← планът командва
-                    _src = "план"
+                    # 🔴 №120 (01.10, PC/00492): планът е ЦЕЛИЯТ разкрой, а
+                    # част от прътите вече лежат в буфера, резервирани за
+                    # същите МО. Без приспадането пикът по недостига (209,10 м)
+                    # се връщаше на целия план (227,55 м) ⇒ 3 пръта отгоре и
+                    # фалшив backorder при валидиране.
+                    _reserved = self._staged_buffer_reserved(
+                        consumptions, _product, _pk.location_dest_id,
+                        _offcut_lots)
+                    _target = self._staged_plan_pick_target(
+                        _planned, _reserved, _bar_m)  # ← планът командва
+                    _src = "план − буфер %.2f" % _reserved
                 else:
                     _target = math.ceil(_current / _bar_m - 1e-9) * _bar_m
                     _src = "закръглено осреднено (няма план)"

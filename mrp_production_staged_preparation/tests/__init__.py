@@ -7,3 +7,4 @@ from . import test_batch_pick_by_trace
 from . import test_old_remnant_is_a_bar
 from . import test_undo_preparation
 from . import test_plan_from_list
+from . import test_pick_minus_buffer
