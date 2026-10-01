@@ -1,7 +1,7 @@
 # Copyright 2025 Your Company
 # License AGPL-3.0 or later (https://www.gnu.org/licenses/agpl).
 
-from odoo import api, fields, models
+from odoo import _, api, fields, models
 
 
 class PurchaseOrderLine(models.Model):
@@ -124,4 +124,39 @@ class PurchaseOrderLine(models.Model):
                     vals["name"] = (
                         f"{existing_name}\n\nLots:\n" + "\n".join(descriptions)
                     )
+        else:
+            self._forced_lot_note_missing(product_id, po)
         return vals
+
+    @api.model
+    def _forced_lot_note_missing(self, product, po):
+        """Прът по лот влиза в покупка БЕЗ форсиран лот — казва се (№118).
+
+        Точката за поръчка носи лот само ако чакащите движения го носят, а
+        суровото движение на МО го получава от Default Forced Lot на реда в
+        рецептата. Празен ли е лотът там, покупката излиза без лот и спира
+        чак при приемането — мерено на fulltest 01.10: покупка 1741 за
+        ETE E 41103, 7 от 7 сурови движения без лот.
+
+        Прът = продукт по лот с лот с дължина на прът (`bar_length_mm`, ADR-0050).
+        Полето е на плъгина за разкроя — без него проверката мълчи. Една
+        бележка за продукт на поръчка: има ли вече ред без лот за същия
+        продукт, бележката е писана при него (сливането в него не минава оттук).
+        """
+        if not po or product.tracking != "lot":
+            return
+        Lot = self.env["stock.lot"]
+        if "bar_length_mm" not in Lot._fields or not Lot.search_count(
+                [("product_id", "=", product.id), ("bar_length_mm", ">", 0)],
+                limit=1):
+            return
+        if po.order_line.filtered(
+                lambda l: l.product_id == product and not l.forced_lot_ids):
+            return
+        marker = "[%s]" % (product.default_code or product.id)
+        po.message_post(body=_(
+            "%(product)s %(marker)s is a bar tracked by lot, but this purchase "
+            "line has no forced lot. The receipt will stop and ask for one. "
+            "Check the Default Forced Lot on the bill of materials lines of "
+            "this product.",
+            product=product.name, marker=marker))
