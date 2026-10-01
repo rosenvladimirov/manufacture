@@ -56,6 +56,16 @@ class TestPcBarPackaging(TransactionCase):
         self.assertEqual(move.product_packaging_id.name, "6000")
         self.assertAlmostEqual(move.product_packaging_qty, 33.0)
 
+    def test_a_move_turned_into_pc_gets_the_bar(self):
+        """Пътят на подготовката: суровото движение (M) се ражда с друг вид
+        операция и чак после `write` го прави Pick Components."""
+        move = self._move(self._product(("6000", 6.0)), 420.0,
+                          picking_type=self.wh.int_type_id)
+        self.assertFalse(move.product_packaging_id, "постановката")
+        move.picking_type_id = self.wh.pbm_type_id
+        self.assertEqual(move.product_packaging_id.name, "6000")
+        self.assertAlmostEqual(move.product_packaging_qty, 70.0)
+
     def test_two_packagings_decide_nothing(self):
         move = self._move(self._product(("6000", 6.0), ("6500", 6.5)))
         self.assertFalse(move.product_packaging_id)
