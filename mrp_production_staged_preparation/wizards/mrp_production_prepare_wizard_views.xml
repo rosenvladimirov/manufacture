@@ -11,6 +11,23 @@
                     No — stage materials but keep in Preparation (start later).
                 </p>
                 <field name="production_ids" readonly="1" widget="many2many_tags"/>
+                <!-- №116: резюме на разкроя и бутон към него — да не се пуска
+                     на сляпо. Само при един разкрой за партидата. -->
+                <field name="cutting_optimization_id" invisible="1"/>
+                <div class="mt-3" invisible="not cutting_optimization_id">
+                    <group>
+                        <group>
+                            <field name="cutting_bars" readonly="1"/>
+                            <field name="cutting_waste_pct" readonly="1"/>
+                            <field name="cutting_pattern_count" readonly="1"/>
+                        </group>
+                        <group>
+                            <button string="View Cutting" name="action_view_cutting"
+                                    type="object" icon="fa-scissors"
+                                    class="btn-link"/>
+                        </group>
+                    </group>
+                </div>
                 <footer>
                     <button string="Yes — Start" name="action_prepare_and_start"
                             type="object" class="btn-primary"/>

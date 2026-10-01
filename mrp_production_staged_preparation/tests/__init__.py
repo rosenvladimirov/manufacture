@@ -9,3 +9,4 @@ from . import test_undo_preparation
 from . import test_plan_from_list
 from . import test_pick_minus_buffer
 from . import test_pc_bar_packaging
+from . import test_prepare_wizard_cutting

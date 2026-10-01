@@ -173,6 +173,29 @@ msgid "The transfer %(picks)s also carries %(others)s. Undo the preparation of a
 msgstr "Трансферът %(picks)s носи и %(others)s. Отменете подготовката на всички тези поръчки заедно — отмяна само на част от тях би оставила трансфера наполовина празен."
 
 #. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__cutting_bars
 #: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_picking_form_bars
 msgid "Bars"
 msgstr "Пръти"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__cutting_optimization_id
+#: code:addons/mrp_production_staged_preparation/wizards/mrp_production_prepare_wizard.py:0
+msgid "Cutting Run"
+msgstr "Разкрой"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__cutting_waste_pct
+msgid "Waste %"
+msgstr "Отпадък %"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__cutting_pattern_count
+msgid "Cutting Patterns"
+msgstr "Схеми на рязане"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid "View Cutting"
+msgstr "Виж разкроя"
