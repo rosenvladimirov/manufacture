@@ -436,6 +436,45 @@ class MrpProduction(models.Model):
             ml.quantity, ml.move_id.product_uom) for ml in lines)
 
     @api.model
+    def _staged_buffer_whole_bars(self, consumptions, product, pbm, bar_lot,
+                                  skip_lots=None):
+        """Метрите ЦЕЛИ пръти в буфера, на разположение на партидата (№120, т.2).
+
+        🔴 Тест 02.10 (Клаудио, M002088): в буфера 2 свободни цели пръта лот
+        6500 (13 м); МО-то при потвърждаване резервира от тях 11,58 м. Броят на
+        резервираните метри, закръглен надолу, дава 1 прът ⇒ пикът докарва цял
+        прът в повече. Физически в буфера стоят ДВА.
+        ⇒ Брои се физическото: количеството на лотовете с дължината на целия
+        прът в `pbm` (и поддървото му), минус резервираното за ЧУЖДИ движения —
+        свободното и резервираното от консумациите на партидата. Свободното се
+        брои, защото партидата резервира точно оттам при потвърждаване.
+        Старите остатъци (``skip_lots``) и лотовете с друга дължина не са цели
+        пръти. Резултатът е в цели пръти, надолу, в мерната единица на продукта.
+        """
+        skip_lots = skip_lots or self.env["stock.lot"]
+        if not bar_lot or not bar_lot.bar_length_mm or not pbm:
+            return 0.0
+        bar_m = bar_lot.bar_length_mm / 1000.0
+        quants = self.env["stock.quant"].sudo().search([
+            ("product_id", "=", product.id),
+            ("location_id", "child_of", pbm.id),
+            ("lot_id.bar_length_mm", "=", bar_lot.bar_length_mm),
+        ]).filtered(lambda q: q.lot_id not in skip_lots and q.quantity > 0)
+        if not quants:
+            return 0.0
+        free = sum(q.quantity - q.reserved_quantity for q in quants)
+        lots = quants.lot_id
+        ours = consumptions.filtered(
+            lambda m: m.product_id == product
+            and m.state not in ("done", "cancel")).move_line_ids.filtered(
+            lambda ml: ml.lot_id in lots
+            and ml.location_id in quants.location_id)
+        ours_qty = sum(ml.product_uom_id._compute_quantity(
+            ml.quantity, product.uom_id) for ml in ours)
+        bars = (free + ours_qty) / bar_m
+        return max(math.floor(bars + 1e-6), 0) * bar_m
+
+    @api.model
     def _staged_plan_pick_target(self, planned, reserved, bar_m):
         """Пикът по плана: планът минус буфера, в ЦЕЛИ пръти (№120).
 
@@ -1780,12 +1819,14 @@ class MrpProduction(models.Model):
                     # същите МО. Без приспадането пикът по недостига (209,10 м)
                     # се връщаше на целия план (227,55 м) ⇒ 3 пръта отгоре и
                     # фалшив backorder при валидиране.
-                    _reserved = self._staged_buffer_reserved(
+                    # №120 т.2 (тест 02.10, M002088): буферът се мери с
+                    # ФИЗИЧЕСКИТЕ цели пръти, не с резервираните метри.
+                    _reserved = self._staged_buffer_whole_bars(
                         consumptions, _product, _pk.location_dest_id,
-                        _offcut_lots)
+                        _lot, _offcut_lots)
                     _target = self._staged_plan_pick_target(
                         _planned, _reserved, _bar_m)  # ← планът командва
-                    _src = "план − буфер %.2f" % _reserved
+                    _src = "план − буфер %.2f (цели пръти)" % _reserved
                 else:
                     _target = math.ceil(_current / _bar_m - 1e-9) * _bar_m
                     _src = "закръглено осреднено (няма план)"
