@@ -93,3 +93,17 @@ class TestPcBarPackaging(TransactionCase):
         move = self._move(product, product_packaging_id=hand.id)
         move.product_uom_qty = 198.0
         self.assertEqual(move.product_packaging_id, hand)
+
+    def test_a_glass_unit_in_m2_gets_no_bar(self):
+        """№117 т.2 (PC/00499): стъклопакетът в m² с опаковка „2.0 m2“ не е прът."""
+        m2 = self.env.ref("uom.uom_square_meter")
+        glass = self.env["product.product"].create({
+            "name": "T117 стъклопакет", "type": "consu", "is_storable": True,
+            "uom_id": m2.id, "uom_po_id": m2.id})
+        self.env["product.packaging"].create({"name": "2.0 m2", "qty": 2.0, "product_id": glass.id})
+        move = self.env["stock.move"].create({
+            "name": "T117", "product_id": glass.id, "product_uom": m2.id,
+            "product_uom_qty": 0.7, "picking_type_id": self.wh.pbm_type_id.id,
+            "location_id": self.wh.pbm_type_id.default_location_src_id.id or self.wh.lot_stock_id.id,
+            "location_dest_id": self.wh.pbm_type_id.default_location_dest_id.id or self.wh.lot_stock_id.id})
+        self.assertFalse(move.product_packaging_id, "стъклопакет получи опаковка-прът")

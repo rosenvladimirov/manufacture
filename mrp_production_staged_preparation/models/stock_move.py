@@ -372,6 +372,11 @@ class StockMove(models.Model):
             wh = move.picking_type_id.warehouse_id
             if not wh or not wh.pbm_type_id or move.picking_type_id != wh.pbm_type_id:
                 continue
+            # №117 т.2 (тест 02.10, PC/00499): само мерки за ДЪЛЖИНА. Стъклопакетите
+            # излизаха с опаковка „2.0 m2“ и брой 0,35 — прът е само в метри.
+            if move.product_id.uom_id.category_id != self.env.ref(
+                    "uom.product_uom_meter").category_id:
+                continue
             opakovki = move.product_id.packaging_ids
             if len(opakovki) == 1 and opakovki.qty > 1.0:
                 move.product_packaging_id = opakovki
