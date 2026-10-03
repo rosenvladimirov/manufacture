@@ -129,7 +129,7 @@ class PurchaseOrderLine(models.Model):
         return vals
 
     @api.model
-    def _forced_lot_note_missing(self, product, po):
+    def _forced_lot_note_missing(self, product, po, on_confirm=False):
         """Прът по лот влиза в покупка БЕЗ форсиран лот — казва се (№118).
 
         Точката за поръчка носи лот само ако чакащите движения го носят, а
@@ -150,10 +150,17 @@ class PurchaseOrderLine(models.Model):
                 [("product_id", "=", product.id), ("bar_length_mm", ">", 0)],
                 limit=1):
             return
-        if po.order_line.filtered(
+        marker = "[%s]" % (product.default_code or product.id)
+        if on_confirm:
+            # №118 т.2: при потвърждаване редът вече е в поръчката — питаме
+            # дали бележката за продукта е писана, не дали има ред без лот.
+            if self.env["mail.message"].search_count([
+                    ("model", "=", "purchase.order"), ("res_id", "=", po.id),
+                    ("body", "ilike", marker)], limit=1):
+                return
+        elif po.order_line.filtered(
                 lambda l: l.product_id == product and not l.forced_lot_ids):
             return
-        marker = "[%s]" % (product.default_code or product.id)
         po.message_post(body=_(
             "%(product)s %(marker)s is a bar tracked by lot, but this purchase "
             "line has no forced lot. The receipt will stop and ask for one. "

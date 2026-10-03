@@ -12,6 +12,7 @@
   ③ продукт по лот, който не е прът (стъкло, Armafom) ⇒ тихо;
   ④ втори ред без лот за същия продукт ⇒ без втора бележка.
 """
+from odoo import fields
 from odoo.tests.common import TransactionCase, tagged
 
 
@@ -81,3 +82,36 @@ class TestBarPoWithoutLot(TransactionCase):
             dict(self._line_vals(self.bar), order_id=self.po.id))
         self._line_vals(self.bar)
         self.assertEqual(len(self._notes()), 1, 'бележката се повтаря')
+
+    # ── №118 т.2 (тест 02.10, P00208): РЪЧЕН ред, казва се при потвърждаване ──
+    def _manual_line(self, product, lots=None):
+        return self.env['purchase.order.line'].create({
+            'order_id': self.po.id, 'product_id': product.id,
+            'product_qty': 6.3, 'price_unit': 1.0,
+            'forced_lot_ids': [(6, 0, lots.ids)] if lots else False})
+
+    def test_a_manual_bar_line_without_a_lot_is_said_on_confirm(self):
+        self._manual_line(self.bar)
+        self.assertFalse(self._notes(), 'постановката: ръчният ред не минава през правилото')
+        self.po.button_confirm()
+        self.assertEqual(len(self._notes()), 1, 'ръчен ред за прът без лот мина тихо')
+        self.assertIn('[T118-BAR]', self._notes().body)
+
+    def test_a_manual_bar_line_with_a_lot_is_quiet_on_confirm(self):
+        self._manual_line(self.bar, self.lot)
+        self.po.button_confirm()
+        self.assertFalse(self._notes())
+
+    def test_a_manual_glass_line_is_quiet_on_confirm(self):
+        self._manual_line(self.glass)
+        self.po.button_confirm()
+        self.assertFalse(self._notes())
+
+    def test_the_note_from_the_rule_is_not_repeated_on_confirm(self):
+        # редът от правилото носи date_planned от доставката — тук го слагаме сами
+        self.env['purchase.order.line'].create(
+            dict(self._line_vals(self.bar), order_id=self.po.id,
+                 date_planned=fields.Datetime.now()))
+        self.assertEqual(len(self._notes()), 1)
+        self.po.button_confirm()
+        self.assertEqual(len(self._notes()), 1, 'бележката се повтаря при потвърждаване')
