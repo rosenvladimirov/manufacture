@@ -315,3 +315,13 @@ msgstr "Виж разкроя (проба)"
 #: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 msgid "The source produced no pieces to cut"
 msgstr "Източникът не даде парчета за рязане"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"MO %s is already staged/released — unplanning is blocked (its transfers are "
+"already made)."
+msgstr ""
+"Поръчката %s вече е пусната — отпланирането е спряно (трансферите ѝ вече са "
+"създадени)."

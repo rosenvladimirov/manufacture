@@ -197,6 +197,24 @@ class MrpProduction(models.Model):
                 moved |= production
         return self._staged_plan_list_action(moved) or result
 
+    def button_unplan(self):
+        """№159 (Любо, 13.10): „ако планирам някоя поръчка тя минава в статус
+        ПФП, но ако избера Unplan не я връща в статус Confirmed“. `button_plan`
+        вдига confirmed → preparation, а обратното липсваше ⇒ МО оставаше в
+        подготовка без план. Пусната (staged_released) — отказ, като при
+        повторния Plan: трансферите вече са родени."""
+        for production in self:
+            if production.staged_released:
+                raise UserError(_(
+                    "MO %s is already staged/released — unplanning is blocked "
+                    "(its transfers are already made).",
+                    production.name))
+        result = super().button_unplan()
+        for production in self:
+            if production.staged_preparation_enabled and production.state == "preparation":
+                production.state = "confirmed"
+        return result
+
     def _staged_plan_list_action(self, moved):
         """№119 (Любо, 01.10): „Plan“ от СПИСЪКА → списъкът наново с филтъра
         „In Preparation“, не „To Do“ — планираните МО отиват точно там.

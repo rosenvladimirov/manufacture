@@ -12,3 +12,4 @@ from . import test_pc_bar_packaging
 from . import test_prepare_wizard_cutting
 from . import test_cutting_trial
 from . import test_pick_physical_bars
+from . import test_unplan_back_to_confirmed
