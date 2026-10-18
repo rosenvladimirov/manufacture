@@ -17,6 +17,7 @@ Lot/serial number specific BOM creation and management module.
         'mrp',
         'stock',
         'product',
+        'markdown_viewer_locale'
     ],
     'data': [
         'data/ir_sequence_data.xml',
@@ -26,6 +27,13 @@ Lot/serial number specific BOM creation and management module.
         'views/mrp_bom_views.xml',
         'views/stock_lot_views.xml',
     ],
+    'assets': {
+        'web.assets_backend': [
+            # Добавяме регистрацията на документацията
+            ('after', 'markdown_viewer_locale/static/src/js/markdown_registry.js',
+             'mrp_bom_for_lot/static/src/js/mrp_bom_for_lot_markdown.js'),
+        ],
+    },
     'installable': True,
     'application': False,
     'auto_install': False,
