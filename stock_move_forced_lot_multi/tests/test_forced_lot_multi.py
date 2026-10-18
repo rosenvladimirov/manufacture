@@ -19,7 +19,7 @@ from odoo.tools import mute_logger
 
 @tagged("post_install", "-at_install")
 class TestForcedLotMulti(TransactionCase):
-    """Тестове за 19-ия порт на 18.0.4.3.1.
+    """Тестове за 19-ия порт на 18.0.4.3.1 (git репото; №118 от прода — в test_bar_po_without_lot).
 
     Покриват: разцепването на набавяне по лот (force_split / po_split),
     ключа за сливане на набавяния, _find_candidate при po_split,

@@ -17,6 +17,19 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #. module: stock_move_forced_lot_multi
+#. odoo-python
+#: code:addons/stock_move_forced_lot_multi/models/purchase_order_line.py:0
+msgid ""
+"%(product)s %(marker)s is a bar tracked by lot, but this purchase line has "
+"no forced lot. The receipt will stop and ask for one. Check the Default "
+"Forced Lot on the bill of materials lines of this product."
+msgstr ""
+"%(product)s %(marker)s е прът, проследяван по партида, но този ред на "
+"покупката е без задължителна партида. Приемането ще спре и ще поиска "
+"партида. Проверете задължителната партида по подразбиране на редовете в "
+"рецептите на този продукт."
+
+#. module: stock_move_forced_lot_multi
 #: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_warehouse_orderpoint_form_inherit_forced_lots
 msgid ""
 "<i class=\"fa fa-info-circle\"/>\n"

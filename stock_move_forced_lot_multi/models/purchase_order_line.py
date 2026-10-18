@@ -140,4 +140,58 @@ class PurchaseOrderLine(models.Model):
                     vals["name"] = (
                         f"{existing_name}\n\nLots:\n" + "\n".join(descriptions)
                     )
+        else:
+            self._forced_lot_note_missing(product_id, po)
         return vals
+
+    @api.model
+    def _forced_lot_note_missing(self, product, po, on_confirm=False):
+        """Прът по лот влиза в покупка БЕЗ форсиран лот — казва се (№118).
+
+        Точката за поръчка носи лот само ако чакащите движения го носят, а
+        суровото движение на МО го получава от Default Forced Lot на реда в
+        рецептата. Празен ли е лотът там, покупката излиза без лот и спира
+        чак при приемането — мерено на fulltest 01.10: покупка 1741 за
+        ETE E 41103, 7 от 7 сурови движения без лот.
+
+        Прът = продукт по лот с лот с дължина на прът (`bar_length_mm`, ADR-0050).
+        Полето е на плъгина за разкроя — без него проверката мълчи. Една
+        бележка за продукт на поръчка: има ли вече ред без лот за същия
+        продукт, бележката е писана при него (сливането в него не минава оттук).
+        """
+        if not po or product.tracking != "lot":
+            return
+        Lot = self.env["stock.lot"]
+        if "bar_length_mm" not in Lot._fields or not Lot.search_count(
+            [("product_id", "=", product.id), ("bar_length_mm", ">", 0)],
+            limit=1,
+        ):
+            return
+        marker = "[%s]" % (product.default_code or product.id)
+        if on_confirm:
+            # №118 т.2: при потвърждаване редът вече е в поръчката — питаме
+            # дали бележката за продукта е писана, не дали има ред без лот.
+            if self.env["mail.message"].search_count(
+                [
+                    ("model", "=", "purchase.order"),
+                    ("res_id", "=", po.id),
+                    ("body", "ilike", marker),
+                ],
+                limit=1,
+            ):
+                return
+        elif po.order_line.filtered(
+            lambda line: line.product_id == product and not line.forced_lot_ids
+        ):
+            return
+        # 19: преводимият низ минава през self.env._ (вместо глобалното _)
+        po.message_post(
+            body=self.env._(
+                "%(product)s %(marker)s is a bar tracked by lot, but this "
+                "purchase line has no forced lot. The receipt will stop and "
+                "ask for one. Check the Default Forced Lot on the bill of "
+                "materials lines of this product.",
+                product=product.name,
+                marker=marker,
+            )
+        )

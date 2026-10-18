@@ -10,3 +10,4 @@
 # by the AGPL-3.0-or-later.
 
 from . import test_forced_lot_multi
+from . import test_bar_po_without_lot

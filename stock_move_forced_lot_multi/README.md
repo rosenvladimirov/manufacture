@@ -39,6 +39,7 @@ This module allows forcing multiple lots on stock moves, propagating them from M
 - **Automatic move.line creation**: When assigning incoming picks, move lines are auto-created per lot
 - **MO integration**: Select forced lots directly on MO raw material lines
 - **Merge prevention**: Moves with different forced lots are not merged
+- **Bar without a lot is reported**: a lot-tracked bar (`bar_length_mm` from the cutting plugin) entering a purchase without a forced lot posts a note on the purchase, both from the replenishment rule and on confirmation of a manual line (no118)
 
 ## Configuration
 
@@ -68,6 +69,7 @@ No special configuration needed. Install the module and you're ready to go.
 - `stock.move`: `forced_lot_ids` (Many2many), `forced_lot_extra_data` (Json)
 - `stock.lot`: `force_split`, `split_buffer_qty`, `po_split`
 - `purchase.order.line`: `forced_lot_ids` (Many2many)
+- `purchase.order`: `button_confirm()` reports manual bar lines without a forced lot
 - `stock.rule`: per-lot procurement split in `run()`, merge key, PO line update
 - `stock.warehouse.orderpoint`: lot sub-rules (`parent_id`, `child_ids`, `lot_id`)
 - `mrp.bom.line`: `default_forced_lot_id`
@@ -81,6 +83,7 @@ No special configuration needed. Install the module and you're ready to go.
 - `purchase.order.line._find_candidate()`: no cross-lot merge for `po_split` lots
 - `purchase.order.line._prepare_stock_move_vals()`: passes lots to the incoming move
 - `stock.move._forced_lot_fill_empty_lines()`: fills `lot_id` on empty move lines (after assign and before done)
+- `purchase.order.line._forced_lot_note_missing()`: one note per product and purchase when a bar tracked by lot has no forced lot
 
 ## Dependencies
 
