@@ -12,7 +12,12 @@
     (в 18 `valuation_out_account_id`);
   ④ празна коя да е от двете сметки при перманентна оценка ⇒ отказ, нищо
     не се записва;
-  ⑤ несвободно количество ⇒ отказ.
+  ⑤ несвободно количество ⇒ отказ;
+  ⑥ периодична категория с `l10n_bg_stock_auto_post` (Теолино, ADR
+    teolino-o19-migration/0001 т. 11): статиите са по СЪЩИТЕ две сметки като
+    при перманентна оценка — не по сметките на категорията; празна сметка ⇒
+    отказ. Без auto_post — без статия (④). Само ако `l10n_bg_stock_account`
+    е инсталиран — `stock_lot_relabel` не зависи от него.
 """
 from odoo.exceptions import UserError
 from odoo.tests.common import TransactionCase, tagged
@@ -229,3 +234,61 @@ class TestLotRelabel(TransactionCase):
             self._relabel(4.63)
         self.assertAlmostEqual(other.quantity, 3.0, places=2,
                                msg="преетикетирането открадна резервация")
+
+    # ⑥ ─────────────────────────────────────────────────────────────────
+    def _auto_post_categ(self):
+        if 'l10n_bg_stock_auto_post' not in self.categ._fields:
+            self.skipTest("l10n_bg_stock_account is not installed")
+        Account = self.env['account.account']
+        # Сметките на категорията за auto_post — нарочно ДРУГИ: статията на
+        # преетикетирането не бива да стъпи на тях.
+        self.acc_transit = Account.create({
+            'code': 'T93RTRN', 'name': 'T93R transit',
+            'account_type': 'asset_current'})
+        self.acc_cogs = Account.create({
+            'code': 'T93RCOGS', 'name': 'T93R issue',
+            'account_type': 'expense'})
+        self.categ.write({
+            'property_valuation': 'periodic',
+            'l10n_bg_stock_auto_post': True,
+            'l10n_bg_stock_input_account_id': self.acc_transit.id,
+            'l10n_bg_stock_output_account_id': self.acc_cogs.id,
+        })
+
+    def test_auto_post_periodic_uses_the_two_relabel_accounts(self):
+        self._auto_post_categ()
+        self._receive(5.0, 3.00)
+        self._receive(5.0, 3.20)
+        out, inn = self._relabel(6.3)
+        self.assertTrue(out.account_move_id)
+        self.assertTrue(inn.account_move_id)
+        self.assertNotEqual(out.account_move_id, inn.account_move_id)
+        aml_out = out.account_move_id.line_ids
+        aml_in = inn.account_move_id.line_ids
+        self.assertEqual(aml_out.account_id, self.acc_val | self.acc_rel_in)
+        self.assertEqual(aml_in.account_id, self.acc_val | self.acc_rel_out,
+                         "входът не кредитира втората сметка на локацията")
+        dr = aml_out.filtered(lambda l: l.account_id == self.acc_rel_in)
+        cr = aml_out.filtered(lambda l: l.account_id == self.acc_val)
+        self.assertAlmostEqual(dr.debit, 19.16, places=2)
+        self.assertAlmostEqual(cr.credit, 19.16, places=2)
+        dr = aml_in.filtered(lambda l: l.account_id == self.acc_val)
+        cr = aml_in.filtered(lambda l: l.account_id == self.acc_rel_out)
+        self.assertAlmostEqual(dr.debit, 19.16, places=2)
+        self.assertAlmostEqual(cr.credit, 19.16, places=2)
+
+    def test_auto_post_periodic_missing_accounts_refuse(self):
+        self._auto_post_categ()
+        self._receive(10.0, 3.33)
+        for field in ('valuation_account_id', 'lot_relabel_out_account_id'):
+            keep = self.relabel_loc[field]
+            self.relabel_loc[field] = False
+            n_moves = self.env['stock.move'].search_count([])
+            n_entries = self.env['account.move'].search_count([])
+            with self.assertRaisesRegex(UserError, 'valuation account'):
+                self._relabel(4.63)
+            self.assertEqual(self.env['stock.move'].search_count([]), n_moves)
+            self.assertEqual(self.env['account.move'].search_count([]),
+                             n_entries)
+            self.relabel_loc[field] = keep
+        self.assertAlmostEqual(self._qty(self.lot_bar), 10.0, places=2)

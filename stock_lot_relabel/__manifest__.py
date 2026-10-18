@@ -8,7 +8,7 @@
         "location: one move out with the source lot, one move back in with "
         "the target lot, equal value, posted on configurable accounts."
     ),
-    "version": "19.0.1.1.0",
+    "version": "19.0.1.2.0",
     "category": "Inventory",
     "website": "https://github.com/rosenvladimirov/manufacture-experts",
     "author": "Rosen Vladimirov, Terraros Commerce Ltd.",

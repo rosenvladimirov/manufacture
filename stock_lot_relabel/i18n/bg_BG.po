@@ -126,6 +126,18 @@ msgstr ""
 #. module: stock_lot_relabel
 #. odoo-python
 #: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid ""
+"The location %(location)s needs both a stock valuation account and a lot "
+"relabel return account. Set both accounts on it before relabelling "
+"%(product)s, whose stock moves are posted to accounting."
+msgstr ""
+"Локацията %(location)s изисква и сметка за оценка на наличностите, и "
+"сметка за връщане при смяна на лот. Задайте двете, преди да сменяте "
+"лота на %(product)s — движенията му се осчетоводяват."
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
 msgid "The lot relabel move %(move)s could not be validated."
 msgstr "Движението за смяна на лот %(move)s не можа да бъде валидирано."
 
@@ -164,13 +176,15 @@ msgstr "Стойност по движението за смяна на лот %
 msgid ""
 "Credited when stock comes back from this location with the target lot of a "
 "lot relabel. The stock valuation account is debited when the stock leaves "
-"with the source lot. Both are required for products with perpetual "
-"inventory valuation."
+"with the source lot. Both are required whenever the relabel is posted to "
+"accounting: perpetual inventory valuation, or automatic posting of the stock"
+" moves of the category."
 msgstr ""
 "Кредитира се, когато наличността се връща от тази локация с целевия лот при"
 " смяна на лот. Сметката за оценка на наличностите се дебитира, когато"
-" наличността излиза с изходния лот. И двете са задължителни за продукти с"
-" перманентна оценка на наличностите."
+" наличността излиза с изходния лот. И двете са задължителни, когато смяната"
+" на лот се осчетоводява: при перманентна оценка на наличностите или при"
+" автоматично осчетоводяване на складовите движения на категорията."
 
 #. module: stock_lot_relabel
 #: model:ir.model,name:stock_lot_relabel.model_stock_location

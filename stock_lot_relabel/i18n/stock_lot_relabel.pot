@@ -118,6 +118,15 @@ msgstr ""
 #. module: stock_lot_relabel
 #. odoo-python
 #: code:addons/stock_lot_relabel/models/stock_lot.py:0
+msgid ""
+"The location %(location)s needs both a stock valuation account and a lot "
+"relabel return account. Set both accounts on it before relabelling "
+"%(product)s, whose stock moves are posted to accounting."
+msgstr ""
+
+#. module: stock_lot_relabel
+#. odoo-python
+#: code:addons/stock_lot_relabel/models/stock_lot.py:0
 msgid "The lot relabel move %(move)s could not be validated."
 msgstr ""
 
@@ -152,8 +161,9 @@ msgstr ""
 msgid ""
 "Credited when stock comes back from this location with the target lot of a "
 "lot relabel. The stock valuation account is debited when the stock leaves "
-"with the source lot. Both are required for products with perpetual "
-"inventory valuation."
+"with the source lot. Both are required whenever the relabel is posted to "
+"accounting: perpetual inventory valuation, or automatic posting of the stock"
+" moves of the category."
 msgstr ""
 
 #. module: stock_lot_relabel

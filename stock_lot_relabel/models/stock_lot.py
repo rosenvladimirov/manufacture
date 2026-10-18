@@ -41,7 +41,10 @@ class StockLot(models.Model):
         `stock.move._get_account_move_line_vals`). Празна ли е коя да е при
         перманентна оценка — отказ. Ядрото в 19 тихо би пропуснало записа
         (`_should_create_account_move`) или би кредитирало входа по сметката
-        на изхода.
+        на изхода. Същото при всеки друг път, по който изходът се осчетоводява
+        — напр. периодична категория с `l10n_bg_stock_auto_post`; там
+        проверката е след изхода, защото само валидирано движение знае дали
+        ще има статия.
 
         Връща двете движения (изход | вход).
         """
@@ -100,10 +103,31 @@ class StockLot(models.Model):
             "lot_relabel_src_lot_id": src_lot.id,
             "lot_relabel_dst_lot_id": dst_lot.id,
         }
-        out_move = Move.create(dict(
-            common, location_id=location.id,
-            location_dest_id=relabel_loc.id, lot_relabel_role="out"))
-        self._relabel_done(out_move, src_lot, qty)
+        # Изходът е в точка на връщане: отказът по-долу го отменя тук, а не
+        # чак с транзакцията — и при извикващ, който хваща UserError.
+        with self.env.cr.savepoint():
+            out_move = Move.create(dict(
+                common, location_id=location.id,
+                location_dest_id=relabel_loc.id, lot_relabel_role="out"))
+            self._relabel_done(out_move, src_lot, qty)
+            # 🔑 Втората проверка — за всеки път, по който стекът осчетоводява
+            # движението, освен перманентната оценка: напр.
+            # `l10n_bg_stock_auto_post` (Теолино) при периодична категория. Там
+            # без сметката на локацията изходът би паднал тихо на сметката на
+            # категорията, а входът — на транзитната. Пита се самото движение
+            # (`_should_create_account_move`), затова не зависим от модула,
+            # който решава. Отказът отменя вече валидирания изход (точката на връщане).
+            if out_move._should_create_account_move() and not (
+                    relabel_loc.valuation_account_id
+                    and relabel_loc.lot_relabel_out_account_id):
+                raise UserError(_(
+                    "The location %(location)s needs both a stock "
+                    "valuation account and a lot relabel return account. "
+                    "Set both accounts on it before relabelling "
+                    "%(product)s, whose stock moves are posted to "
+                    "accounting.",
+                    location=relabel_loc.display_name,
+                    product=product.display_name))
         # Цената на входа е производна; истинската стойност влиза през
         # `_get_value_from_returns`. В 19 стойността на изхода е положителна
         # и живее в самото движение (`stock.move.value`), не в слой.

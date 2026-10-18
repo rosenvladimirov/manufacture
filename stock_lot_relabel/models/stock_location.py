@@ -26,7 +26,9 @@ class StockLocation(models.Model):
         help="Credited when stock comes back from this location with the "
              "target lot of a lot relabel. The stock valuation account is "
              "debited when the stock leaves with the source lot. Both are "
-             "required for products with perpetual inventory valuation.",
+             "required whenever the relabel is posted to accounting: "
+             "perpetual inventory valuation, or automatic posting of the "
+             "stock moves of the category.",
     )
     is_lot_relabel_location = fields.Boolean(
         string="Is Lot Relabel Location",
