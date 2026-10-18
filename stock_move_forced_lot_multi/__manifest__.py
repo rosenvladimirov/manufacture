@@ -12,7 +12,7 @@
 {
     "name": "Stock Move Forced Lot Multi",
     "summary": "Force multiple lots on stock moves from MO to PO",
-    "version": "19.0.1.0.2",
+    "version": "19.0.4.3.1",
     "category": "Warehouse Management",
     "website": "https://github.com/rosenvladimirov/manufacture",
     "author": "Rosen Vladimirov, Terraros Commerce Ltd., Odoo Community Association (OCA)",
@@ -27,9 +27,12 @@
     ],
     "data": [
         "security/ir.model.access.csv",
+        "views/stock_lot_views.xml",
         "views/stock_move_views.xml",
         "views/stock_move_forced_lot_wizard_views.xml",
         "views/purchase_order_views.xml",
         "views/mrp_production_views.xml",
+        "views/stock_orderpoint_views.xml",
+        "views/mrp_bom_views.xml",
     ],
 }

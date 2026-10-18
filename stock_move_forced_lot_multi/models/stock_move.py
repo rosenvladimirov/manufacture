@@ -15,6 +15,11 @@ from odoo import api, fields, models
 class StockMove(models.Model):
     _inherit = "stock.move"
 
+    forced_lot_extra_data = fields.Json(
+        string="Extra Data",
+        help="Arbitrary JSON data attached to this move for propagation purposes.",
+    )
+
     forced_lot_ids = fields.Many2many(
         comodel_name="stock.lot",
         relation="stock_move_forced_lot_rel",
@@ -26,71 +31,112 @@ class StockMove(models.Model):
         copy=True,
     )
 
-    @api.model
-    def _prepare_merge_moves_distinct_fields(self):
-        """Prevent merging moves with different forced lots."""
-        distinct_fields = super()._prepare_merge_moves_distinct_fields()
-        distinct_fields.append("forced_lot_ids")
-        return distinct_fields
-
     def _prepare_procurement_values(self):
-        """Pass forced_lot_ids to procurement for propagation to PO."""
+        """Подава forced_lot_ids към набавянето (за PO/MO надолу по веригата)."""
         values = super()._prepare_procurement_values()
         if self.forced_lot_ids:
             values["forced_lot_ids"] = self.forced_lot_ids
         return values
 
+    @api.model
+    def _prepare_merge_moves_distinct_fields(self):
+        """Движения с различни forced_lot_ids не се сливат."""
+        distinct_fields = super()._prepare_merge_moves_distinct_fields()
+        distinct_fields.append("forced_lot_ids")
+        return distinct_fields
+
     def _action_assign(self, force_qty=False):
-        """Override to handle forced lots on incoming moves."""
+        """Auto-fill на move_line.lot_id от forced_lot_ids след резервация.
+
+        Върви СЛЕД super()._action_assign(), така че лот избран от quant
+        резервацията печели. Пълни само празни линии (виж helper-а).
+        """
         res = super()._action_assign(force_qty=force_qty)
-        for move in self.filtered(
-            lambda m: m.forced_lot_ids
-            and m.picking_type_id.code == "incoming"
-            and m.state in ("confirmed", "partially_available", "assigned")
-        ):
-            move._create_forced_lot_move_lines()
+        self._forced_lot_fill_empty_lines()
         return res
 
-    def _create_forced_lot_move_lines(self):
-        """Create stock.move.line records for each forced lot."""
-        self.ensure_one()
-        if not self.forced_lot_ids:
-            return
+    def _action_done(self, cancel_backorder=False):
+        """Forced_lot fill и по immediate-transfer пътя (lot-gap фикс).
 
-        lines_to_remove = self.move_line_ids.filtered(
-            lambda l: not l.lot_id or l.lot_id not in self.forced_lot_ids
-        )
-        lines_to_remove.unlink()
+        При mark_done БЕЗ предварителен _action_assign (напр. МО raw
+        consumption в интегрирания Prepare/Optimize поток) move_line-ите
+        се раждат тук без lot_id → core-ът вдига „You need to supply a
+        Lot/Serial Number" (stock_move_line._action_done). Пълним от
+        forced_lot_ids ПРЕДИ super(), със същата семантика като fill-а
+        в _action_assign.
+        """
+        self._forced_lot_fill_empty_lines()
+        return super()._action_done(cancel_backorder=cancel_backorder)
 
-        existing_lots = self.move_line_ids.mapped("lot_id")
-        lots_to_create = self.forced_lot_ids - existing_lots
-        if not lots_to_create:
-            return
+    def _forced_lot_fill_empty_lines(self):
+        """Пълни lot_id на празните move_lines от forced_lot_ids.
 
-        total_qty = self.product_uom_qty
-        existing_qty = sum(self.move_line_ids.mapped("quantity"))
-        remaining_qty = total_qty - existing_qty
+        Пише САМО по линии без lot_id и без lot_name — никога не
+        презаписва избор на резервацията или ръчно въведена стойност.
 
-        if remaining_qty <= 0:
-            return
+        Един forced лот → попълва lot_id на всички празни линии.
+        Няколко forced лота → действа само при ТОЧНО една празна линия;
+        разцепва я pro-rata на по една линия per лот. Други форми
+        (няколко празни линии + няколко лота) се оставят на потребителя.
 
-        for lot in lots_to_create:
-            qty_per_lot = self._get_qty_per_lot(remaining_qty, lots_to_create, lot)
-            self.env["stock.move.line"].create({
-                "move_id": self.id,
-                "product_id": self.product_id.id,
-                "product_uom_id": self.product_uom.id,
-                "location_id": self.location_id.id,
-                "location_dest_id": self.location_dest_id.id,
-                "picking_id": self.picking_id.id,
-                "lot_id": lot.id,
+        Прескача лотове, които вече имат непразна move_line на move-а —
+        предпазва от дублирани zero-qty линии, когато друг поток (напр.
+        LogiKal importer-ът) е pre-seed-нал линиите.
+        """
+        MoveLine = self.env["stock.move.line"]
+        for move in self:
+            if not move.forced_lot_ids:
+                continue
+            if move.product_id.tracking == "none":
+                continue
+            forced_lots = move.forced_lot_ids
+            empty_lines = move.move_line_ids.filtered(
+                lambda ml: not ml.lot_id and not ml.lot_name
+            )
+            if not empty_lines:
+                continue
+
+            already_seeded_lot_ids = set(
+                move.move_line_ids.filtered("lot_id").mapped("lot_id").ids
+            )
+
+            if len(forced_lots) == 1:
+                if forced_lots.id in already_seeded_lot_ids:
+                    continue
+                empty_lines.write({"lot_id": forced_lots[0].id})
+                continue
+
+            if len(empty_lines) != 1:
+                continue
+            first = empty_lines[0]
+            total_qty = first.quantity or move.product_uom_qty
+            if total_qty <= 0:
+                continue
+
+            lots_to_seed = forced_lots.filtered(
+                lambda l: l.id not in already_seeded_lot_ids
+            )
+            if not lots_to_seed:
+                continue
+            qty_per_lot = total_qty / len(lots_to_seed)
+            first.write({
+                "lot_id": lots_to_seed[0].id,
                 "quantity": qty_per_lot,
             })
-
-    def _get_qty_per_lot(self, remaining_qty, lots_to_create, lot=None):
-        """Return the quantity to use per lot when creating move lines."""
-        self.ensure_one()
-        return remaining_qty / len(lots_to_create)
+            for lot in lots_to_seed[1:]:
+                # В 19 stock.move пази единицата в product_uom (не е
+                # преименувано), а move.line — в product_uom_id.
+                MoveLine.create({
+                    "move_id": move.id,
+                    "product_id": move.product_id.id,
+                    "product_uom_id": move.product_uom.id,
+                    "location_id": move.location_id.id,
+                    "location_dest_id": move.location_dest_id.id,
+                    "picking_id": move.picking_id.id,
+                    "lot_id": lot.id,
+                    "quantity": qty_per_lot,
+                    "company_id": move.company_id.id,
+                })
 
     def action_open_forced_lot_wizard(self):
         self.ensure_one()

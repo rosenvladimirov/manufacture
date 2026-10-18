@@ -8,11 +8,15 @@
         <field name="inherit_id" ref="stock.view_move_form"/>
         <field name="arch" type="xml">
             <field name="product_uom_qty" position="after">
-                <field name="forced_lot_ids" 
+                <field name="forced_lot_ids"
                        widget="many2many_tags"
                        domain="[('product_id', '=', product_id)]"
                        context="{'default_product_id': product_id}"
                        options="{'no_create': False, 'no_quick_create': True}"/>
+                <field name="forced_lot_extra_data"
+                       groups="base.group_no_one"
+                       readonly="1"
+                       widget="json"/>
             </field>
         </field>
     </record>

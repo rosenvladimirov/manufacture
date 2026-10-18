@@ -65,17 +65,22 @@ No special configuration needed. Install the module and you're ready to go.
 
 ### Models Extended
 
-- `stock.move`: Added `forced_lot_ids` (Many2many)
-- `purchase.order.line`: Added `forced_lot_ids` (Many2many)
-- `stock.rule`: Override `_prepare_purchase_order_line()` for propagation
-- `mrp.production`: Integration with manufacturing
+- `stock.move`: `forced_lot_ids` (Many2many), `forced_lot_extra_data` (Json)
+- `stock.lot`: `force_split`, `split_buffer_qty`, `po_split`
+- `purchase.order.line`: `forced_lot_ids` (Many2many)
+- `stock.rule`: per-lot procurement split in `run()`, merge key, PO line update
+- `stock.warehouse.orderpoint`: lot sub-rules (`parent_id`, `child_ids`, `lot_id`)
+- `mrp.bom.line`: `default_forced_lot_id`
+- `mrp.production`: computed `forced_lot_ids`, default lot from BoM line
 
 ### Key Methods
 
-- `stock.move._prepare_procurement_values()`: Passes lots to procurement
-- `stock.rule._prepare_purchase_order_line()`: Passes lots to PO line
-- `purchase.order.line._prepare_stock_move_vals()`: Passes lots to incoming move
-- `stock.move._create_forced_lot_move_lines()`: Creates move lines per lot
+- `stock.move._prepare_procurement_values()`: passes lots to procurement
+- `stock.rule.run()` / `_split_forced_lot_procurements()`: splits `force_split` / `po_split` lots into own procurements
+- `purchase.order.line._prepare_purchase_order_line_from_procurement()`: passes lots to the PO line
+- `purchase.order.line._find_candidate()`: no cross-lot merge for `po_split` lots
+- `purchase.order.line._prepare_stock_move_vals()`: passes lots to the incoming move
+- `stock.move._forced_lot_fill_empty_lines()`: fills `lot_id` on empty move lines (after assign and before done)
 
 ## Dependencies
 

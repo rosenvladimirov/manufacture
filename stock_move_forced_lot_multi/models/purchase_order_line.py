@@ -9,6 +9,7 @@
 # Unless you hold a valid commercial license, your use of this file is governed
 # by the AGPL-3.0-or-later.
 
+
 from odoo import api, fields, models
 
 
@@ -35,23 +36,59 @@ class PurchaseOrderLine(models.Model):
     @api.depends("forced_lot_ids")
     def _compute_forced_lot_ids_display(self):
         for line in self:
-            if line.forced_lot_ids:
-                line.forced_lot_ids_display = ", ".join(
-                    line.forced_lot_ids.mapped("name")
-                )
-            else:
-                line.forced_lot_ids_display = ""
+            line.forced_lot_ids_display = (
+                ", ".join(line.forced_lot_ids.mapped("name"))
+                if line.forced_lot_ids
+                else ""
+            )
 
     def _prepare_stock_move_vals(
         self, picking, price_unit, product_uom_qty, product_uom
     ):
-        """Pass forced_lot_ids to stock move when creating from PO line."""
+        """Подава forced_lot_ids към входящото движение, създадено от реда."""
+        # Сигнатурата е същата в 19: purchase_stock/models/purchase_order_line.py:283
         vals = super()._prepare_stock_move_vals(
             picking, price_unit, product_uom_qty, product_uom
         )
         if self.forced_lot_ids:
             vals["forced_lot_ids"] = [(6, 0, self.forced_lot_ids.ids)]
         return vals
+
+    def _find_candidate(self, product_id, product_qty, product_uom,
+                        location_id, name, origin, company_id, values):
+        """Prevent cross-batch merging of different forced-lot sets.
+
+        Core ``_find_candidate`` only checks product + orderpoint + description,
+        so a procurement carrying lot B will merge into an existing PO line
+        that was created for lot A of the same product. When any incoming lot
+        has ``po_split=True`` we restrict the candidate search to PO lines
+        whose ``forced_lot_ids`` set is identical — forcing a new line instead.
+        Lots without ``po_split`` keep the stock behavior (backward-compatible).
+        """
+        # Сигнатурата е същата в 19: purchase_stock/models/purchase_order_line.py:372
+        incoming = values.get("forced_lot_ids")
+        if incoming is None:
+            return super()._find_candidate(
+                product_id, product_qty, product_uom,
+                location_id, name, origin, company_id, values,
+            )
+        if hasattr(incoming, "_name"):
+            lots = incoming
+        else:
+            lots = self.env["stock.lot"].browse(list(incoming))
+        if not any(lots.mapped("po_split")):
+            return super()._find_candidate(
+                product_id, product_qty, product_uom,
+                location_id, name, origin, company_id, values,
+            )
+        incoming_key = frozenset(lots.ids)
+        candidates = self.filtered(
+            lambda l: frozenset(l.forced_lot_ids.ids) == incoming_key
+        )
+        return super(PurchaseOrderLine, candidates)._find_candidate(
+            product_id, product_qty, product_uom,
+            location_id, name, origin, company_id, values,
+        )
 
     @api.model
     def _prepare_purchase_order_line_from_procurement(
@@ -66,8 +103,11 @@ class PurchaseOrderLine(models.Model):
         values,
         po,
     ):
-        """Alternative hook for procurement values - fallback method."""
-        # This method might be called in some Odoo versions/flows
+        """Пренася forced_lot_ids от набавянето в новия ред на поръчката.
+
+        Описанието на реда (name) се допълва с имената (и ref) на лотовете.
+        """
+        # Сигнатурата е същата в 19: purchase_stock/models/purchase_order_line.py:333
         vals = super()._prepare_purchase_order_line_from_procurement(
             product_id=product_id,
             product_qty=product_qty,
@@ -81,22 +121,23 @@ class PurchaseOrderLine(models.Model):
         )
         forced_lot_ids = values.get("forced_lot_ids")
         if forced_lot_ids:
-            if hasattr(forced_lot_ids, "ids"):
-                lot_ids = forced_lot_ids.ids
-            else:
-                lot_ids = list(forced_lot_ids)
+            lot_ids = (
+                forced_lot_ids.ids
+                if hasattr(forced_lot_ids, "ids")
+                else list(forced_lot_ids)
+            )
             vals["forced_lot_ids"] = [(6, 0, lot_ids)]
 
-            # Build description with lot names (and refs when present)
-            lot_descriptions = []
-            for lot in forced_lot_ids:
-                lot_desc = lot.name
-                if lot.ref:
-                    lot_desc += f" ({lot.ref})"
-                lot_descriptions.append(lot_desc)
-
-            if lot_descriptions:
-                existing_name = vals.get("name", "")
-                lot_info = "\n".join(lot_descriptions)
-                vals["name"] = f"{existing_name}\n\nLots:\n{lot_info}"
+            if hasattr(forced_lot_ids, "mapped"):
+                descriptions = []
+                for lot in forced_lot_ids:
+                    desc = lot.name
+                    if lot.ref:
+                        desc += f" ({lot.ref})"
+                    descriptions.append(desc)
+                if descriptions:
+                    existing_name = vals.get("name", "")
+                    vals["name"] = (
+                        f"{existing_name}\n\nLots:\n" + "\n".join(descriptions)
+                    )
         return vals

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Поле "Default Forced Lot" на BoM реда — за ръчни PRK BoM-ове.
+         Офисът задава лот, който MO confirm авто-закача на raw move-а
+         (само резервация). -->
+    <record id="mrp_bom_form_default_forced_lot" model="ir.ui.view">
+        <field name="name">mrp.bom.form.default.forced.lot</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='bom_line_ids']//field[@name='product_qty']" position="after">
+                <field name="default_forced_lot_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

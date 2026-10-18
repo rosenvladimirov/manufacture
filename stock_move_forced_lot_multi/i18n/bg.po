@@ -1,0 +1,319 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+#	* stock_move_forced_lot_multi
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-18 10:00+0000\n"
+"PO-Revision-Date: 2026-10-18 13:00+0300\n"
+"Last-Translator: Rosen Vladimirov <vladimirov.rosen@gmail.com>\n"
+"Language-Team: \n"
+"Language: bg_BG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: stock_move_forced_lot_multi
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_warehouse_orderpoint_form_inherit_forced_lots
+msgid ""
+"<i class=\"fa fa-info-circle\"/>\n"
+"                            When this product-level orderpoint has lot\n"
+"                            sub-rules, the children determine\n"
+"                            replenishment (one procurement per listed\n"
+"                            lot). The parent product-level min/max only\n"
+"                            applies as fallback for lots not registered\n"
+"                            here (\"orphan\" forced lots arriving from\n"
+"                            MTO / manual flows)."
+msgstr ""
+"<i class=\"fa fa-info-circle\"/>\n"
+"                            Когато това правило на ниво продукт има подправила по партида,\n"
+"                            попълването се определя от подправилата (по едно снабдяване\n"
+"                            за всяка изброена партида). Мин./макс. на основното правило важат\n"
+"                            само като резервен вариант за партиди, които не са изброени тук\n"
+"                            („сираци“ — задължителни партиди от MTO или ръчни потоци)."
+
+#. module: stock_move_forced_lot_multi
+#. odoo-python
+#: code:addons/stock_move_forced_lot_multi/models/stock_warehouse_orderpoint.py:0
+msgid "A child orderpoint must have a Lot set."
+msgstr "Подправилото трябва да има зададена партида."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.constraint,message:stock_move_forced_lot_multi.constraint_stock_warehouse_orderpoint_product_location_parent_idx
+msgid "A replenishment rule already exists for this product on this location."
+msgstr "Вече съществува правило за попълване за този продукт на това местоположение."
+
+#. module: stock_move_forced_lot_multi
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_picking_form_forced_lot
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_stock_move_forced_lot_wizard_form
+msgid "Add Forced Lots"
+msgstr "Добавяне на задължителни партиди"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model,name:stock_move_forced_lot_multi.model_stock_move_forced_lot_wizard
+msgid "Add Forced Lots to Stock Move"
+msgstr "Добавяне на задължителни партиди към движение"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_warehouse_orderpoint__allowed_lot_ids
+msgid "Allowed Lots"
+msgstr "Позволени партиди"
+
+#. module: stock_move_forced_lot_multi
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_stock_move_forced_lot_wizard_form
+msgid "Apply"
+msgstr "Приложи"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_stock_move__forced_lot_extra_data
+msgid "Arbitrary JSON data attached to this move for propagation purposes."
+msgstr "Произволни JSON данни към движението, които се пренасят надолу по веригата."
+
+#. module: stock_move_forced_lot_multi
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_stock_move_forced_lot_wizard_form
+msgid "Cancel"
+msgstr "Отказ"
+
+#. module: stock_move_forced_lot_multi
+#. odoo-python
+#: code:addons/stock_move_forced_lot_multi/models/stock_warehouse_orderpoint.py:0
+msgid "Child orderpoint product (%(child)s) must match parent product (%(parent)s)."
+msgstr "Продуктът на подправилото (%(child)s) трябва да съвпада с продукта на основното правило (%(parent)s)."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_move_forced_lot_wizard__create_uid
+msgid "Created by"
+msgstr "Създадено от"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_move_forced_lot_wizard__create_date
+msgid "Created on"
+msgstr "Създадено на"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_mrp_bom_line__default_forced_lot_id
+msgid "Default Forced Lot"
+msgstr "Задължителна партида по подразбиране"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_move_forced_lot_wizard__display_name
+msgid "Display Name"
+msgstr "Име за показване"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_move__forced_lot_extra_data
+msgid "Extra Data"
+msgstr "Допълнителни данни"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_lot__po_split
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_stock_lot_search_inherit_forced_mo
+msgid "Force PO Line Split"
+msgstr "Отделен ред в поръчката за покупка"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_mrp_production__forced_lot_ids
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_purchase_order_line__forced_lot_ids
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_move__forced_lot_ids
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_move_forced_lot_wizard__lot_ids
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_picking__forced_lot_ids
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.mrp_production_form_forced_lot
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_picking_form_forced_lot
+msgid "Forced Lots"
+msgstr "Задължителни партиди"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_move_forced_lot_wizard__id
+msgid "ID"
+msgstr "ID"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_warehouse_orderpoint__is_lot_child
+msgid "Is Lot Child"
+msgstr "Подправило по партида"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_move_forced_lot_wizard__write_uid
+msgid "Last Updated by"
+msgstr "Последно актуализирано от"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_move_forced_lot_wizard__write_date
+msgid "Last Updated on"
+msgstr "Последно актуализирано на"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_warehouse_orderpoint__lot_id
+msgid "Lot"
+msgstr "Партида"
+
+#. module: stock_move_forced_lot_multi
+#. odoo-python
+#: code:addons/stock_move_forced_lot_multi/models/stock_warehouse_orderpoint.py:0
+msgid "Lot %(lot)s already has a sub-rule under parent %(parent)s."
+msgstr "Партида %(lot)s вече има подправило под основно правило %(parent)s."
+
+#. module: stock_move_forced_lot_multi
+#. odoo-python
+#: code:addons/stock_move_forced_lot_multi/models/stock_warehouse_orderpoint.py:0
+msgid "Lot %(lot)s belongs to %(lot_product)s, not %(product)s."
+msgstr "Партида %(lot)s принадлежи на %(lot_product)s, а не на %(product)s."
+
+#. module: stock_move_forced_lot_multi
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_warehouse_orderpoint_form_inherit_forced_lots
+msgid "Lot Sub-rule"
+msgstr "Подправило по партида"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_warehouse_orderpoint__child_ids
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.stock_reorder_report_search_inherit_lot
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_warehouse_orderpoint_form_inherit_forced_lots
+msgid "Lot Sub-rules"
+msgstr "Подправила по партида"
+
+#. module: stock_move_forced_lot_multi
+#. odoo-python
+#: code:addons/stock_move_forced_lot_multi/models/stock_warehouse_orderpoint.py:0
+msgid "Lot sub-rules cannot have their own sub-rules — parent-child depth is limited to 2 levels."
+msgstr "Подправилата по партида не могат да имат свои подправила — дълбочината е ограничена до 2 нива."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_warehouse_orderpoint__child_count
+msgid "Lot Sub-rules Count"
+msgstr "Брой подправила по партида"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_stock_warehouse_orderpoint__lot_id
+msgid "Lot this orderpoint targets. Set only on child orderpoints — leave empty for product-level (parent) rules. When the lot is deleted, the child orderpoint is removed automatically (cascade)."
+msgstr "Партидата, за която е правилото. Задава се само на подправилата — оставете празно за правилата на ниво продукт. При изтриване на партидата подправилото се изтрива автоматично."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_mrp_bom_line__default_forced_lot_id
+msgid "Lot to force on this component's raw move at MO confirm (reservation only, no split). The MO then consumes this component only from the given lot. Leave empty for the standard behaviour. Forced lots coming from other sources (e.g. LogiKal) take priority."
+msgstr "Партида, която се налага на движението за този компонент при потвърждаване на производствената поръчка (само резервация, без разделяне). Поръчката тогава изписва компонента само от тази партида. Оставете празно за стандартното поведение. Задължителните партиди от други източници (напр. LogiKal) имат предимство."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_stock_warehouse_orderpoint__parent_id
+msgid "Lot-level orderpoints attach as children to a product-level parent. Children inherit product/location/warehouse from parent and add their own lot_id + min/max thresholds."
+msgstr "Правилата на ниво партида се закачат като подправила към правило на ниво продукт. Наследяват продукта, местоположението и склада от основното правило и добавят своя партида и мин./макс. прагове."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_purchase_order_line__forced_lot_ids_display
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.purchase_order_form_forced_lot
+msgid "Lots"
+msgstr "Партиди"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_stock_warehouse_orderpoint__allowed_lot_ids
+msgid "Lots eligible to be picked as `lot_id` for a sub-rule under this orderpoint. Computed from `_get_lot_domain()` — extend that method in dependent modules to add filters (supplier, attribute, production date, etc.)."
+msgstr "Партиди, които могат да се изберат за подправило под това правило. Изчисляват се от `_get_lot_domain()` — разширете метода в зависими модули за допълнителни филтри (доставчик, атрибут, дата на производство и др.)."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_stock_picking__forced_lot_ids
+msgid "Lots forced on moves in this picking."
+msgstr "Задължителни партиди по движенията в този трансфер."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_mrp_production__forced_lot_ids
+msgid "Lots forced on raw material moves in this MO."
+msgstr "Задължителни партиди по движенията за суровини в тази производствена поръчка."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_stock_move__forced_lot_ids
+msgid "Lots that must be used for this move. When set, the move will only accept these specific lots."
+msgstr "Партиди, които трябва да се използват за това движение. Когато са зададени, движението приема само тези партиди."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_purchase_order_line__forced_lot_ids
+msgid "Lots that will be created/used in the incoming shipment. These lots come from the manufacturing order that triggered this purchase."
+msgstr "Партиди, които ще бъдат създадени/използвани във входящата доставка. Идват от производствената поръчка, предизвикала тази покупка."
+
+#. module: stock_move_forced_lot_multi
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_warehouse_orderpoint_form_inherit_forced_lots
+msgid "Max"
+msgstr "Макс."
+
+#. module: stock_move_forced_lot_multi
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_warehouse_orderpoint_form_inherit_forced_lots
+msgid "Min"
+msgstr "Мин."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_move_forced_lot_wizard__move_id
+msgid "Move"
+msgstr "Движение"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_stock_warehouse_orderpoint__child_count
+msgid "Number of lot-level sub-rules under this orderpoint. Shown as a badge in the Replenishment Report to flag parents that drive per-lot procurement."
+msgstr "Брой подправила по партида под това правило. Показва се като значка в отчета за попълване, за да отбележи основните правила със снабдяване по партида."
+
+#. module: stock_move_forced_lot_multi
+#. odoo-python
+#: code:addons/stock_move_forced_lot_multi/models/stock_warehouse_orderpoint.py:0
+msgid "Orderpoint cannot be its own parent."
+msgstr "Правилото не може да бъде основно правило на себе си."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_warehouse_orderpoint__parent_id
+msgid "Parent Orderpoint"
+msgstr "Основно правило"
+
+#. module: stock_move_forced_lot_multi
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.stock_reorder_report_search_inherit_lot
+msgid "Parents only"
+msgstr "Само основни правила"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_stock_warehouse_orderpoint__child_ids
+msgid "Per-lot reorder rules nested under this product-level orderpoint. Each child handles one specific lot; the standard scheduler picks them up automatically."
+msgstr "Правила за пренареждане по партида под това правило на ниво продукт. Всяко подправило обслужва една партида; стандартният планировчик ги обработва автоматично."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_move_forced_lot_wizard__product_id
+msgid "Product"
+msgstr "Продукт"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.constraint,message:stock_move_forced_lot_multi.constraint_stock_warehouse_orderpoint_product_location_check
+msgid "Replaced by partial unique indexes on parent and lot sub-rules."
+msgstr "Заменено с частични уникални индекси за основните правила и подправилата по партида."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_stock_lot__split_buffer_qty
+msgid "Requested quantity used when generating the separate procurement (only when `force_split = True`)."
+msgstr "Заявено количество при създаване на отделното снабдяване (само при `force_split = True`)."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_lot__split_buffer_qty
+msgid "Split Buffer Qty"
+msgstr "Буферно количество за отделяне"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi.field_stock_lot__force_split
+#: model_terms:ir.ui.view,arch_db:stock_move_forced_lot_multi.view_stock_lot_search_inherit_forced_mo
+msgid "Split Into Separate Procurement"
+msgstr "Отделно снабдяване"
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.constraint,message:stock_move_forced_lot_multi.constraint_stock_warehouse_orderpoint_parent_lot_idx
+msgid "This lot already has a sub-rule under the same parent orderpoint."
+msgstr "Тази партида вече има подправило под същото основно правило."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_stock_warehouse_orderpoint__is_lot_child
+msgid "True when this orderpoint is a child rule (has parent_id and lot_id). Used by default search domains to hide children from the standard list view."
+msgstr "Вярно, когато правилото е подправило (има основно правило и партида). Използва се, за да се скриват подправилата от стандартния списък."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_stock_lot__po_split
+msgid "When enabled, procurements consuming this lot will not merge into an existing PO line of the same product — a dedicated PO line with this lot as forced_lot_ids is created instead. Independent from `force_split`."
+msgstr "Когато е включено, снабдяванията с тази партида не се сливат в съществуващ ред на поръчка за покупка за същия продукт — вместо това се създава отделен ред с тази партида като forced_lot_ids. Не зависи от `force_split`."
+
+#. module: stock_move_forced_lot_multi
+#: model:ir.model.fields,help:stock_move_forced_lot_multi.field_stock_lot__force_split
+msgid "When enabled, this forced lot is split off into its own procurement (MO / PO / any other flow) with requested quantity taken from `split_buffer_qty`. Unflagged forced lots stay attached to the parent procurement and do not alter its quantity."
+msgstr "Когато е включено, тази задължителна партида се отделя в собствено снабдяване (производствена поръчка, поръчка за покупка или друг поток) с количество от `split_buffer_qty`. Задължителните партиди без отметка остават към основното снабдяване и не променят количеството му."

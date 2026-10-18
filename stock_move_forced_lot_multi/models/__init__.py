@@ -9,8 +9,11 @@
 # Unless you hold a valid commercial license, your use of this file is governed
 # by the AGPL-3.0-or-later.
 
+from . import stock_lot
 from . import stock_move
 from . import stock_picking
 from . import stock_rule
+from . import stock_warehouse_orderpoint
 from . import purchase_order_line
 from . import mrp_production
+from . import mrp_bom

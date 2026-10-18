@@ -7,13 +7,16 @@
         <field name="model">stock.lot</field>
         <field name="inherit_id" ref="stock.view_production_lot_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='product_qty']" position="after">
-                <field name="product_uom_qty"/>
+            <!-- В 19 product_qty е в div без етикет; полето отива след div-а -->
+            <xpath expr="//group[@name='inventory_group']/div[field[@name='product_qty']]" position="after">
+                <field name="product_uom_qty" invisible="not display_complete"/>
             </xpath>
-            <xpath expr="//group[@name='main_group']/group[1]" position="inside">
-                <field name="width"/>
-                <field name="height"/>
-                <field name="thickness"/>
+            <xpath expr="//group[@name='main_group']" position="inside">
+                <group name="dimension_group" string="Dimensions">
+                    <field name="width"/>
+                    <field name="height"/>
+                    <field name="thickness"/>
+                </group>
             </xpath>
         </field>
     </record>
