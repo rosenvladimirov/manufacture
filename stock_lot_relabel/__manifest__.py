@@ -8,7 +8,7 @@
         "location: one move out with the source lot, one move back in with "
         "the target lot, equal value, posted on configurable accounts."
     ),
-    "version": "19.0.1.0.0",
+    "version": "19.0.1.1.0",
     "category": "Inventory",
     "website": "https://github.com/rosenvladimirov/manufacture-experts",
     "author": "Rosen Vladimirov, Terraros Commerce Ltd.",
@@ -18,6 +18,9 @@
     "installable": True,
     "depends": [
         "stock_account",
+    ],
+    "data": [
+        "views/stock_location_views.xml",
     ],
     "post_init_hook": "post_init_hook",
 }

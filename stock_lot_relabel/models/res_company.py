@@ -12,8 +12,8 @@ class ResCompany(models.Model):
         string="Lot Relabel Location",
         help="Virtual location through which stock changes its lot in place: "
              "it leaves with the old lot and comes back with the new one. Set "
-             "its stock valuation account before the first relabel of a "
-             "product with perpetual valuation.",
+             "its stock valuation account and its lot relabel return account "
+             "before the first relabel of a product with perpetual valuation.",
     )
 
     def _create_per_company_locations(self):
@@ -31,11 +31,11 @@ class ResCompany(models.Model):
         излишъци, а преетикетирането не е нито едното — количеството и
         стойността остават, сменя се само лотът.
 
-        ⚠️ Сметката (`valuation_account_id`; в 19 тя е ЕДНА — в 18 бяха две,
-        входяща и изходяща) се оставя ПРАЗНА нарочно — избира я
-        счетоводителят при внедряването. Празна ли е при продукт с
-        перманентна оценка, `stock.lot._relabel` отказва; ядрото в 19 тихо
-        би пропуснало счетоводния запис.
+        ⚠️ Двете сметки (`valuation_account_id` за изхода и
+        `lot_relabel_out_account_id` за входа — като двете в 18) се оставят
+        ПРАЗНИ нарочно — избира ги счетоводителят при внедряването. Празна ли
+        е коя да е при продукт с перманентна оценка, `stock.lot._relabel`
+        отказва; ядрото в 19 тихо би пропуснало счетоводния запис.
         """
         self.ensure_one()
         location = self.sudo().lot_relabel_location_id

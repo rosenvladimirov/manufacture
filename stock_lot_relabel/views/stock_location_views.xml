@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Rosen Vladimirov, Terraros Commerce Ltd.
+     License OPL-1 (Odoo Proprietary License v1.0) -->
+<odoo>
+    <!-- Втората сметка на преетикетирането — до сметката на ядрото, само на
+         локацията „Lot Relabel" на фирмата. -->
+    <record id="view_location_form_lot_relabel" model="ir.ui.view">
+        <field name="name">stock.location.form.lot.relabel</field>
+        <field name="model">stock.location</field>
+        <field name="inherit_id" ref="stock_account.view_location_form_inherit"/>
+        <field name="arch" type="xml">
+            <!-- На локацията „Lot Relabel" сметката на ядрото не е за липси, а
+                 за изхода на преетикетирането. -->
+            <!-- Вторият етикет на ядрото е „Loss Account“ (за usage inventory). -->
+            <xpath expr="(//label[@for='valuation_account_id'])[2]" position="attributes">
+                <attribute name="invisible">usage != 'inventory' or is_lot_relabel_location</attribute>
+            </xpath>
+            <xpath expr="//field[@name='valuation_account_id']" position="before">
+                <label for="valuation_account_id" string="Lot Relabel Issue Account"
+                       invisible="not is_lot_relabel_location"/>
+            </xpath>
+            <xpath expr="//field[@name='valuation_account_id']" position="after">
+                <field name="is_lot_relabel_location" invisible="1"/>
+                <label for="lot_relabel_out_account_id"
+                       invisible="not is_lot_relabel_location"/>
+                <field name="lot_relabel_out_account_id" nolabel="1"
+                       options="{'no_create': True}"
+                       invisible="not is_lot_relabel_location"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

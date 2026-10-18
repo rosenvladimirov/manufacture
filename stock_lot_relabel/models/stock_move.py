@@ -78,3 +78,37 @@ class StockMove(models.Model):
                     reference=out_move.reference),
             }
         return super()._get_value_from_returns(quantity, at_date=at_date)
+
+    def _get_account_move_line_vals(self):
+        """Входящото движение на преетикетирането кредитира ВТОРАТА сметка.
+
+        🔑 Две сметки, както в 18 (решение на Росен). Ядрото в 19 осчетоводява
+        движение от виртуална локация Дт склада / Кт `valuation_account_id`
+        на локацията — същата сметка, която изходът дебитира. Тук Кт на входа
+        (ролята „in") се подменя с `lot_relabel_out_account_id`; изходът остава
+        по `valuation_account_id`.
+
+        ⚠️ Подменя се ГОТОВИЯТ резултат, не се пресмята наново — така
+        работи и с наследници, които също пипат редовете, при който и да е
+        ред на наследяване: `l10n_bg_stock_account` при перманентна оценка
+        вика super и връща редовете на ядрото (над нас — минава през нас; под
+        нас — подменяме неговия резултат). Подменят се само кредитните редове
+        по сметката на локацията — Дт по склада не се пипа.
+        ⛔ Не покрива пътя „auto_post" на `l10n_bg_stock_account` при
+        периодична оценка: там той сам строи редовете без super, и ако е над
+        нас в реда на наследяване, подмяната не се стига.
+        """
+        vals = super()._get_account_move_line_vals()
+        if self.lot_relabel_role != "in":
+            return vals
+        location = self.location_id
+        return_account = location.lot_relabel_out_account_id
+        issue_account = location.valuation_account_id
+        if (not return_account or not issue_account
+                or return_account == issue_account):
+            return vals
+        for line in vals:
+            if (line.get("account_id") == issue_account.id
+                    and line.get("credit") and not line.get("debit")):
+                line["account_id"] = return_account.id
+        return vals

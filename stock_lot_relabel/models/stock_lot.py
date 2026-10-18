@@ -33,12 +33,15 @@ class StockLot(models.Model):
         ⛔ НЕ `is_inventory`, НЕ брак — количеството и стойността остават;
         сменя се само етикетът.
 
-        ⚠️ Сметката е на локацията — в 19 една: `valuation_account_id` (в 18
-        бяха две: `valuation_in_account_id` за изхода, `valuation_out_account_id`
-        за входа). Изходът: Дт сметката на локацията / Кт склада; входът: Дт
-        склада / Кт сметката на локацията (19 `_get_account_move_line_vals`).
-        Празна ли е при перманентна оценка — отказ. Ядрото в 19 тихо би
-        пропуснало счетоводния запис (`_should_create_account_move`).
+        ⚠️ Сметките са на локацията — ДВЕ, както в 18 (решение на Росен).
+        Изходът: Дт `valuation_account_id` / Кт склада (в 18 —
+        `valuation_in_account_id`); входът: Дт склада / Кт
+        `lot_relabel_out_account_id` (в 18 — `valuation_out_account_id`; в 19
+        ядрото няма второ поле — подмяната е в
+        `stock.move._get_account_move_line_vals`). Празна ли е коя да е при
+        перманентна оценка — отказ. Ядрото в 19 тихо би пропуснало записа
+        (`_should_create_account_move`) или би кредитирало входа по сметката
+        на изхода.
 
         Връща двете движения (изход | вход).
         """
@@ -66,11 +69,13 @@ class StockLot(models.Model):
         if float_compare(qty, 0.0, precision_rounding=rounding) <= 0:
             raise UserError(_("The quantity to relabel must be positive."))
         relabel_loc = company._get_lot_relabel_location()
-        if (product.with_company(company).valuation == "real_time"
-                and not relabel_loc.valuation_account_id):
+        if product.with_company(company).valuation == "real_time" and not (
+                relabel_loc.valuation_account_id
+                and relabel_loc.lot_relabel_out_account_id):
             raise UserError(_(
-                "The location %(location)s has no stock valuation account. "
-                "Set it before relabelling %(product)s, which uses perpetual "
+                "The location %(location)s needs both a stock valuation "
+                "account and a lot relabel return account. Set both accounts "
+                "on it before relabelling %(product)s, which uses perpetual "
                 "inventory valuation.",
                 location=relabel_loc.display_name,
                 product=product.display_name))

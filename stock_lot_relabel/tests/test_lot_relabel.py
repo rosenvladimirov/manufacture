@@ -6,10 +6,12 @@
     инвентаризация и не са брак; лотът-източник намалява, лотът-цел расте;
   ② стойността на входа е ТОЧНО тази на изхода — и при ДВА FIFO слоя с
     различна цена; общата стойност на продукта не мърда;
-  ③ счетоводните редове са по сметката на локацията срещу сметката на
-    склада на категорията — нищо друго (в 19 сметката на локацията е една;
-    в 18 бяха две — входяща и изходяща);
-  ④ празна сметка при перманентна оценка ⇒ отказ, нищо не се записва;
+  ③ счетоводните редове са по ДВЕТЕ сметки на локацията срещу сметката на
+    склада на категорията — нищо друго: изходът Дт `valuation_account_id`
+    (в 18 `valuation_in_account_id`), входът Кт `lot_relabel_out_account_id`
+    (в 18 `valuation_out_account_id`);
+  ④ празна коя да е от двете сметки при перманентна оценка ⇒ отказ, нищо
+    не се записва;
   ⑤ несвободно количество ⇒ отказ.
 """
 from odoo.exceptions import UserError
@@ -30,7 +32,8 @@ class TestLotRelabel(TransactionCase):
             return Account.create({'code': code, 'name': name,
                                    'account_type': 'asset_current'})
         cls.acc_val = acc('T93RVAL', 'T93R stock valuation')
-        cls.acc_rel = acc('T93RLAB', 'T93R relabel')
+        cls.acc_rel_in = acc('T93RLIN', 'T93R relabel incoming')
+        cls.acc_rel_out = acc('T93RLOUT', 'T93R relabel outgoing')
         cls.journal = cls.env['account.journal'].create({
             'name': 'T93R stock', 'code': 'T93RJ', 'type': 'general'})
         # В 19 записите на склада отиват в дневника на ФИРМАТА
@@ -61,7 +64,12 @@ class TestLotRelabel(TransactionCase):
                                   'product_id': cls.bar.id,
                                   'company_id': cls.company.id})
         cls.relabel_loc = cls.company._get_lot_relabel_location()
-        cls.relabel_loc.valuation_account_id = cls.acc_rel
+        # Имената са от гледна точка на локацията, както в 18: „in" — стоката
+        # влиза в нея (изходът от склада), „out" — излиза от нея (входът).
+        cls.relabel_loc.write({
+            'valuation_account_id': cls.acc_rel_in.id,
+            'lot_relabel_out_account_id': cls.acc_rel_out.id,
+        })
         cls.supplier = cls.env.ref('stock.stock_location_suppliers')
 
     def _receive(self, qty, price, lot=None):
@@ -172,30 +180,34 @@ class TestLotRelabel(TransactionCase):
         self.assertNotEqual(out.account_move_id, inn.account_move_id)
         aml_out = out.account_move_id.line_ids
         aml_in = inn.account_move_id.line_ids
-        self.assertEqual(aml_out.account_id, self.acc_val | self.acc_rel)
-        self.assertEqual(aml_in.account_id, self.acc_val | self.acc_rel)
-        dr = aml_out.filtered(lambda l: l.account_id == self.acc_rel)
+        self.assertEqual(aml_out.account_id, self.acc_val | self.acc_rel_in)
+        self.assertEqual(aml_in.account_id, self.acc_val | self.acc_rel_out)
+        dr = aml_out.filtered(lambda l: l.account_id == self.acc_rel_in)
         cr = aml_out.filtered(lambda l: l.account_id == self.acc_val)
         self.assertAlmostEqual(dr.debit, 19.16, places=2)
         self.assertAlmostEqual(cr.credit, 19.16, places=2)
         dr = aml_in.filtered(lambda l: l.account_id == self.acc_val)
-        cr = aml_in.filtered(lambda l: l.account_id == self.acc_rel)
+        cr = aml_in.filtered(lambda l: l.account_id == self.acc_rel_out)
         self.assertAlmostEqual(dr.debit, 19.16, places=2)
         self.assertAlmostEqual(cr.credit, 19.16, places=2)
 
     # ④ ─────────────────────────────────────────────────────────────────
     def test_missing_accounts_refuse_for_real_time(self):
         self._receive(10.0, 3.33)
-        self.relabel_loc.valuation_account_id = False
-        n_moves = self.env['stock.move'].search_count([])
-        with self.assertRaisesRegex(UserError, 'valuation account'):
-            self._relabel(4.63)
-        self.assertEqual(self.env['stock.move'].search_count([]), n_moves)
+        for field in ('valuation_account_id', 'lot_relabel_out_account_id'):
+            keep = self.relabel_loc[field]
+            self.relabel_loc[field] = False
+            n_moves = self.env['stock.move'].search_count([])
+            with self.assertRaisesRegex(UserError, 'valuation account'):
+                self._relabel(4.63)
+            self.assertEqual(self.env['stock.move'].search_count([]), n_moves)
+            self.relabel_loc[field] = keep
         self.assertAlmostEqual(self._qty(self.lot_bar), 10.0, places=2)
 
     def test_periodic_valuation_needs_no_accounts(self):
         self.categ.property_valuation = 'periodic'
-        self.relabel_loc.valuation_account_id = False
+        self.relabel_loc.write({'valuation_account_id': False,
+                                'lot_relabel_out_account_id': False})
         self._receive(10.0, 3.33)
         out, inn = self._relabel(4.63)
         self.assertFalse(out.account_move_id | inn.account_move_id)
