@@ -87,6 +87,7 @@ msgstr "Потвърждение"
 
 #. module: mrp_bom_for_lot
 #: model:ir.model.fields.selection,name:mrp_bom_for_lot.selection__mrp_bom_lot__state__confirmed
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_search
 msgid "Confirmed"
 msgstr "Потвърдена"
 
@@ -163,5 +164,31 @@ msgstr "За производство"
 
 #. module: mrp_bom_for_lot
 #: model:ir.model.fields.selection,name:mrp_bom_for_lot.selection__mrp_bom_lot__state__done
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_search
 msgid "Used"
 msgstr "Употребяван"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_search
+msgid "Draft"
+msgstr "Чернова"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_search
+msgid "Lot/Serial number"
+msgstr "Лот/Сериен номер"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_search
+msgid "Product"
+msgstr "Продукт"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_search
+msgid "Search BOM for Lot/Serial number"
+msgstr "Търсене на BOM за лот/сериен номер"
+
+#. module: mrp_bom_for_lot
+#: model_terms:ir.ui.view,arch_db:mrp_bom_for_lot.view_mrp_bom_lot_search
+msgid "Status"
+msgstr "Статус"

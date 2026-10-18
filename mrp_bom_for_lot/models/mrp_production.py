@@ -13,18 +13,33 @@ class MrpProduction(models.Model):
         tracking=True
     )
 
-    @api.onchange('product_id')
-    def _onchange_product_id_bom_lot(self):
-        """Auto-load BOM for lot when product changes"""
-        if self.product_id:
-            # Search for a confirmed BOM for this product
+    @api.onchange('lot_producing_ids', 'product_id')
+    def _onchange_lot_producing_id(self):
+        """Автоматично зареждане на BOM за лот при избор на лот.
+
+        В 19 lot_producing_id стана Many2many lot_producing_ids — търсим
+        потвърден BOM за някой от избраните лотове (най-новият печели).
+        """
+        if self.lot_producing_ids and self.product_id:
+            # Търсене на потвърден BOM за този лот
             bom_lot = self.env['mrp.bom.lot'].search([
+                ('lot_id', 'in', self.lot_producing_ids.ids),
                 ('product_id', '=', self.product_id.id),
                 ('state', '=', 'confirmed')
             ], order='write_date desc', limit=1)
 
             if bom_lot:
                 self.bom_lot_id = bom_lot
+                self.qty_producing = bom_lot.product_qty
+                return {
+                    'warning': {
+                        'title': _('BOM for lot found'),
+                        'message': _('Found a BOM specific to this lot. '
+                                     'Use the "Load Lot BOM" button '
+                                     'to apply the adjusted amounts.')
+                    }
+                }
+
 
 
     def action_load_lot_bom(self):

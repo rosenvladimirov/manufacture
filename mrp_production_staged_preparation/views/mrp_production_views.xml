@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Rosen Vladimirov, Terraros Commerce Ltd.
+     License OPL-1 (Odoo Proprietary License v1.0)
+     https://www.odoo.com/documentation/user/legal/licenses/licenses.html -->
+<odoo>
+
+    <record id="mrp_production_form_staged_preparation"
+            model="ir.ui.view">
+        <field name="name">mrp.production.form.staged.preparation</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+
+            <!-- Inject staged_preparation_enabled + staged_released (hidden) so
+                 views/buttons/ribbon can use them. -->
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="staged_preparation_enabled" invisible="1"/>
+                <field name="staged_released" invisible="1"/>
+            </xpath>
+
+            <!-- Бадж „Released to floor" (подготвено за цеха): ъглова лента.
+                 ⚠️ ПЪРВО дете на sheet, не последно. `position="inside"` слага
+                 widget-а НАКРАЯ — тоест след notebook-а — и лентата се рендира
+                 долу вдясно, в списъка с компоненти, вместо в горния ъгъл.
+                 Мерено на WH/MO/00230; Любо: „много ме дразни". Ъгловата лента
+                 се позиционира спрямо СОБСТВЕНИЯ си контейнер, затова мястото ѝ
+                 в XML-а решава къде излиза. -->
+            <xpath expr="//sheet/*[1]" position="before">
+                <widget name="web_ribbon" title="Released" bg_color="text-bg-success"
+                        invisible="not staged_released"/>
+            </xpath>
+
+            <!-- Prepare button: видим само при state='preparation' + enabled -->
+            <xpath expr="//header" position="inside">
+                <button name="action_prepare_production"
+                        type="object"
+                        string="Prepare for Production"
+                        class="oe_highlight"
+                        invisible="(not staged_preparation_enabled) or state != 'preparation'"
+                        groups="mrp.group_mrp_user"/>
+                <!-- Откат на подготовката: връща в draft, маха пикинга към
+                     Pre-Production и връща движенията на едностъпково.
+                     Видим само след като подготовката е минала. -->
+                <button name="action_unprepare_production_wizard"
+                        type="object"
+                        string="Undo Preparation"
+                        invisible="(not staged_preparation_enabled) or (not staged_released) or state in ('done', 'cancel')"
+                        groups="mrp.group_mrp_user"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- LIST batch бутон: „Prepare for Production" веднага СЛЕД „Plan" в
+         header-а на списъка с МО. Действа върху маркираните записи (дневна
+         партида) → 1 агрегиран Stock→Pre-Production трансфер. -->
+    <record id="mrp_production_list_staged_preparation" model="ir.ui.view">
+        <field name="name">mrp.production.list.staged.preparation</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='button_plan']" position="after">
+                <button name="action_prepare_production_batch"
+                        type="object"
+                        string="Prepare for Production"
+                        groups="mrp.group_mrp_user"/>
+                <!-- Откат за маркираната партида. Методът сам филтрира
+                     неподходящите редове, за да не спира заради един. -->
+                <button name="action_unprepare_production_wizard"
+                        type="object"
+                        string="Undo Preparation"
+                        groups="mrp.group_mrp_user"/>
+            </xpath>
+            <!-- Бадж/декорация: подготвените (released) редове в зелено + колона. -->
+            <xpath expr="//list" position="attributes">
+                <attribute name="decoration-success">staged_released</attribute>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="before">
+                <field name="staged_released" optional="show" string="Released"
+                       widget="boolean_toggle" readonly="1"/>
+            </xpath>
+            <!-- Reference се свиваше до няколко символа, защото полето е без
+                 зададена ширина и губи борбата за място. Реалната дължина е
+                 11 знака (WH/MO/00016) → 150px е с резерв. -->
+            <xpath expr="//field[@name='name']" position="attributes">
+                <attribute name="width">100px</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- №119: „Plan“ от списъка носи знак, че е натиснат оттам — след него
+         списъкът се отваря наново с филтъра „In Preparation“. -->
+    <record id="mrp_production_tree_plan_to_preparation" model="ir.ui.view">
+        <field name="name">mrp.production.list.plan.to.preparation</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='button_plan']" position="attributes">
+                <attribute name="context">{'staged_plan_from_list': True}</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Филтър „Released to floor" + групиране в търсенето на МО. -->
+    <record id="mrp_production_search_staged_preparation" model="ir.ui.view">
+        <field name="name">mrp.production.search.staged.preparation</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.view_mrp_production_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter name="staged_released" string="Released to Floor"
+                        domain="[('staged_released', '=', True)]"/>
+                <filter name="staged_in_preparation" string="In Preparation"
+                        domain="[('state', '=', 'preparation')]"/>
+            </xpath>
+            <!-- Ядреният „To Do" не знае за статус preparation → операторът
+                 губеше МО-то от поглед в момента, в който започне работа по
+                 него. Пренаписваме domain-а тук, а НЕ в mrp — ядреният view се
+                 възстановява при всеки -u на mrp. -->
+            <xpath expr="//filter[@name='todo']" position="attributes">
+                <attribute name="domain">[('state', 'in', ('draft', 'confirmed', 'preparation', 'progress', 'to_close'))]</attribute>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
