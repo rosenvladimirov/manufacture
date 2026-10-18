@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2026 Rosen Vladimirov, Terraros Commerce Ltd.
+     License OPL-1 (Odoo Proprietary License v1.0)
+     https://www.odoo.com/documentation/user/legal/licenses/licenses.html -->
+<odoo>
+
+    <record id="stock_picking_type_form_staged_preparation"
+            model="ir.ui.view">
+        <field name="name">stock.picking.type.form.staged.preparation</field>
+        <field name="model">stock.picking.type</field>
+        <field name="inherit_id" ref="stock.view_picking_type_form"/>
+        <field name="arch" type="xml">
+            <!-- Add new group at end of the General page, visible only for
+                 manufacturing operation types. -->
+            <xpath expr="//page[@name='general']" position="inside">
+                <group>
+                    <group string="Staged Preparation"
+                           name="staged_preparation"
+                           invisible="code != 'mrp_operation'">
+                        <field name="staged_preparation_enabled"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>
