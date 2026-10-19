@@ -9,9 +9,9 @@ class MRPBomLine(models.Model):
     _inherit = "mrp.bom.line"
 
     loss = fields.Float(
-        string="Losses",
-        help="Positive = extra consumption (scrap). Negative = efficiency (consume less). "
-             "Value is a ratio, e.g. 0.10 = +10%%, -0.05 = -5%%.",
+        string="Loss / Efficiency",
+        help="Positive = extra consumption (scrap/loss). Negative = efficiency gain (consume less). "
+             "Value is a ratio, e.g. 0.10 = +10%% loss, -0.05 = -5%% efficiency gain.",
     )
 
     @api.constrains("loss")

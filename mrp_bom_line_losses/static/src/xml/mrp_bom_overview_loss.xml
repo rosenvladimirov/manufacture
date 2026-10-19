@@ -7,9 +7,9 @@
         owl="1"
     >
         <xpath expr="//thead/tr/th[1]/following-sibling::th[1]" position="after">
-            <th class="text-end">Loss %</th>
-            <th class="text-end">Qty w/ Loss</th>
-            <th t-if="showCosts" class="text-end">Loss Cost</th>
+            <th class="text-end">Loss/Eff. %</th>
+            <th class="text-end">Adj. Qty</th>
+            <th t-if="showCosts" class="text-end">Adj. Cost</th>
         </xpath>
     </t>
     <t
@@ -27,7 +27,7 @@
                             class="o_mrp_bom_loss_input form-control form-control-sm text-end d-inline-block"
                             type="text"
                             inputmode="decimal"
-                            maxlength="6"
+                            maxlength="7"
                             t-att-data-base-qty="data.quantity"
                             t-on-click.stop=""
                             t-on-input.stop="onLossInput"

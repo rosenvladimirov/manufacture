@@ -16,8 +16,10 @@ function clampPercent(value) {
     if (!Number.isFinite(value)) {
         return 0;
     }
-    if (value < 0) {
-        return 0;
+    // Allow negative values (efficiency gain) down to -99%
+    // Factor = 1 + ratio must stay > 0, so ratio > -1 → percent > -100
+    if (value <= -100) {
+        return -99;
     }
     if (value > 100) {
         return 100;
