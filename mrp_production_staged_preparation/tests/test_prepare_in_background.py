@@ -11,6 +11,7 @@
   ② второ пускане за същите МО-та, докато задачата върви, се отказва;
   ③ свършила / паднала задача не държи МО-то — може да се пусне наново;
   ④ задачата: разкрой → гейт → материализация, после известие и чатър;
+    етапът и процентът се виждат като при вноса от ЛогиКал;
   ⑤ отказ на гейта: нищо не остава, МО-то е „Preparation failed“ с причината,
     задачата приключва чисто (не гърми).
 """
@@ -84,6 +85,10 @@ class TestPrepareInBackground(TransactionCase):
     def test_the_job_prepares_and_tells(self):
         """④ Задачата: гейт → материализация с избора; известие; чатър."""
         self._launch(start=False)
+        # прогресът се пише със СВОЙ курсор — в тестовия режим на регистъра
+        # той минава през същата транзакция и тестът го вижда
+        self.registry.enter_test_mode(self.cr)
+        self.addCleanup(self.registry.leave_test_mode)
         with patch(MODEL + "._staged_optimize_and_gate") as gate, \
                 patch(MODEL + "._staged_do_prepare") as prepare, \
                 patch.object(type(self.env["bus.bus"]), "_sendone") as send:
@@ -95,6 +100,10 @@ class TestPrepareInBackground(TransactionCase):
         self.assertEqual(send.call_args.args[2]["type"], "success")
         self.assertIn("in the background",
                       self.mos[0].message_ids[:1].body or "")
+        # като при вноса: етапът и процентът се виждат, докато върви
+        self.mos.invalidate_recordset(["staged_prep_progress", "staged_prep_stage"])
+        self.assertEqual(self.mos[0].staged_prep_progress, 95)
+        self.assertEqual(self.mos[0].staged_prep_stage, "Finishing")
 
     def test_a_refused_cut_leaves_nothing_and_says_why(self):
         """⑤ Отказ на гейта: материализация няма, причината е на МО-то."""

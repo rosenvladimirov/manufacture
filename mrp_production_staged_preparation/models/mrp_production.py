@@ -124,6 +124,22 @@ class MrpProduction(models.Model):
     staged_prep_job_uuid = fields.Char(copy=False, readonly=True)
     staged_prep_error = fields.Text(
         string="Preparation Error", copy=False, readonly=True)
+    # Като при вноса от ЛогиКал: процент и етап, които се виждат, ДОКАТО
+    # задачата върви — четат се от отделната таблица (non-stored).
+    staged_prep_progress = fields.Float(
+        string="Preparation Progress", compute="_compute_staged_prep_progress")
+    staged_prep_stage = fields.Char(
+        string="Preparation Stage", compute="_compute_staged_prep_progress")
+
+    def _compute_staged_prep_progress(self):
+        uuids = [u for u in self.mapped("staged_prep_job_uuid") if u]
+        rows = {r.job_uuid: r for r in self.env[
+            "mrp.production.prep.progress"].sudo().search(
+                [("job_uuid", "in", uuids)])} if uuids else {}
+        for production in self:
+            row = rows.get(production.staged_prep_job_uuid)
+            production.staged_prep_progress = row.progress if row else 0.0
+            production.staged_prep_stage = row.stage if row else False
 
     # ── Staged endpoint-swap helpers ────────────────────────────────────
     def _staged_intermediate_active(self):
@@ -2506,13 +2522,18 @@ class MrpProduction(models.Model):
         """
         todo = self.filtered(
             lambda p: p.state == "preparation" and not p.staged_released)
+        report = self._staged_prep_report
         try:
             with self.env.cr.savepoint():
                 if batch:
+                    report(5, _("Checking later-operation components"))
                     todo._staged_warn_late_components()
+                report(10, _("Cutting optimisation (%s orders)", len(todo)))
                 todo._staged_optimize_and_gate()
+                report(60, _("Reserving and moving materials to Pre-Production"))
                 todo.with_context(
                     staged_skip_optimize=True)._staged_do_prepare(start=start)
+                report(95, _("Finishing"))
         except psycopg2.OperationalError:
             raise
         except Exception as exc:  # noqa: BLE001 — причината отива при човека
@@ -2539,6 +2560,12 @@ class MrpProduction(models.Model):
         self._staged_prep_notify(failed=False)
         return True
 
+    def _staged_prep_report(self, progress, stage):
+        """Етап и процент на задачата — видими веднага (свой курсор)."""
+        uuid = self[:1].staged_prep_job_uuid
+        self.env["mrp.production.prep.progress"]._report(
+            uuid, self.ids, progress, stage)
+
     def _staged_prep_notify(self, failed, reason=""):
         """Известие до натисналия (той е потребителят на задачата)."""
         names = ", ".join(self.mapped("name"))
@@ -2552,3 +2579,6 @@ class MrpProduction(models.Model):
                        "message": names}
         self.env["bus.bus"]._sendone(
             self.env.user.partner_id, "simple_notification", payload)
+        if "live.refresh" in self.env:
+            self.env["live.refresh"].notify(
+                model="mrp.production", res_ids=self.ids, mode="record")

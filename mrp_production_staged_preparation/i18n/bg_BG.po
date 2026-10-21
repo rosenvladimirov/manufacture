@@ -435,3 +435,71 @@ msgstr "Подготвена за производство във фонов р�
 msgid ""
 "Running in the background for %s. You will be notified when it is ready."
 msgstr "Тече във фонов режим за %s. Ще получите известие, когато е готова."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
+msgid ""
+"<i class=\"fa fa-cog fa-spin\" title=\"Working\"/>\n"
+"                    <span>Preparation is running in the background.</span>"
+msgstr ""
+"<i class=\"fa fa-cog fa-spin\" title=\"Working\"/>\n"
+"                    <span>Подготовката тече във фонов режим.</span>"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model,name:mrp_production_staged_preparation.model_mrp_production_prep_progress
+msgid "Background Preparation Progress"
+msgstr "Прогрес на фоновата подготовка"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Checking later-operation components"
+msgstr "Проверка на компонентите за по-късните операции"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Cutting optimisation (%s orders)"
+msgstr "Разкрой (%s поръчки)"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Finishing"
+msgstr "Приключване"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__job_uuid
+msgid "Job Uuid"
+msgstr "UUID на задачата"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.constraint,message:mrp_production_staged_preparation.constraint_mrp_production_prep_progress_job_uuid_uniq
+msgid "One progress row per job."
+msgstr "Един ред прогрес на задача."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__staged_prep_progress
+msgid "Preparation Progress"
+msgstr "Прогрес на подготовката"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__staged_prep_stage
+msgid "Preparation Stage"
+msgstr "Етап на подготовката"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__progress
+msgid "Progress"
+msgstr "Прогрес"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Reserving and moving materials to Pre-Production"
+msgstr "Резервиране и преместване на материалите в Pre-Production"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__stage
+msgid "Stage"
+msgstr "Етап"

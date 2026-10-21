@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 05:53+0000\n"
-"PO-Revision-Date: 2026-10-21 05:53+0000\n"
+"POT-Creation-Date: 2026-10-21 06:03+0000\n"
+"PO-Revision-Date: 2026-10-21 06:03+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -53,6 +53,13 @@ msgid ""
 msgstr ""
 
 #. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
+msgid ""
+"<i class=\"fa fa-cog fa-spin\" title=\"Working\"/>\n"
+"                    <span>Preparation is running in the background.</span>"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
 #: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
 msgid "<strong>Confirm start the manufacturing order(s)?</strong>"
 msgstr ""
@@ -75,6 +82,11 @@ msgstr ""
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__staged_prep_job_state
 msgid "Background Preparation"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model,name:mrp_production_staged_preparation.model_mrp_production_prep_progress
+msgid "Background Preparation Progress"
 msgstr ""
 
 #. module: mrp_production_staged_preparation
@@ -154,6 +166,12 @@ msgid ""
 msgstr ""
 
 #. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Checking later-operation components"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
 #: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_unprepare_wizard_form
 msgid "Choose how far back the orders should go:"
 msgstr ""
@@ -170,6 +188,7 @@ msgstr ""
 
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__create_uid
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__create_uid
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__create_uid
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__create_uid
 msgid "Created by"
@@ -177,6 +196,7 @@ msgstr ""
 
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__create_date
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__create_date
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__create_date
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__create_date
 msgid "Created on"
@@ -201,6 +221,12 @@ msgid "Cutting Run"
 msgstr ""
 
 #. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Cutting optimisation (%s orders)"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
 #: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_relabel_bar_ref
 msgid "Cutting-plan bar whose remnant this lot relabel belongs to."
 msgstr ""
@@ -214,6 +240,7 @@ msgstr ""
 
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__display_name
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__display_name
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__display_name
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__display_name
 msgid "Display Name"
@@ -233,7 +260,14 @@ msgid ""
 msgstr ""
 
 #. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Finishing"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__id
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__id
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__id
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__id
 msgid "ID"
@@ -251,7 +285,13 @@ msgid "Incomplete reservation at start"
 msgstr ""
 
 #. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__job_uuid
+msgid "Job Uuid"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__write_uid
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__write_uid
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__write_uid
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__write_uid
 msgid "Last Updated by"
@@ -259,6 +299,7 @@ msgstr ""
 
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__write_date
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__write_date
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__write_date
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__write_date
 msgid "Last Updated on"
@@ -382,6 +423,11 @@ msgid ""
 msgstr ""
 
 #. module: mrp_production_staged_preparation
+#: model:ir.model.constraint,message:mrp_production_staged_preparation.constraint_mrp_production_prep_progress_job_uuid_uniq
+msgid "One progress row per job."
+msgstr ""
+
+#. module: mrp_production_staged_preparation
 #. odoo-python
 #: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 msgid "Order"
@@ -425,6 +471,16 @@ msgid "Preparation Error"
 msgstr ""
 
 #. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__staged_prep_progress
+msgid "Preparation Progress"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__staged_prep_stage
+msgid "Preparation Stage"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
 #. odoo-python
 #: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 #: model:ir.model.fields.selection,name:mrp_production_staged_preparation.selection__mrp_production__staged_prep_job_state__failed
@@ -443,13 +499,6 @@ msgstr ""
 msgid ""
 "Preparation is already running in the background for: %s. Wait for its "
 "notification."
-msgstr ""
-
-#. module: mrp_production_staged_preparation
-#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
-msgid ""
-"Preparation is running in the background. You will be\n"
-"                    notified when it is ready."
 msgstr ""
 
 #. module: mrp_production_staged_preparation
@@ -523,6 +572,11 @@ msgid "Profile"
 msgstr ""
 
 #. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__progress
+msgid "Progress"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
 #. odoo-python
 #: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 msgid ""
@@ -560,6 +614,12 @@ msgstr ""
 
 #. module: mrp_production_staged_preparation
 #. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Reserving and moving materials to Pre-Production"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
 #: code:addons/mrp_production_staged_preparation/wizards/mrp_production_prepare_wizard.py:0
 msgid ""
 "Running in the background for %s. You will be notified when it is ready."
@@ -578,6 +638,11 @@ msgstr ""
 msgid ""
 "Some remnants of cutting run %(run)s did not get their own lot and their "
 "transfer stays waiting: %(list)s"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__stage
+msgid "Stage"
 msgstr ""
 
 #. module: mrp_production_staged_preparation

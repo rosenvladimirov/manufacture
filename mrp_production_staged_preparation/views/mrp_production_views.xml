@@ -22,10 +22,14 @@
             <!-- ADR-0098 / ADR-0100: подготовката е фонова задача — докато
                  върви и ако падне, се казва най-горе на формата. -->
             <xpath expr="//sheet" position="before">
-                <div class="alert alert-info mb-0" role="status"
-                     invisible="staged_prep_job_state != 'queued'">
-                    Preparation is running in the background. You will be
-                    notified when it is ready.
+                <!-- Като при вноса от ЛогиКал: етап + процент, обновяват се
+                     сами през l10n_bg_live_refresh. -->
+                <div class="alert alert-info d-flex align-items-center gap-2 mb-0"
+                     role="status" invisible="staged_prep_job_state != 'queued'">
+                    <i class="fa fa-cog fa-spin" title="Working"/>
+                    <span>Preparation is running in the background.</span>
+                    <field name="staged_prep_stage" readonly="1" nolabel="1" class="mb-0"/>
+                    <field name="staged_prep_progress" widget="progressbar" readonly="1" nolabel="1"/>
                 </div>
                 <div class="alert alert-danger mb-0" role="alert"
                      invisible="staged_prep_job_state != 'failed'">
