@@ -1244,9 +1244,15 @@ class MrpProduction(models.Model):
     # на Confirm и не се пипат. Накрая flip към 'confirmed' → unlock progress.
 
     def action_prepare_production(self):
-        # Отваря потвърждение „Confirm start the MO(s)?" — планерът решава дали
-        # стейджнатото производство да СТАРТИРА веднага (In Processing) или да
-        # остане в Preparation. Batch: едно потвърждение за всички.
+        """„Подготви за производство“ — веднага фонова задача, без прозорец.
+
+        ADR-0098 (Любо, 21.10, TG 173278): „натискането на ПфП трябва да
+        стартира фоновата задача, не старта (старта е евентуално отделна
+        фонова задача)“. Прозорецът „Да — старт / Не — само подготви“ (№116)
+        отпада: пробният „View Cutting“ в него заместваше прозореца и нямаше
+        връщане. Разкроят се гледа след задачата — истинският, от МО-то.
+        Стартът е отделен бутон (`action_staged_start`).
+        """
         staged = self.filtered(
             lambda p: p.staged_preparation_enabled
             and p.state == "preparation" and not p.staged_released)
@@ -1256,25 +1262,43 @@ class MrpProduction(models.Model):
                 "MOs cannot be re-staged.)"))
         staged._staged_prep_check_not_running()
         staged._staged_prep_check_nothing_started()
-        # ADR-0098 / ADR-0100 (Любо, 20.10): тук НЕ се смята нищо. Прозорецът
-        # пита само „старт сега или само подготви“; разкроят, гейтът и
-        # материализацията вървят във фоновата задача (`_staged_prepare_job`).
-        # Дотук разкроят се смяташе в заявката — 18 МО армировка държаха
-        # браузъра, а повторното натискане раждаше втори разкрой (fulltest,
-        # 20.10: 1208/1209 → 1216, двоен разход).
+        staged._staged_prepare_enqueue(start=False)
         return {
-            "type": "ir.actions.act_window",
-            "name": _("Prepare for Production"),
-            "res_model": "mrp.production.prepare.wizard",
-            "view_mode": "form",
-            "target": "new",
-            "context": {
-                "default_production_ids": [(6, 0, staged.ids)],
-                # от партидния бутон — задачата пише и предупрежденията за
-                # късните компоненти (бяха в заявката)
-                "staged_prep_batch": self.env.context.get("staged_prep_batch", False),
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "type": "info",
+                "title": _("Preparation started"),
+                "message": _("Running in the background for %s. "
+                             "You will be notified when it is ready.",
+                             ", ".join(staged.mapped("name"))),
+                "next": {"type": "ir.actions.client", "tag": "soft_reload"},
             },
         }
+
+    def action_staged_start(self):
+        """„Старт на производството“ — отделно от подготовката (ADR-0098).
+
+        Само подготвените (пуснати в цеха) МО-та в „Preparation“: стават
+        „In Progress“ и се заключват; непълната резервация остава в чатъра.
+        Лека стъпка — без фонова задача.
+        """
+        ready = self.filtered(
+            lambda p: p.state == "preparation" and p.staged_released)
+        if not ready:
+            raise UserError(_(
+                "Nothing to start: only orders that are prepared for "
+                "production (released to the floor) can be started."))
+        running = ready._staged_prep_running()
+        if running:
+            raise UserError(_(
+                "Preparation is still running in the background for: %s.",
+                ", ".join(running.mapped("name"))))
+        for production in ready:
+            production.state = "progress"
+            production.is_locked = True
+            production._staged_note_partial_reservation(True)
+        return True
 
     def _staged_note_partial_reservation(self, start):
         """Записва в чатъра, ако МО тръгва в производство с НЕПЪЛНА резервация.

@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 06:25+0000\n"
-"PO-Revision-Date: 2026-10-21 06:25+0000\n"
+"POT-Creation-Date: 2026-10-21 06:46+0000\n"
+"PO-Revision-Date: 2026-10-21 06:46+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -423,6 +423,14 @@ msgid ""
 msgstr ""
 
 #. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Nothing to start: only orders that are prepared for production (released to "
+"the floor) can be started."
+msgstr ""
+
+#. module: mrp_production_staged_preparation
 #: model:ir.model.constraint,message:mrp_production_staged_preparation.constraint_mrp_production_prep_progress_job_uuid_uniq
 msgid "One progress row per job."
 msgstr ""
@@ -502,6 +510,12 @@ msgid ""
 msgstr ""
 
 #. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Preparation is still running in the background for: %s."
+msgstr ""
+
+#. module: mrp_production_staged_preparation
 #: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_pick_move_id
 msgid ""
 "Preparation pick that was created to top up the buffer for this consumption."
@@ -515,6 +529,7 @@ msgstr ""
 
 #. module: mrp_production_staged_preparation
 #. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 #: code:addons/mrp_production_staged_preparation/wizards/mrp_production_prepare_wizard.py:0
 msgid "Preparation started"
 msgstr ""
@@ -528,8 +543,6 @@ msgid ""
 msgstr ""
 
 #. module: mrp_production_staged_preparation
-#. odoo-python
-#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 #: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
 #: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_list_staged_preparation
 #: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
@@ -629,6 +642,7 @@ msgstr ""
 
 #. module: mrp_production_staged_preparation
 #. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 #: code:addons/mrp_production_staged_preparation/wizards/mrp_production_prepare_wizard.py:0
 msgid ""
 "Running in the background for %s. You will be notified when it is ready."
@@ -731,6 +745,12 @@ msgstr ""
 msgid ""
 "Staged preparation is not enabled for this picking type. Enable 'Staged "
 "Preparation' on '%s' first."
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_list_staged_preparation
+msgid "Start Production"
 msgstr ""
 
 #. module: mrp_production_staged_preparation

@@ -515,3 +515,25 @@ msgstr ""
 "„Подготви за производство“ се отказва: %(started)s вече са в производство. "
 "Един разкрой на поръчка — новият би заменил разкроя, по който се режат тези "
 "поръчки."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Nothing to start: only orders that are prepared for production (released to "
+"the floor) can be started."
+msgstr ""
+"Няма какво да се стартира: стартират се само поръчки, подготвени за "
+"производство (пуснати в цеха)."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Preparation is still running in the background for: %s."
+msgstr "Подготовката още тече във фонов режим за: %s."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_list_staged_preparation
+msgid "Start Production"
+msgstr "Старт на производството"

@@ -6,8 +6,8 @@
 натискане раждаше втори разкрой (1208/1209 → 1216) и двоен разход.
 
 Тук се пази:
-  ① бутонът и прозорецът НЕ смятат нищо — нито разкрой, нито материализация;
-    само записват избора и пускат задачата; МО-тата са „тече подготовка“;
+  ① бутонът НЕ смята нищо и няма прозорец (Любо 21.10) — пуска задачата;
+    МО-тата са „тече подготовка“; стартът е отделен бутон (⑦);
   ② второ пускане за същите МО-та, докато задачата върви, се отказва;
   ③ свършила / паднала задача не държи МО-то — може да се пусне наново;
   ④ задачата: разкрой → гейт → материализация, после известие и чатър;
@@ -15,7 +15,9 @@
   ⑤ отказ на гейта: нищо не остава, МО-то е „Preparation failed“ с причината,
     задачата приключва чисто (не гърми);
   ⑥ един разкрой (Любо 21.10, TG 7298): МО в процес — избрано ИЛИ от стария
-    разкрой, който се заменя — ⇒ ПфП се отказва; всички в „Preparation“ ⇒ може.
+    разкрой, който се заменя — ⇒ ПфП се отказва; всички в „Preparation“ ⇒ може;
+  ⑦ „Старт на производството“ — само подготвените в „Preparation“: In Progress
+    и заключени; неподготвено МО не се стартира оттук.
 """
 from unittest.mock import patch
 
@@ -40,12 +42,9 @@ class TestPrepareInBackground(TransactionCase):
         cls.mos.picking_type_id.staged_preparation_enabled = True
         cls.mos.write({"state": "preparation"})
 
-    def _launch(self, start=True):
-        action = self.mos.action_prepare_production_batch()
-        wiz = self.env[action["res_model"]].with_context(
-            **action["context"]).create({})
-        return wiz.action_prepare_and_start() if start \
-            else wiz.action_prepare_only()
+    def _launch(self):
+        """ПфП от списъка: без прозорец — задачата тръгва веднага (ADR-0098)."""
+        return self.mos.action_prepare_production_batch()
 
     def _job(self):
         return self.env["queue.job"].search(
@@ -82,11 +81,11 @@ class TestPrepareInBackground(TransactionCase):
         self._job().state = "failed"
         self.assertFalse(self.mos._staged_prep_running())
         action = self.mos.action_prepare_production_batch()
-        self.assertEqual(action["res_model"], "mrp.production.prepare.wizard")
+        self.assertEqual(action["tag"], "display_notification")
 
     def test_the_job_prepares_and_tells(self):
         """④ Задачата: гейт → материализация с избора; известие; чатър."""
-        self._launch(start=False)
+        self._launch()
         # прогресът се пише със СВОЙ курсор — в тестовия режим на регистъра
         # той минава през същата транзакция и тестът го вижда
         self.registry.enter_test_mode(self.cr)
@@ -96,7 +95,7 @@ class TestPrepareInBackground(TransactionCase):
                 patch.object(type(self.env["bus.bus"]), "_sendone") as send:
             Job.load(self.env, self._job().uuid).perform()
         gate.assert_called_once()
-        prepare.assert_called_once_with(start=False)
+        prepare.assert_called_once_with(start=False)  # стартът е отделен бутон
         self.assertFalse(any(self.mos.mapped("staged_prep_job_state")))
         self.assertEqual(send.call_args.args[1], "simple_notification")
         self.assertEqual(send.call_args.args[2]["type"], "success")
@@ -147,4 +146,13 @@ class TestPrepareInBackground(TransactionCase):
         """⑥ Контрола: старият разкрой е само с МО-та в „Preparation“ ⇒ може."""
         self._old_run_with("preparation")
         action = self.mos[:1].action_prepare_production()
-        self.assertEqual(action["res_model"], "mrp.production.prepare.wizard")
+        self.assertEqual(action["tag"], "display_notification")
+
+    def test_start_is_a_separate_step(self):
+        """⑦ Стартът: само подготвеното, после In Progress и заключено."""
+        with self.assertRaises(UserError):
+            self.mos.action_staged_start()  # още не е подготвено
+        self.mos.write({"staged_released": True})
+        self.mos.action_staged_start()
+        self.assertEqual(set(self.mos.mapped("state")), {"progress"})
+        self.assertTrue(all(self.mos.mapped("is_locked")))
