@@ -120,7 +120,10 @@ class TestPrepareInBackground(TransactionCase):
         prepare.assert_not_called()
         self.assertEqual(set(self.mos.mapped("staged_prep_job_state")), {"awaiting"})
         self.assertFalse(any(self.mos.mapped("staged_released")))
-        self.assertEqual(send.call_args.args[1], "simple_notification")
+        # TG 173291: известието с бутон „Одобри“ / формата сама — по шината
+        ready = [c.args for c in send.call_args_list if c.args[1] == "staged_cut_ready"]
+        self.assertEqual(len(ready), 1)
+        self.assertEqual(sorted(ready[0][2]["production_ids"]), sorted(self.mos.ids))
         self.assertIn("awaits approval", self.mos[0].message_ids[:1].body or "")
         self.mos.invalidate_recordset(["staged_prep_progress", "staged_prep_stage"])
         self.assertEqual(self.mos[0].staged_prep_progress, 95)

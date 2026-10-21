@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 18.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-21 07:14+0000\n"
-"PO-Revision-Date: 2026-10-21 07:14+0000\n"
+"POT-Creation-Date: 2026-10-21 07:51+0000\n"
+"PO-Revision-Date: 2026-10-21 07:51+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -73,6 +73,12 @@ msgstr ""
 #. module: mrp_production_staged_preparation
 #: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
 msgid "<strong>Warnings from the cutting:</strong>"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-javascript
+#: code:addons/mrp_production_staged_preparation/static/src/js/staged_cut_ready_service.js:0
+msgid "Approve"
 msgstr ""
 
 #. module: mrp_production_staged_preparation
@@ -257,6 +263,7 @@ msgstr ""
 
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields.selection,name:mrp_production_staged_preparation.selection__mrp_production__staged_prep_job_state__awaiting
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_search_staged_preparation
 msgid "Cutting awaits approval"
 msgstr ""
 
@@ -273,8 +280,8 @@ msgid "Cutting optimisation (%s orders)"
 msgstr ""
 
 #. module: mrp_production_staged_preparation
-#. odoo-python
-#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+#. odoo-javascript
+#: code:addons/mrp_production_staged_preparation/static/src/js/staged_cut_ready_service.js:0
 msgid "Cutting ready — approve it"
 msgstr ""
 
@@ -339,11 +346,6 @@ msgstr ""
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__id
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__id
 msgid "ID"
-msgstr ""
-
-#. module: mrp_production_staged_preparation
-#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_search_staged_preparation
-msgid "In Preparation"
 msgstr ""
 
 #. module: mrp_production_staged_preparation
@@ -544,6 +546,7 @@ msgstr ""
 
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields.selection,name:mrp_production_staged_preparation.selection__mrp_production__state__preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_search_staged_preparation
 msgid "Preparation"
 msgstr ""
 

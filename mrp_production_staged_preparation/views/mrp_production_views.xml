@@ -158,8 +158,16 @@
                 <separator/>
                 <filter name="staged_released" string="Released to Floor"
                         domain="[('staged_released', '=', True)]"/>
-                <filter name="staged_in_preparation" string="In Preparation"
+            </xpath>
+            <!-- Любо 21.10 (TG 173294): „Preparation“ в групата със състоянията,
+                 до Confirmed; до него — разкроите, които чакат одобрение.
+                 Името staged_in_preparation остава: „Plan“ от списъка (№119)
+                 отваря списъка с него. -->
+            <xpath expr="//filter[@name='filter_confirmed']" position="after">
+                <filter name="staged_in_preparation" string="Preparation"
                         domain="[('state', '=', 'preparation')]"/>
+                <filter name="staged_cut_awaiting" string="Cutting awaits approval"
+                        domain="[('staged_prep_job_state', '=', 'awaiting')]"/>
             </xpath>
             <!-- Ядреният „To Do" не знае за статус preparation → операторът
                  губеше МО-то от поглед в момента, в който започне работа по

@@ -2688,7 +2688,14 @@ class MrpProduction(models.Model):
         for production in todo:
             production.message_post(body=Markup("%s%s%s") % (_(
                 "The cutting is ready and awaits approval."), link, listing))
-        self._staged_prep_notify(failed=False, title=_("Cutting ready — approve it"))
+        # Известието с бутон „Одобри“ / формата сама (TG 173291) —
+        # static/src/js/staged_cut_ready_service.js.
+        self.env["bus.bus"]._sendone(
+            self.env.user.partner_id, "staged_cut_ready",
+            {"production_ids": todo.ids, "names": ", ".join(todo.mapped("name"))})
+        if "live.refresh" in self.env:
+            self.env["live.refresh"].notify(
+                model="mrp.production", res_ids=self.ids, mode="record")
         return True
 
     def _staged_release_job(self, start=True):

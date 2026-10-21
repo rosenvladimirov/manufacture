@@ -9,13 +9,18 @@
         "internal component picks are deferred until 'Prepare for Production' "
         "releases the MO to the floor."
     ),
-    "version": "18.0.2.30.0",
+    "version": "18.0.2.31.0",
     "category": "Manufacturing",
     "website": "https://github.com/rosenvladimirov/manufacture-experts",
     "author": "Rosen Vladimirov, Terraros Commerce Ltd.",
     "maintainers": ["rosen-vladimirov"],
     "license": "OPL-1",
     "application": False,
+    "assets": {
+        "web.assets_backend": [
+            "mrp_production_staged_preparation/static/src/js/staged_cut_ready_service.js",
+        ],
+    },
     "installable": True,
     "depends": [
         "mrp",

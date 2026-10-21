@@ -687,3 +687,537 @@ msgstr ""
 #: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
 msgid "<strong>Do you approve this cutting?</strong>"
 msgstr "<strong>Одобрявате ли този разкрой?</strong>"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_mrp_production__state
+msgid ""
+" * Draft: The MO is not confirmed yet.\n"
+" * Confirmed: The MO is confirmed, the stock rules and the reordering of the components are trigerred.\n"
+" * In Progress: The production has started (on the MO or on the WO).\n"
+" * To Close: The production is done, the MO has to be closed.\n"
+" * Done: The MO is closed, the stock moves are posted. \n"
+" * Cancelled: The MO has been cancelled, can't be confirmed anymore."
+msgstr ""
+" * Чернова: поръчката още не е потвърдена.\n"
+" * Потвърдена: поръчката е потвърдена, складовите правила и поръчването на компонентите са пуснати.\n"
+" * В процес: производството е започнало (по поръчката или по работна поръчка).\n"
+" * За приключване: производството е готово, поръчката трябва да се приключи.\n"
+" * Готова: поръчката е приключена, складовите движения са осчетоводени. \n"
+" * Отказана: поръчката е отказана и не може да бъде потвърдена повече."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_unprepare_wizard_form
+msgid ""
+"<b>Confirmed</b> — the staging is undone, the order stays\n"
+"                        confirmed. Use this to redo the preparation."
+msgstr ""
+"<b>Потвърдена</b> — подготовката се отменя, поръчката остава\n"
+"                        потвърдена. Използвайте това, за да подготвите наново."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_unprepare_wizard_form
+msgid ""
+"<b>Draft</b> — the order is fully reopened. Use this when\n"
+"                        the bill of materials or the lines must be changed."
+msgstr ""
+"<b>Чернова</b> — поръчката се отваря изцяло. Използвайте това,\n"
+"                        когато рецептата или редовете трябва да се сменят."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_unprepare_wizard_form
+msgid "Back to Confirmed"
+msgstr "Обратно в Потвърдена"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_unprepare_wizard_form
+msgid "Back to Draft"
+msgstr "Обратно в Чернова"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_consumption_ids
+msgid "Buffer consumptions this preparation pick tops up."
+msgstr "Консумациите от буфера, които този пик за подготовка допълва."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_unprepare_wizard_form
+msgid "Cancel"
+msgstr "Отказ"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Cannot prepare for production — the cutting run refused:\n"
+"\n"
+"%s\n"
+"\n"
+"Nothing was committed."
+msgstr ""
+"Подготовката за производство не може да мине — разкроят отказа:\n"
+"\n"
+"%s\n"
+"\n"
+"Нищо не е записано."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Cannot produce %(mo)s — its components are not yet in Pre-Production (reservation missing). Validate the staging transfer first: %(picks)s.\n"
+"\n"
+"Not reserved: %(prods)s"
+msgstr ""
+"%(mo)s не може да се произведе — компонентите му още не са в Pre-Production (липсва резервация). Първо валидирайте трансфера за подготовка: %(picks)s.\n"
+"\n"
+"Нерезервирани: %(prods)s"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Cannot produce %(mo)s — material is CANCELLED, not consumed.\n"
+"\n"
+"%(lines)s\n"
+"\n"
+"Producing now would book the finished goods while the material stays in stock on paper only. Either restore these component lines, or cancel the order."
+msgstr ""
+"%(mo)s не може да се произведе — материалът е ОТКАЗАН, не изписан.\n"
+"\n"
+"%(lines)s\n"
+"\n"
+"Производството сега би заприходило готовата продукция, а материалът би останал в склада само на хартия. Възстановете тези редове на компонентите или откажете поръчката."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_unprepare_wizard_form
+msgid "Choose how far back the orders should go:"
+msgstr "Изберете докъде да се върнат поръчките:"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model,name:mrp_production_staged_preparation.model_mrp_production_prepare_wizard
+msgid "Confirm start of staged production"
+msgstr "Потвърждение за старт на подготвеното производство"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__create_uid
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__create_uid
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__create_uid
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__create_uid
+msgid "Created by"
+msgstr "Създадено от"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__create_date
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__create_date
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__create_date
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__create_date
+msgid "Created on"
+msgstr "Създадено на"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Cut: %s"
+msgstr "Разкрой: %s"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__display_name
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__display_name
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__display_name
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__display_name
+msgid "Display Name"
+msgstr "Име за показване"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__staged_preparation_enabled
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_picking_type__staged_preparation_enabled
+msgid "Enable Staged Preparation"
+msgstr "Включи подготовката за производство"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__id
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__id
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__id
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__id
+msgid "ID"
+msgstr "ID"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_search_staged_preparation
+msgid "In Preparation"
+msgstr "В подготовка"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Incomplete reservation at start"
+msgstr "Непълна резервация при старта"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__write_uid
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__write_uid
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__write_uid
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__write_uid
+msgid "Last Updated by"
+msgstr "Последно обновено от"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_cutting_trial__write_date
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__write_date
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__write_date
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__write_date
+msgid "Last Updated on"
+msgstr "Последно обновено на"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "MO %(name)s is '%(state)s' — nothing to unprepare."
+msgstr "%(name)s е „%(state)s“ — няма подготовка за отмяна."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"MO %(name)s is in state '%(state)s'; only MOs in 'Preparation' can be "
+"prepared."
+msgstr ""
+"%(name)s е в състояние „%(state)s“; подготвят се само поръчки в "
+"„Подготовка“."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "MO %s is already staged/released — cannot re-stage."
+msgstr "%s вече е подготвена/пусната — не може да се подготви наново."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"MO %s is already staged/released — re-planning is blocked (prevents "
+"duplicate transfers / negative stock)."
+msgstr ""
+"%s вече е подготвена/пусната — повторното планиране е спряно (за да няма "
+"двойни трансфери / отрицателна наличност)."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model,name:mrp_production_staged_preparation.model_mrp_production
+msgid "Manufacturing Order"
+msgstr "Производствена поръчка"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_mrp_production__staged_preparation_enabled
+msgid "Mirror of the picking type's flag — drives override visibility."
+msgstr "Огледало на флага на вида операция — управлява видимостта."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"No preparation transfer was created for this order, because %(reason)s. The "
+"components will be consumed straight from their current location. If a "
+"transfer was expected here, this is the moment it did not happen."
+msgstr ""
+"За тази поръчка не е създаден трансфер за подготовка, защото %(reason)s. "
+"Компонентите ще се изпишат направо от сегашното си място. Ако тук се е "
+"очаквал трансфер — това е моментът, в който той не се е случил."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"No staged MO in 'Preparation' to prepare. (Already released MOs cannot be "
+"re-staged.)"
+msgstr ""
+"Няма поръчка в „Подготовка“ за подготвяне. (Вече пуснатите поръчки не се "
+"подготвят наново.)"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"None of the selected manufacturing orders can be unprepared. They must have "
+"staged preparation enabled, be already prepared, and not be done or "
+"cancelled."
+msgstr ""
+"Подготовката на никоя от избраните поръчки не може да се отмени. Трябва да "
+"са с включена подготовка, вече подготвени и да не са готови или отказани."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"None of the selected manufacturing orders is in 'Preparation' with staged "
+"preparation enabled."
+msgstr ""
+"Никоя от избраните производствени поръчки не е в „Подготовка“ с включена "
+"подготовка за производство."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__production_count
+msgid "Orders"
+msgstr "Поръчки"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_unprepare_wizard_form
+msgid "Orders affected"
+msgstr "Засегнати поръчки"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model,name:mrp_production_staged_preparation.model_stock_picking_type
+msgid "Picking Type"
+msgstr "Вид операция"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields.selection,name:mrp_production_staged_preparation.selection__mrp_production__state__preparation
+msgid "Preparation"
+msgstr "Подготовка"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__staged_pick_move_id
+msgid ""
+"Preparation pick that was created to top up the buffer for this consumption."
+" A trace only — it does not cap the reservation."
+msgstr ""
+"Пик за подготовка, създаден да допълни буфера за тази консумация. Само следа"
+" — не ограничава резервацията."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_list_staged_preparation
+msgid "Prepare for Production"
+msgstr "Подготви за производство"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Release to floor: the %(stage)s step did not complete for cutting session "
+"%(session)s. The order was released anyway. Error: %(error)s"
+msgstr ""
+"Пускане в цеха: стъпката %(stage)s не завърши за сесията на разкроя "
+"%(session)s. Поръчката все пак е пусната. Грешка: %(error)s"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_list_staged_preparation
+msgid "Released"
+msgstr "Пусната"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_search_staged_preparation
+msgid "Released to Floor"
+msgstr "Пуснати в цеха"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__staged_released
+msgid "Released to floor"
+msgstr "Пусната в цеха"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__cutting_waste_pct
+msgid ""
+"Scrap + trim + kerf over the material used. Usable offcut is excluded — it "
+"goes back to stock."
+msgstr ""
+"Скрап + отрези + рез спрямо използвания материал. Използваемият остатък не "
+"влиза — той се връща в склада."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__staged_consumption_ids
+msgid "Staged Consumptions"
+msgstr "Консумации при подготовката"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__is_staged_offcut
+msgid "Staged Offcut By-product"
+msgstr "Остатък като страничен продукт при подготовката"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_stock_move__staged_pick_move_id
+msgid "Staged Pick Move"
+msgstr "Движение на пика за подготовка"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__staged_prep_job_uuid
+msgid "Staged Prep Job Uuid"
+msgstr "UUID на задачата за подготовка"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.stock_picking_type_form_staged_preparation
+msgid "Staged Preparation"
+msgstr "Подготовка за производство"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__staged_cutting_optimization_id
+msgid "Staged cutting optimization"
+msgstr "Разкрой на подготовката"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Staged preparation is not enabled for MO %(name)s."
+msgstr "Подготовката за производство не е включена за %(name)s."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Staged preparation is not enabled for this picking type. Enable 'Staged "
+"Preparation' on '%s' first."
+msgstr ""
+"Подготовката за производство не е включена за този вид операция. Първо "
+"включете „Подготовка за производство“ на „%s“."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Started with incomplete reservation."
+msgstr "Пусната с непълна резервация."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__state
+msgid "State"
+msgstr "Състояние"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model,name:mrp_production_staged_preparation.model_stock_move
+msgid "Stock Move"
+msgstr "Складово движение"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"The cutting plan assigns bars that are not fully reserved for this order. "
+"Component Status may still read \"Available\" - it counts forecast, not "
+"reservation."
+msgstr ""
+"Разкроят разпределя пръти, които не са изцяло резервирани за тази поръчка. "
+"„Статус на компонентите“ може пак да показва „Наличен“ — той брои "
+"прогнозата, не резервацията."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/stock_move.py:0
+msgid ""
+"These manufacturing orders are still in Preparation and have not been released:\n"
+"\n"
+"%(orders)s\n"
+"\n"
+"Marking a component as picked would move them into In Progress without ever passing through preparation — no cutting run, no transfer, no reservation. Press \"Prepare for Production\" first, or reset the order to draft if it should not be produced."
+msgstr ""
+"Тези производствени поръчки още са в „Подготовка“ и не са пуснати:\n"
+"\n"
+"%(orders)s\n"
+"\n"
+"Отметката на компонент като взет би ги преместила в „В процес“, без да минат през подготовката — без разкрой, без трансфер, без резервация. Първо натиснете „Подготви за производство“ или върнете поръчката в чернова, ако не трябва да се произвежда."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_unprepare_wizard__picking_count
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_unprepare_wizard_form
+msgid "Transfers to delete"
+msgstr "Трансфери за изтриване"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_list_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_unprepare_wizard_form
+msgid "Undo Preparation"
+msgstr "Отмени подготовката"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model,name:mrp_production_staged_preparation.model_mrp_production_unprepare_wizard
+msgid "Undo staged preparation"
+msgstr "Отмяна на подготовката"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_unprepare_wizard_form
+msgid ""
+"Undoing the preparation releases the reservations, deletes\n"
+"                    the Stock to Pre-Production transfer and puts the components\n"
+"                    back on a single step. Orders prepared together share one\n"
+"                    transfer and must be undone together."
+msgstr ""
+"Отмяната на подготовката освобождава резервациите, изтрива\n"
+"                    трансфера Склад → Pre-Production и връща компонентите\n"
+"                    на една стъпка. Поръчки, подготвени заедно, споделят един\n"
+"                    трансфер и трябва да се отменят заедно."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Unknown target state '%(state)s' for unprepare; expected 'draft' or "
+"'confirmed'."
+msgstr ""
+"Непознато целево състояние „%(state)s“ за отмяната; очаква се „draft“ или "
+"„confirmed“."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_picking_type__staged_preparation_enabled
+msgid ""
+"When enabled on a manufacturing operation type, MOs created with this picking type get a 'Preparation' gate **after** Plan: workorders are scheduled normally, Pick/Store pickings and PO drafts are born at confirm time, but the MO sits in 'Preparation' state until the operator clicks 'Prepare for Production' to release it to the floor.\n"
+"\n"
+"Lifecycle: draft → action_confirm (Pick/PO chain triggers) → confirmed → button_plan (workorders planned) → preparation (gate) → action_prepare_production → confirmed → progress → done."
+msgstr ""
+"Когато е включено за вид производствена операция, поръчките с този вид получават стъпка „Подготовка“ **след** планирането: работните поръчки се планират нормално, пиковете и черновите на доставки се раждат при потвърждаването, но поръчката стои в „Подготовка“, докато операторът не натисне „Подготви за производство“, за да я пусне в цеха.\n"
+"\n"
+"Пътят: чернова → потвърждаване (пикове/доставки) → потвърдена → планиране (работни поръчки) → подготовка (стъпката) → подготвяне за производство → потвърдена → в процес → готова."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_stock_move__is_staged_offcut
+msgid ""
+"Whole-bar credit-back offcut by-product (variant B). Its value is set via "
+"cost_share in mrp.production._cal_price so the offcut reduces the finished "
+"product cost strictly FIFO."
+msgstr ""
+"Остатък от целия прът като страничен продукт (вариант Б). Стойността му се "
+"задава през cost_share в mrp.production._cal_price, така че остатъкът "
+"намалява себестойността на готовия продукт строго по FIFO."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"no component move starts from stock — they are either already sourced "
+"elsewhere, or excluded as glass"
+msgstr ""
+"нито едно движение на компонент не тръгва от склада — или вече идват от "
+"другаде, или са изключени като стъкло"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "the staging transfer"
+msgstr "трансфера за подготовка"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "the warehouse has no Pre-Production location"
+msgstr "складът няма локация Pre-Production"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "the warehouse is set to one-step manufacturing"
+msgstr "складът е настроен за производство в една стъпка"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"⚠ Prepared while later-operation components are not yet available (%s). They"
+" should arrive before consumption (e.g. glass at installation)."
+msgstr ""
+"⚠ Подготвено, докато компонентите за по-късните операции още не са налични "
+"(%s). Трябва да пристигнат преди изписването (напр. стъклото при монтажа)."
+
+#. module: mrp_production_staged_preparation
+#. odoo-javascript
+#: code:addons/mrp_production_staged_preparation/static/src/js/staged_cut_ready_service.js:0
+msgid "Approve"
+msgstr "Одобри"
