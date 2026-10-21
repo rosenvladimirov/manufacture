@@ -45,11 +45,23 @@ class MrpProductionPrepareWizard(models.TransientModel):
         }
 
     def _do(self, start):
-        # Пренасяме staged_skip_optimize (batch вече е оптимизирал cross-MO).
-        skip = self.env.context.get("staged_skip_optimize", False)
+        # ADR-0098 / ADR-0100: изборът се записва и всичко тръгва във фонова
+        # задача — прозорецът се затваря веднага, известието идва накрая.
+        batch = self.env.context.get("staged_prep_batch", False)
         self.production_ids.with_context(
-            staged_skip_optimize=skip)._staged_do_prepare(start=start)
-        return {"type": "ir.actions.act_window_close"}
+            staged_prep_batch=batch)._staged_prepare_enqueue(start)
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "type": "info",
+                "title": _("Preparation started"),
+                "message": _("Running in the background for %s. "
+                             "You will be notified when it is ready.",
+                             ", ".join(self.production_ids.mapped("name"))),
+                "next": {"type": "ir.actions.act_window_close"},
+            },
+        }
 
     def action_prepare_and_start(self):
         # YES → стейджинг + In Processing (progress) + заключено.

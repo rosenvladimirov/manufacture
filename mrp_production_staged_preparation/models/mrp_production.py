@@ -6,6 +6,8 @@ import json
 import logging
 import math
 
+import psycopg2
+
 from odoo import _, api, fields, models
 from odoo.exceptions import RedirectWarning, UserError
 from markupsafe import Markup
@@ -110,6 +112,18 @@ class MrpProduction(models.Model):
             "Живата разкройна оптимизация, изчислена в _staged_optimize_and_gate "
             "(ПРЕДИ confirm). Whole-bar планът и forced-lot пиновете четат от нея. "
             "copy=False → backorder-ите не я наследяват (нямат нов разкрой)."))
+    # ADR-0098 / ADR-0100 (Любо, 20.10): ПфП е ВИНАГИ фонова задача —
+    # разкроят и материализацията не се смятат в заявката на браузъра.
+    staged_prep_job_state = fields.Selection(
+        [("queued", "Preparation running"), ("failed", "Preparation failed")],
+        string="Background Preparation",
+        copy=False,
+        help="Prepare for Production runs as a background job. While it runs "
+             "the order cannot be prepared again; when it ends you get a "
+             "notification and a note in the chatter.")
+    staged_prep_job_uuid = fields.Char(copy=False, readonly=True)
+    staged_prep_error = fields.Text(
+        string="Preparation Error", copy=False, readonly=True)
 
     # ── Staged endpoint-swap helpers ────────────────────────────────────
     def _staged_intermediate_active(self):
@@ -1224,14 +1238,13 @@ class MrpProduction(models.Model):
             raise UserError(_(
                 "No staged MO in 'Preparation' to prepare. (Already released "
                 "MOs cannot be re-staged.)"))
-        # Phase 2 (дизайн Любо, msg 157090): ОПТИМИЗАЦИЯ + FEASIBILITY ГЕЙТ
-        # стават ТУК — ПРЕДИ потвърждението и ПРЕДИ всякакъв ангажимент. При
-        # недостиг на бар-сток гейтът вдига чист UserError → транзакцията се
-        # откатва, wizard изобщо не се отваря, 0 ангажимент (никакъв
-        # staged_released/move/резервация/progress). Batch вече е оптимизирал
-        # cross-MO → прескачаме (staged_skip_optimize), за да няма двоен разкрой.
-        if not self.env.context.get("staged_skip_optimize"):
-            staged._staged_optimize_and_gate()
+        staged._staged_prep_check_not_running()
+        # ADR-0098 / ADR-0100 (Любо, 20.10): тук НЕ се смята нищо. Прозорецът
+        # пита само „старт сега или само подготви“; разкроят, гейтът и
+        # материализацията вървят във фоновата задача (`_staged_prepare_job`).
+        # Дотук разкроят се смяташе в заявката — 18 МО армировка държаха
+        # браузъра, а повторното натискане раждаше втори разкрой (fulltest,
+        # 20.10: 1208/1209 → 1216, двоен разход).
         return {
             "type": "ir.actions.act_window",
             "name": _("Prepare for Production"),
@@ -1240,8 +1253,9 @@ class MrpProduction(models.Model):
             "target": "new",
             "context": {
                 "default_production_ids": [(6, 0, staged.ids)],
-                # разкроят е cross-MO в batch → wizard-ът да не го повтаря per-MO
-                "staged_skip_optimize": self.env.context.get("staged_skip_optimize", False),
+                # от партидния бутон — задачата пише и предупрежденията за
+                # късните компоненти (бяха в заявката)
+                "staged_prep_batch": self.env.context.get("staged_prep_batch", False),
             },
         }
 
@@ -2411,14 +2425,17 @@ class MrpProduction(models.Model):
                 "with staged preparation enabled."
             ))
 
-        # Late-component WARNING (Phase 2): само лек message_post за МО с
-        # неналични ПО-КЪСНИ компоненти (стъкло/обков идват на монтаж) — БЕЗ
-        # блок. Твърдият BLOCK на режещите компоненти ОТПАДНА (double-gate):
-        # `_staged_optimize_and_gate` е авторитетният feasibility гейт — при
-        # недостиг на бар-сток вдига чист UserError + откат. Старият forecast
-        # pre-check дублираше по-слабо (forecast vs реален разкрой) → махнат.
+        # ADR-0098 / ADR-0100: предупрежденията за късните компоненти и
+        # разкроят (cross-MO, един за партидата) вървят във фоновата задача.
+        return eligible.with_context(
+            staged_prep_batch=True).action_prepare_production()
+
+    # ── ADR-0098 / ADR-0100: „Подготви за производство“ като фонова задача ──
+
+    def _staged_warn_late_components(self):
+        """Лек запис в чатъра за неналичните ПО-КЪСНИ компоненти — без блок."""
         Piece = self.env.get("mrp.cutting.piece")
-        for production in eligible:
+        for production in self:
             cut_ids = set()
             if Piece is not None and production.bom_id:
                 cut_ids = set(Piece.sudo().search(
@@ -2436,13 +2453,102 @@ class MrpProduction(models.Model):
                     "(e.g. glass at installation).",
                     ", ".join(bad.mapped("product_id.display_name"))))
 
-        # РАЗКРОЙ + FEASIBILITY ГЕЙТ (единственият авторитетен гейт) ПРЕДИ
-        # потвърждението. cross-MO нестване на дневната партида + forced-lot пин;
-        # при недостиг → чист UserError + откат (0 ангажимент). Агрегацията към
-        # 1 трансфер вече е в _staged_do_prepare (recordset ниво) — не тук.
-        eligible._staged_optimize_and_gate()
+    def _staged_prep_running(self):
+        """МО-тата, чиято подготовка наистина още върви.
 
-        # Едно потвърждение „Confirm start?" за всички; разкроят е cross-MO →
-        # wizard-ът НЕ го повтаря per-MO (staged_skip_optimize).
-        return eligible.with_context(
-            staged_skip_optimize=True).action_prepare_production()
+        Задача, която е свършила, паднала или изчезнала (спрян работник),
+        не държи МО-то: иначе „тече подготовка“ би останало завинаги.
+        """
+        queued = self.filtered(lambda p: p.staged_prep_job_state == "queued")
+        if not queued:
+            return queued
+        Job = self.env["queue.job"].sudo()
+        alive = set(Job.search([
+            ("uuid", "in", [u for u in queued.mapped("staged_prep_job_uuid") if u]),
+            ("state", "in", ("wait_dependencies", "pending", "enqueued", "started")),
+        ]).mapped("uuid"))
+        return queued.filtered(lambda p: p.staged_prep_job_uuid in alive)
+
+    def _staged_prep_check_not_running(self):
+        """Второ пускане за същите МО-та се отказва, докато върви първото."""
+        running = self._staged_prep_running()
+        if running:
+            raise UserError(_(
+                "Preparation is already running in the background for: %s. "
+                "Wait for its notification.",
+                ", ".join(running.mapped("name"))))
+
+    def _staged_prepare_enqueue(self, start):
+        """Слага МО-тата в „тече подготовка“ и пуска фоновата задача."""
+        self._staged_prep_check_not_running()
+        batch = bool(self.env.context.get("staged_prep_batch"))
+        job = self.with_delay(
+            channel="root.staged_preparation",
+            identity_key="staged_prep_%s" % "_".join(
+                str(i) for i in sorted(self.ids)),
+            description=_("Prepare for Production: %s",
+                          ", ".join(self.mapped("name"))[:200]),
+        )._staged_prepare_job(start=start, batch=batch)
+        self.write({
+            "staged_prep_job_state": "queued",
+            "staged_prep_job_uuid": job.uuid,
+            "staged_prep_error": False,
+        })
+        return job
+
+    def _staged_prepare_job(self, start=False, batch=False):
+        """Фоновата задача: разкрой + гейт + материализация, всичко наведнъж.
+
+        Отказ (недостиг, фиктивен резач, …) откатва всичко, сложено от
+        задачата, и остава на МО-тата като „Preparation failed“ с причината —
+        задачата приключва чисто. Грешките на базата (едновременен запис) се
+        пропускат нагоре: queue_job ги повтаря сам.
+        """
+        todo = self.filtered(
+            lambda p: p.state == "preparation" and not p.staged_released)
+        try:
+            with self.env.cr.savepoint():
+                if batch:
+                    todo._staged_warn_late_components()
+                todo._staged_optimize_and_gate()
+                todo.with_context(
+                    staged_skip_optimize=True)._staged_do_prepare(start=start)
+        except psycopg2.OperationalError:
+            raise
+        except Exception as exc:  # noqa: BLE001 — причината отива при човека
+            reason = exc.args[0] if exc.args else str(exc)
+            if not isinstance(exc, UserError):
+                _logger.exception("Staged: подготовката на %s падна",
+                                  ", ".join(self.mapped("name")))
+            self.write({"staged_prep_job_state": "failed",
+                        "staged_prep_error": reason})
+            for production in self:
+                production.message_post(
+                    body=_("Prepare for Production failed in the background. "
+                           "Nothing was committed.\n\n%s", reason),
+                    subject=_("Preparation failed"))
+            self._staged_prep_notify(failed=True, reason=reason)
+            return False
+        self.write({"staged_prep_job_state": False, "staged_prep_error": False})
+        opt = todo.mapped("staged_cutting_optimization_id")[:1]
+        for production in todo:
+            production.message_post(body=_(
+                "Prepared for production in the background%(start)s.%(cut)s",
+                start=_(" and started") if start else "",
+                cut=(_(" Cutting run: %s.", opt.name) if opt else "")))
+        self._staged_prep_notify(failed=False)
+        return True
+
+    def _staged_prep_notify(self, failed, reason=""):
+        """Известие до натисналия (той е потребителят на задачата)."""
+        names = ", ".join(self.mapped("name"))
+        if failed:
+            payload = {"type": "danger", "sticky": True,
+                       "title": _("Preparation failed"),
+                       "message": "%s\n%s" % (names, reason)}
+        else:
+            payload = {"type": "success", "sticky": False,
+                       "title": _("Preparation finished"),
+                       "message": names}
+        self.env["bus.bus"]._sendone(
+            self.env.user.partner_id, "simple_notification", payload)

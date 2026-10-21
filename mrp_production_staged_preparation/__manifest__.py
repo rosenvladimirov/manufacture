@@ -9,7 +9,7 @@
         "internal component picks are deferred until 'Prepare for Production' "
         "releases the MO to the floor."
     ),
-    "version": "18.0.2.27.4",
+    "version": "18.0.2.28.0",
     "category": "Manufacturing",
     "website": "https://github.com/rosenvladimirov/manufacture-experts",
     "author": "Rosen Vladimirov, Terraros Commerce Ltd.",
@@ -23,9 +23,13 @@
         # №93: смяната на лота на остатъка (6500 → 4630) — две движения през
         # „Lot Relabel", с равна стойност.
         "stock_lot_relabel",
+        # ADR-0098 / ADR-0100: ПфП е фонова задача; известието — по шината.
+        "queue_job",
+        "bus",
     ],
     "data": [
         "security/ir.model.access.csv",
+        "data/queue_job_channel.xml",
         "wizards/mrp_production_prepare_wizard_views.xml",
         "wizards/mrp_production_unprepare_wizard_views.xml",
         "wizards/mrp_production_cutting_trial_views.xml",

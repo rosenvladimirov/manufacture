@@ -16,6 +16,22 @@
             <xpath expr="//field[@name='state']" position="before">
                 <field name="staged_preparation_enabled" invisible="1"/>
                 <field name="staged_released" invisible="1"/>
+                <field name="staged_prep_job_state" invisible="1"/>
+            </xpath>
+
+            <!-- ADR-0098 / ADR-0100: подготовката е фонова задача — докато
+                 върви и ако падне, се казва най-горе на формата. -->
+            <xpath expr="//sheet" position="before">
+                <div class="alert alert-info mb-0" role="status"
+                     invisible="staged_prep_job_state != 'queued'">
+                    Preparation is running in the background. You will be
+                    notified when it is ready.
+                </div>
+                <div class="alert alert-danger mb-0" role="alert"
+                     invisible="staged_prep_job_state != 'failed'">
+                    <strong>Preparation failed — nothing was committed.</strong>
+                    <field name="staged_prep_error" readonly="1" nolabel="1"/>
+                </div>
             </xpath>
 
             <!-- Бадж „Released to floor" (подготвено за цеха): ъглова лента.
@@ -36,7 +52,7 @@
                         type="object"
                         string="Prepare for Production"
                         class="oe_highlight"
-                        invisible="(not staged_preparation_enabled) or state != 'preparation'"
+                        invisible="(not staged_preparation_enabled) or state != 'preparation' or staged_prep_job_state == 'queued'"
                         groups="mrp.group_mrp_user"/>
                 <!-- Откат на подготовката: връща в draft, маха пикинга към
                      Pre-Production и връща движенията на едностъпково.
@@ -78,6 +94,9 @@
             <xpath expr="//field[@name='state']" position="before">
                 <field name="staged_released" optional="show" string="Released"
                        widget="boolean_toggle" readonly="1"/>
+                <field name="staged_prep_job_state" optional="show" widget="badge"
+                       decoration-info="staged_prep_job_state == 'queued'"
+                       decoration-danger="staged_prep_job_state == 'failed'"/>
             </xpath>
             <!-- Reference се свиваше до няколко символа, защото полето е без
                  зададена ширина и губи борбата за място. Реалната дължина е

@@ -325,3 +325,113 @@ msgid ""
 msgstr ""
 "Поръчката %s вече е пусната — отпланирането е спряно (трансферите ѝ вече са "
 "създадени)."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid " Cutting run: %s."
+msgstr " Разкрой: %s."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid " and started"
+msgstr " и е пусната"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
+msgid "<strong>Preparation failed — nothing was committed.</strong>"
+msgstr "<strong>Подготовката не мина — нищо не е записано.</strong>"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__staged_prep_job_state
+msgid "Background Preparation"
+msgstr "Подготовка във фонов режим"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__staged_prep_error
+msgid "Preparation Error"
+msgstr "Грешка при подготовката"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+#: model:ir.model.fields.selection,name:mrp_production_staged_preparation.selection__mrp_production__staged_prep_job_state__failed
+msgid "Preparation failed"
+msgstr "Подготовката не мина"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Preparation finished"
+msgstr "Подготовката е готова"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Preparation is already running in the background for: %s. Wait for its "
+"notification."
+msgstr "Подготовката вече тече във фонов режим за: %s. Изчакайте известието."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
+msgid ""
+"Preparation is running in the background. You will be\n"
+"                    notified when it is ready."
+msgstr ""
+"Подготовката тече във фонов режим. Ще получите\n"
+"                    известие, когато е готова."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields.selection,name:mrp_production_staged_preparation.selection__mrp_production__staged_prep_job_state__queued
+msgid "Preparation running"
+msgstr "Тече подготовка"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/wizards/mrp_production_prepare_wizard.py:0
+msgid "Preparation started"
+msgstr "Подготовката започна"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Prepare for Production failed in the background. Nothing was committed.\n"
+"\n"
+"%s"
+msgstr ""
+"Подготовката за производство не мина във фонов режим. Нищо не е записано.\n"
+"\n"
+"%s"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_mrp_production__staged_prep_job_state
+msgid ""
+"Prepare for Production runs as a background job. While it runs the order "
+"cannot be prepared again; when it ends you get a notification and a note in "
+"the chatter."
+msgstr ""
+"„Подготви за производство“ върви като фонова задача. Докато тече, поръчката "
+"не може да се подготви отново; когато свърши, получавате известие и бележка "
+"в чатъра."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Prepare for Production: %s"
+msgstr "Подготовка за производство: %s"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Prepared for production in the background%(start)s.%(cut)s"
+msgstr "Подготвена за производство във фонов режим%(start)s.%(cut)s"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/wizards/mrp_production_prepare_wizard.py:0
+msgid ""
+"Running in the background for %s. You will be notified when it is ready."
+msgstr "Тече във фонов режим за %s. Ще получите известие, когато е готова."
