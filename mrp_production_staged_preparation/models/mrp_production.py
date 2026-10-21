@@ -2604,11 +2604,17 @@ class MrpProduction(models.Model):
             return False
         self.write({"staged_prep_job_state": False, "staged_prep_error": False})
         opt = todo.mapped("staged_cutting_optimization_id")[:1]
+        # Разкроят — една връзка към справката с прътите, в нов раздел
+        # (Любо 21.10, TG 173280: „направо да отваря разкроя … в нов прозорец“).
+        link = Markup("")
+        if opt:
+            url = (opt._cut_layout_url() if hasattr(opt, "_cut_layout_url")
+                   else "/odoo/action-mrp_cutting_optimization.action_mrp_cutting_optimization/%s" % opt.id)
+            link = Markup(' <a href="%s" target="_blank">%s</a>') % (url, opt.name)
         for production in todo:
-            production.message_post(body=_(
-                "Prepared for production in the background%(start)s.%(cut)s",
-                start=_(" and started") if start else "",
-                cut=(_(" Cutting run: %s.", opt.name) if opt else "")))
+            production.message_post(body=Markup("%s%s") % (_(
+                "Prepared for production in the background%(start)s.",
+                start=_(" and started") if start else ""), link))
         self._staged_prep_notify(failed=False)
         return True
 

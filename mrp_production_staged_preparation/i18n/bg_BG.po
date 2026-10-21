@@ -537,3 +537,9 @@ msgstr "Подготовката още тече във фонов режим з
 #: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_list_staged_preparation
 msgid "Start Production"
 msgstr "Старт на производството"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Prepared for production in the background%(start)s."
+msgstr "Подготвена за производство във фонов режим%(start)s."
