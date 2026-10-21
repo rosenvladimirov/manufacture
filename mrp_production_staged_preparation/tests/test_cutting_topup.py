@@ -14,7 +14,9 @@
   ⑤ екранът: редовете се виждат и редактират (в цели парчета), над Max —
     предупреждение; „Без допълване“ ги маха;
   ⑥ „Да, с допълването“: МО-то на варианта се увеличава; вариант без МО в
-    разкроя → ново МО за склад.
+    разкроя → ново МО за склад;
+  ⑦ само категория с отметка „Допълване на разкроя от остатъците“ (Любо:
+    „само за железата“, TG 173329) — без нея нищо не се предлага.
 """
 from unittest.mock import patch
 
@@ -34,8 +36,10 @@ class TestCuttingTopup(TransactionCase):
             "name": "Length T0099", "create_variant": "always",
             "value_ids": [(0, 0, {"name": "300 mm"}), (0, 0, {"name": "1800 mm"}),
                           (0, 0, {"name": "600 mm"})]})
+        cls.categ = cls.env["product.category"].create({
+            "name": "Reinforcement T0099", "cutting_topup": True})
         cls.tmpl = cls.env["product.template"].create({
-            "name": "Reinforcement T0099", "is_storable": True,
+            "name": "Reinforcement T0099", "is_storable": True, "categ_id": cls.categ.id,
             "attribute_line_ids": [(0, 0, {"attribute_id": attr.id,
                                            "value_ids": [(6, 0, attr.value_ids.ids)]})]})
         by_len = {v.product_template_attribute_value_ids.name: v
@@ -128,3 +132,10 @@ class TestCuttingTopup(TransactionCase):
         self.assertEqual(self.mo300.product_qty, 264)
         self.assertEqual(new.product_id, self.v600)
         self.assertEqual(new.product_qty, 12)
+
+    def test_only_a_marked_category_is_topped_up(self):
+        """⑦ Категория без отметката — нищо, каквото и Макс. да има."""
+        self.categ.cutting_topup = False
+        self.assertFalse(self._topups())
+        self.categ.cutting_topup = True
+        self.assertTrue(self._topups())

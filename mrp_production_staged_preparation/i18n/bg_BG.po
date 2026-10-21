@@ -1375,3 +1375,19 @@ msgstr "Без допълване"
 #: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
 msgid "Yes, with the top-up"
 msgstr "Да, с допълването"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_product_category__cutting_topup
+msgid "Cutting top-up from remnants"
+msgstr "Допълване на разкроя от остатъците"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_product_category__cutting_topup
+msgid ""
+"The remnants of a cutting run are offered to variants of the articles of "
+"this category that have a reordering rule with Max > 0 (e.g. the "
+"reinforcement). Off — nothing is offered."
+msgstr ""
+"Остатъците на разкроя се предлагат на вариантите на артикулите от тази "
+"категория с точка за поръчка Макс. > 0 (напр. армировката). Изключено — нищо"
+" не се предлага."

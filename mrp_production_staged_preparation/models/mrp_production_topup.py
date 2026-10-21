@@ -63,6 +63,18 @@ class MrpProductionTopup(models.Model):
                     article=line.product_id.display_name, step=line.block_qty))
 
 
+class ProductCategory(models.Model):
+    _inherit = "product.category"
+
+    # Любо 20.10 / 21.10 (TG 173326 / 173329): „това само за железата“ —
+    # отметка на категорията (данни, не код); без нея нищо не се предлага.
+    cutting_topup = fields.Boolean(
+        "Cutting top-up from remnants",
+        help="The remnants of a cutting run are offered to variants of the "
+             "articles of this category that have a reordering rule with "
+             "Max > 0 (e.g. the reinforcement). Off — nothing is offered.")
+
+
 class MrpProduction(models.Model):
     _inherit = "mrp.production"
 
@@ -104,6 +116,8 @@ class MrpProduction(models.Model):
         # Кандидатите: вариантите на същите шаблони с точка за поръчка Max > 0.
         candidates = []
         for tmpl, (diff, block) in delta.items():
+            if not tmpl.categ_id.cutting_topup:
+                continue
             for variant in tmpl.product_variant_ids:
                 rule = Orderpoint.search([
                     ("product_id", "=", variant.id), ("product_max_qty", ">", 0)], limit=1)

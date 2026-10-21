@@ -32,7 +32,9 @@
                     </group>
                 </div>
                 <!-- ADR-0099 (TG 173297): предложението за допълване — редактируемо. -->
-                <div class="mt-3" invisible="not topup_ids">
+                <!-- TG 173330 (Любо): формата е еднаква — без предложение таблицата
+                     е празна, не изчезва. -->
+                <div class="mt-3">
                     <p class="mb-1"><strong>I propose to top up the cutting with:</strong></p>
                     <field name="topup_ids" nolabel="1">
                         <list editable="bottom" create="0" decoration-warning="over_max &gt; 0">
