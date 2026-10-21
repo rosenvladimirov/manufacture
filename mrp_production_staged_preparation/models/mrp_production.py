@@ -2757,6 +2757,9 @@ class MrpProduction(models.Model):
             "name": _("Approve the Cutting"),
             "res_model": "mrp.production.prepare.wizard",
             "view_mode": "form",
+            # TG 173315: през orm.call (известието) няма кой да добави
+            # „views“ — без тях doAction гърми в _preprocessAction.
+            "views": [(False, "form")],
             "target": "new",
             "context": {"default_production_ids": [(6, 0, group.ids)]},
         }

@@ -197,6 +197,8 @@ class TestPrepareInBackground(TransactionCase):
         action = self.mos[:1].action_staged_review_cutting()
         wiz = self.env[action["res_model"]].with_context(**action["context"]).create({})
         self.assertEqual(wiz.production_ids, self.mos, "одобрението е за цялата партида")
+        # TG 173315: действието се отваря и от JS (orm.call) — трябват „views“
+        self.assertEqual(action["views"], [(False, "form")])
         self.assertEqual(wiz.cutting_optimization_id, opt)
         self.assertEqual(wiz.action_approve_cutting()["tag"], "display_notification")
         self.assertEqual(set(self.mos.mapped("staged_prep_job_state")), {"releasing"})
