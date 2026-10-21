@@ -286,3 +286,39 @@ class TestPrepareInBackground(TransactionCase):
         gate.assert_not_called()
         prepare.assert_called_once_with(start=True)
         self.assertFalse(line.exists())
+
+    def test_job_b_warnings_stay_in_the_note(self):
+        """TG 173318: предупреждението от задача Б — и в бележката на МО-то."""
+        self._cut()
+        action = self.mos.action_staged_review_cutting()
+        self.env[action["res_model"]].with_context(**action["context"]).create({}).action_approve_cutting()
+
+        def prepare(mos, start=False):
+            logging.getLogger("odoo.addons.cutting_t0098").warning("Incomplete machine export T0098")
+        with patch(MODEL + "._staged_do_prepare", autospec=True, side_effect=prepare), \
+                patch.object(type(self.env["bus.bus"]), "_sendone"):
+            self._perform()
+        self.assertIn("Incomplete machine export T0098", self.mos[0].message_ids[:1].body or "")
+
+    def test_a_replaced_cut_does_not_stay_empty(self):
+        """TG 173318: с допълването старият разкрой се заменя — и се маха."""
+        old = self._cut()
+        self.env["mrp.production.topup"].create({
+            "optimization_id": old.id, "product_id": self.mos[0].product_id.id,
+            "production_id": self.mos[0].id, "block_qty": 1, "qty": 2, "cut_mm": 100})
+        action = self.mos.action_staged_review_cutting()
+        self.env[action["res_model"]].with_context(**action["context"]).create({}).action_approve_with_topup()
+        new = self.env["mrp.cutting.optimization"].create({
+            "name": "T0098 new", "material_domain": "mrp_production"})
+
+        def gate(mos):
+            mos.write({"staged_cutting_optimization_id": new.id})
+            return new
+        with patch.object(type(self.env["mrp.production"]), "_staged_apply_topups",
+                          return_value=self.env["mrp.production"]), \
+                patch(MODEL + "._staged_optimize_and_gate", autospec=True, side_effect=gate), \
+                patch(MODEL + "._staged_do_prepare"), \
+                patch.object(type(self.env["bus.bus"]), "_sendone"):
+            self._perform()
+        self.assertFalse(old.exists(), "замененият разкрой остана")
+        self.assertTrue(new.exists())

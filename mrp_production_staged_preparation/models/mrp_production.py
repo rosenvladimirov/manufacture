@@ -2712,7 +2712,7 @@ class MrpProduction(models.Model):
             lambda p: p.state == "preparation" and not p.staged_released)
         report = self._staged_prep_report
         try:
-            with self.env.cr.savepoint():
+            with self.env.cr.savepoint(), self._staged_collect_warnings() as warnings:
                 todo._staged_prep_check_nothing_started()
                 opts = todo.mapped("staged_cutting_optimization_id")
                 lines = self.env["mrp.production.topup"].search(
@@ -2726,6 +2726,12 @@ class MrpProduction(models.Model):
                     self |= new
                     report(15, _("Cutting again with the top-up"))
                     todo._staged_optimize_and_gate()
+                    # TG 173318: замененият разкрой (без поръчки, без трансфери)
+                    # не остава като празен запис.
+                    for old in opts:
+                        if not old.picking_ids and not self.search_count(
+                                [("staged_cutting_optimization_id", "=", old.id)]):
+                            old.unlink()
                 lines.unlink()
                 report(20, _("Reserving and moving materials to Pre-Production"))
                 todo.with_context(
@@ -2735,12 +2741,18 @@ class MrpProduction(models.Model):
             raise
         except Exception as exc:  # noqa: BLE001 — причината отива при човека
             return self._staged_prep_fail(exc, "подготовката")
-        self.write({"staged_prep_job_state": False, "staged_prep_error": False})
+        self.write({"staged_prep_job_state": False, "staged_prep_error": False,
+                    "staged_prep_warnings": "\n".join(warnings) or False})
         link = todo._staged_cut_link()
+        # TG 173318: предупрежденията на задача Б — и в бележката, не само изскачат.
+        listing = Markup("")
+        if warnings:
+            listing = Markup("<br/>%s<ul>%s</ul>") % (
+                _("Warnings:"), Markup("").join(Markup("<li>%s</li>") % w for w in warnings))
         for production in todo:
-            production.message_post(body=Markup("%s%s") % (_(
+            production.message_post(body=Markup("%s%s%s") % (_(
                 "Cutting approved — prepared for production%(start)s.",
-                start=_(" and started") if start else ""), link))
+                start=_(" and started") if start else ""), link, listing))
         self._staged_prep_notify(failed=False)
         return True
 
