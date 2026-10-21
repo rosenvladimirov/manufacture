@@ -2,6 +2,7 @@
 # License OPL-1 (Odoo Proprietary License v1.0)
 # https://www.odoo.com/documentation/user/legal/licenses/licenses.html
 
+import contextlib
 import json
 import logging
 import math
@@ -115,7 +116,10 @@ class MrpProduction(models.Model):
     # ADR-0098 / ADR-0100 (Любо, 20.10): ПфП е ВИНАГИ фонова задача —
     # разкроят и материализацията не се смятат в заявката на браузъра.
     staged_prep_job_state = fields.Selection(
-        [("queued", "Preparation running"), ("failed", "Preparation failed")],
+        [("queued", "Cutting running"),
+         ("awaiting", "Cutting awaits approval"),
+         ("releasing", "Preparation running"),
+         ("failed", "Preparation failed")],
         string="Background Preparation",
         copy=False,
         help="Prepare for Production runs as a background job. While it runs "
@@ -124,6 +128,10 @@ class MrpProduction(models.Model):
     staged_prep_job_uuid = fields.Char(copy=False, readonly=True)
     staged_prep_error = fields.Text(
         string="Preparation Error", copy=False, readonly=True)
+    # Любо 21.10 (TG 173288): „да записва грешките във формичката за
+    # одобрение“ — предупрежденията от разкроя не само изскачат.
+    staged_prep_warnings = fields.Text(
+        string="Cutting Warnings", copy=False, readonly=True)
     # Като при вноса от ЛогиКал: процент и етап, които се виждат, ДОКАТО
     # задачата върви — четат се от отделната таблица (non-stored).
     staged_prep_progress = fields.Float(
@@ -1261,8 +1269,9 @@ class MrpProduction(models.Model):
                 "No staged MO in 'Preparation' to prepare. (Already released "
                 "MOs cannot be re-staged.)"))
         staged._staged_prep_check_not_running()
+        staged._staged_prep_check_not_awaiting()
         staged._staged_prep_check_nothing_started()
-        staged._staged_prepare_enqueue(start=False)
+        staged._staged_prepare_enqueue()
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
@@ -2474,7 +2483,11 @@ class MrpProduction(models.Model):
     # ── ADR-0098 / ADR-0100: „Подготви за производство“ като фонова задача ──
 
     def _staged_warn_late_components(self):
-        """Лек запис в чатъра за неналичните ПО-КЪСНИ компоненти — без блок."""
+        """Лек запис в чатъра за неналичните ПО-КЪСНИ компоненти — без блок.
+
+        Връща и бележките — за екрана за одобрение (TG 173288).
+        """
+        notes = []
         Piece = self.env.get("mrp.cutting.piece")
         for production in self:
             cut_ids = set()
@@ -2488,11 +2501,14 @@ class MrpProduction(models.Model):
                 and (m.forecast_availability or 0.0)
                 < m.product_uom_qty - (m.product_uom.rounding or 0.01))
             if bad:
-                production.message_post(body=_(
+                note = _(
                     "⚠ Prepared while later-operation components are not yet "
                     "available (%s). They should arrive before consumption "
                     "(e.g. glass at installation).",
-                    ", ".join(bad.mapped("product_id.display_name"))))
+                    ", ".join(bad.mapped("product_id.display_name")))
+                production.message_post(body=note)
+                notes.append("%s: %s" % (production.name, note))
+        return notes
 
     def _staged_prep_running(self):
         """МО-тата, чиято подготовка наистина още върви.
@@ -2500,7 +2516,8 @@ class MrpProduction(models.Model):
         Задача, която е свършила, паднала или изчезнала (спрян работник),
         не държи МО-то: иначе „тече подготовка“ би останало завинаги.
         """
-        queued = self.filtered(lambda p: p.staged_prep_job_state == "queued")
+        queued = self.filtered(
+            lambda p: p.staged_prep_job_state in ("queued", "releasing"))
         if not queued:
             return queued
         Job = self.env["queue.job"].sudo()
@@ -2545,77 +2562,201 @@ class MrpProduction(models.Model):
                 "would replace the one these orders are cut by.",
                 started=", ".join(started.mapped("name"))))
 
-    def _staged_prepare_enqueue(self, start):
-        """Слага МО-тата в „тече подготовка“ и пуска фоновата задача."""
-        self._staged_prep_check_not_running()
-        batch = bool(self.env.context.get("staged_prep_batch"))
-        job = self.with_delay(
+    def _staged_prep_check_not_awaiting(self):
+        """Чакащ разкрой се одобрява или отказва — не се смята наново отгоре."""
+        waiting = self.filtered(lambda p: p.staged_prep_job_state == "awaiting")
+        if waiting:
+            raise UserError(_(
+                "The cutting of %s awaits approval. Approve or reject it first.",
+                ", ".join(waiting.mapped("name"))))
+
+    def _staged_prep_enqueue_job(self, method, state, description, **kwargs):
+        job = getattr(self.with_delay(
             channel="root.staged_preparation",
-            identity_key="staged_prep_%s" % "_".join(
-                str(i) for i in sorted(self.ids)),
-            description=_("Prepare for Production: %s",
-                          ", ".join(self.mapped("name"))[:200]),
-        )._staged_prepare_job(start=start, batch=batch)
+            identity_key="staged_%s_%s" % (method, "_".join(
+                str(i) for i in sorted(self.ids))),
+            description=description,
+        ), method)(**kwargs)
         self.write({
-            "staged_prep_job_state": "queued",
+            "staged_prep_job_state": state,
             "staged_prep_job_uuid": job.uuid,
             "staged_prep_error": False,
         })
         return job
 
-    def _staged_prepare_job(self, start=False, batch=False):
-        """Фоновата задача: разкрой + гейт + материализация, всичко наведнъж.
+    def _staged_prepare_enqueue(self):
+        """ПфП: задача А — само разкроят (ADR-0098, Любо 21.10, TG 173286)."""
+        self._staged_prep_check_not_running()
+        batch = bool(self.env.context.get("staged_prep_batch"))
+        return self._staged_prep_enqueue_job(
+            "_staged_prepare_job", "queued",
+            _("Cutting for approval: %s", ", ".join(self.mapped("name"))[:200]),
+            batch=batch)
 
-        Отказ (недостиг, фиктивен резач, …) откатва всичко, сложено от
-        задачата, и остава на МО-тата като „Preparation failed“ с причината —
-        задачата приключва чисто. Грешките на базата (едновременен запис) се
-        пропускат нагоре: queue_job ги повтаря сам.
+    def _staged_release_enqueue(self, start=True):
+        """„Да“ на разкроя: задача Б — резервиране, Pre-Production, старт."""
+        self._staged_prep_check_not_running()
+        return self._staged_prep_enqueue_job(
+            "_staged_release_job", "releasing",
+            _("Prepare for Production: %s", ", ".join(self.mapped("name"))[:200]),
+            start=start)
+
+    def _staged_prep_fail(self, exc, what):
+        reason = exc.args[0] if exc.args else str(exc)
+        if not isinstance(exc, UserError):
+            _logger.exception("Staged: %s на %s падна", what,
+                              ", ".join(self.mapped("name")))
+        self.write({"staged_prep_job_state": "failed",
+                    "staged_prep_error": reason})
+        for production in self:
+            production.message_post(
+                body=_("Prepare for Production failed in the background. "
+                       "Nothing was committed.\n\n%s", reason),
+                subject=_("Preparation failed"))
+        self._staged_prep_notify(failed=True, reason=reason)
+        return False
+
+    def _staged_cut_link(self):
+        """Връзката към справката с прътите, в нов раздел (Любо 21.10)."""
+        opt = self.mapped("staged_cutting_optimization_id")[:1]
+        if not opt:
+            return Markup("")
+        url = (opt._cut_layout_url() if hasattr(opt, "_cut_layout_url")
+               else "/odoo/action-mrp_cutting_optimization.action_mrp_cutting_optimization/%s" % opt.id)
+        return Markup(' <a href="%s" target="_blank">%s</a>') % (url, opt.name)
+
+    @contextlib.contextmanager
+    def _staged_collect_warnings(self):
+        """Събира WARNING/ERROR от лога на модулите, докато тече разкроят.
+
+        Предупрежденията на разкроя („Saw '' has no mrp.saw.format mapping“,
+        „no cutting pieces linked to its patterns“…) са записи в лога —
+        човекът ги вижда само като изскачащо съобщение, ако изобщо. Тук се
+        пазят, за да стоят в екрана за одобрение и в бележката.
+        """
+        lines = []
+
+        class _Collector(logging.Handler):
+            def emit(self, record):
+                if record.levelno >= logging.WARNING:
+                    text = record.getMessage().strip()
+                    if text and text not in lines and len(lines) < 30:
+                        lines.append(text)
+
+        handler = _Collector(level=logging.WARNING)
+        root = logging.getLogger("odoo.addons")
+        root.addHandler(handler)
+        try:
+            yield lines
+        finally:
+            root.removeHandler(handler)
+
+    def _staged_prepare_job(self, batch=False):
+        """Задача А: късни компоненти + разкроят — САМО сметка.
+
+        Любо 21.10 (TG 173286): „натискаш ПфП, започва оптимизация, изчислява
+        всичко, дава ми разкроя и обобщените данни, пита ме дали одобрявам този
+        разкрой и чак като кажа да, започва да пише и да стартира позициите“.
+        Разпределенията са без резервация (`cut_allocation_no_assign`); нищо не
+        се пренася и не се стартира. МО-тата стават „Cutting awaits approval“.
         """
         todo = self.filtered(
             lambda p: p.state == "preparation" and not p.staged_released)
         report = self._staged_prep_report
         try:
-            with self.env.cr.savepoint():
+            with self.env.cr.savepoint(), self._staged_collect_warnings() as warnings:
                 if batch:
                     report(5, _("Checking later-operation components"))
-                    todo._staged_warn_late_components()
+                    warnings += todo._staged_warn_late_components()
                 todo._staged_prep_check_nothing_started()
                 report(10, _("Cutting optimisation (%s orders)", len(todo)))
-                todo._staged_optimize_and_gate()
-                report(60, _("Reserving and moving materials to Pre-Production"))
+                todo.with_context(
+                    cut_allocation_no_assign=True)._staged_optimize_and_gate()
+                report(95, _("Finishing"))
+        except psycopg2.OperationalError:
+            raise
+        except Exception as exc:  # noqa: BLE001 — причината отива при човека
+            return self._staged_prep_fail(exc, "разкроят")
+        text = "\n".join(warnings) or False
+        self.write({"staged_prep_job_state": "awaiting", "staged_prep_error": False,
+                    "staged_prep_warnings": text})
+        link = todo._staged_cut_link()
+        listing = Markup("")
+        if warnings:
+            listing = Markup("<br/>%s<ul>%s</ul>") % (
+                _("Warnings:"), Markup("").join(Markup("<li>%s</li>") % w for w in warnings))
+        for production in todo:
+            production.message_post(body=Markup("%s%s%s") % (_(
+                "The cutting is ready and awaits approval."), link, listing))
+        self._staged_prep_notify(failed=False, title=_("Cutting ready — approve it"))
+        return True
+
+    def _staged_release_job(self, start=True):
+        """Задача Б (след „Да“): резервиране, Pre-Production, старт на позициите."""
+        todo = self.filtered(
+            lambda p: p.state == "preparation" and not p.staged_released)
+        report = self._staged_prep_report
+        try:
+            with self.env.cr.savepoint():
+                todo._staged_prep_check_nothing_started()
+                report(20, _("Reserving and moving materials to Pre-Production"))
                 todo.with_context(
                     staged_skip_optimize=True)._staged_do_prepare(start=start)
                 report(95, _("Finishing"))
         except psycopg2.OperationalError:
             raise
         except Exception as exc:  # noqa: BLE001 — причината отива при човека
-            reason = exc.args[0] if exc.args else str(exc)
-            if not isinstance(exc, UserError):
-                _logger.exception("Staged: подготовката на %s падна",
-                                  ", ".join(self.mapped("name")))
-            self.write({"staged_prep_job_state": "failed",
-                        "staged_prep_error": reason})
-            for production in self:
-                production.message_post(
-                    body=_("Prepare for Production failed in the background. "
-                           "Nothing was committed.\n\n%s", reason),
-                    subject=_("Preparation failed"))
-            self._staged_prep_notify(failed=True, reason=reason)
-            return False
+            return self._staged_prep_fail(exc, "подготовката")
         self.write({"staged_prep_job_state": False, "staged_prep_error": False})
-        opt = todo.mapped("staged_cutting_optimization_id")[:1]
-        # Разкроят — една връзка към справката с прътите, в нов раздел
-        # (Любо 21.10, TG 173280: „направо да отваря разкроя … в нов прозорец“).
-        link = Markup("")
-        if opt:
-            url = (opt._cut_layout_url() if hasattr(opt, "_cut_layout_url")
-                   else "/odoo/action-mrp_cutting_optimization.action_mrp_cutting_optimization/%s" % opt.id)
-            link = Markup(' <a href="%s" target="_blank">%s</a>') % (url, opt.name)
+        link = todo._staged_cut_link()
         for production in todo:
             production.message_post(body=Markup("%s%s") % (_(
-                "Prepared for production in the background%(start)s.",
+                "Cutting approved — prepared for production%(start)s.",
                 start=_(" and started") if start else ""), link))
         self._staged_prep_notify(failed=False)
+        return True
+
+    def action_staged_review_cutting(self):
+        """Екранът за одобрение — разкроят на всички МО-та от същата задача."""
+        waiting = self.filtered(lambda p: p.staged_prep_job_state == "awaiting")
+        if not waiting:
+            raise UserError(_("No cutting awaits approval here."))
+        uuids = waiting.mapped("staged_prep_job_uuid")
+        group = self.search([("staged_prep_job_uuid", "in", uuids),
+                             ("staged_prep_job_state", "=", "awaiting")])
+        return {
+            "type": "ir.actions.act_window",
+            "name": _("Approve the Cutting"),
+            "res_model": "mrp.production.prepare.wizard",
+            "view_mode": "form",
+            "target": "new",
+            "context": {"default_production_ids": [(6, 0, group.ids)]},
+        }
+
+    def _staged_reject_cutting(self):
+        """„Не“: разкроят се маха — нищо не остава (ADR-0098).
+
+        Махат се разпределенията, пиновете на прътите от този разкрой и самият
+        разкрой; МО-тата остават в „Preparation“ без разкрой.
+        """
+        opts = self.mapped("staged_cutting_optimization_id")
+        bars = opts.mapped("pattern_ids.bar_product_id") if opts else self.env["product.product"]
+        Alloc = self.env.get("mrp.cutting.allocation")
+        if Alloc is not None:
+            Alloc.search([("production_id", "in", self.ids)]).unlink()
+        if "forced_lot_ids" in self.env["stock.move"]._fields and bars:
+            self.move_raw_ids.filtered(
+                lambda m: m.product_id in bars and m.state not in ("done", "cancel")
+            ).write({"forced_lot_ids": [(5, 0, 0)]})
+        self.write({"staged_cutting_optimization_id": False,
+                    "staged_prep_job_state": False, "staged_prep_error": False,
+                    "staged_prep_warnings": False})
+        names = ", ".join(opts.mapped("name"))
+        for production in self:
+            production.message_post(body=_("Cutting rejected: %s. Nothing was written.", names))
+        others = opts.filtered(lambda o: not self.search_count(
+            [("staged_cutting_optimization_id", "=", o.id)]))
+        others.unlink()
         return True
 
     def _staged_prep_report(self, progress, stage):
@@ -2624,7 +2765,7 @@ class MrpProduction(models.Model):
         self.env["mrp.production.prep.progress"]._report(
             uuid, self.ids, progress, stage)
 
-    def _staged_prep_notify(self, failed, reason=""):
+    def _staged_prep_notify(self, failed, reason="", title=None):
         """Известие до натисналия (той е потребителят на задачата)."""
         names = ", ".join(self.mapped("name"))
         if failed:
@@ -2632,8 +2773,8 @@ class MrpProduction(models.Model):
                        "title": _("Preparation failed"),
                        "message": "%s\n%s" % (names, reason)}
         else:
-            payload = {"type": "success", "sticky": False,
-                       "title": _("Preparation finished"),
+            payload = {"type": "success", "sticky": bool(title),
+                       "title": title or _("Preparation finished"),
                        "message": names}
         self.env["bus.bus"]._sendone(
             self.env.user.partner_id, "simple_notification", payload)

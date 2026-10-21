@@ -4,36 +4,46 @@
         <field name="name">mrp.production.prepare.wizard.form</field>
         <field name="model">mrp.production.prepare.wizard</field>
         <field name="arch" type="xml">
-            <form string="Prepare for Production">
-                <p class="mb-2"><strong>Confirm start the manufacturing order(s)?</strong></p>
+            <form string="Approve the Cutting">
+                <!-- ADR-0098 (Любо 21.10, TG 173286): одобрението идва СЛЕД
+                     сметката — тук е истинският разкрой; нищо не е записано,
+                     докато не се каже „Да“. -->
+                <p class="mb-2"><strong>Do you approve this cutting?</strong></p>
                 <p class="text-muted">
-                    Yes — stage materials and start now (In Processing, locked).<br/>
-                    No — stage materials but keep in Preparation (start later).
+                    Yes — reserve, move the materials to Pre-Production and start
+                    the orders (in the background).<br/>
+                    No — the cutting is discarded; nothing is written.
                 </p>
                 <field name="production_ids" readonly="1" widget="many2many_tags"/>
-                <!-- №116: резюме на разкроя и бутон към него — да не се пуска
-                     на сляпо. Само при един разкрой за партидата. -->
                 <field name="cutting_optimization_id" invisible="1"/>
                 <div class="mt-3" invisible="not cutting_optimization_id">
                     <group>
                         <group>
+                            <field name="cutting_optimization_id" readonly="1"/>
                             <field name="cutting_bars" readonly="1"/>
                             <field name="cutting_waste_pct" readonly="1"/>
                             <field name="cutting_pattern_count" readonly="1"/>
                         </group>
                         <group>
                             <button string="View Cutting" name="action_view_cutting"
-                                    type="object" icon="fa-scissors"
+                                    type="object" icon="fa-external-link"
                                     class="btn-link"/>
                         </group>
                     </group>
                 </div>
+                <!-- TG 173288: предупрежденията на задачата стоят тук, не само изскачат. -->
+                <div class="alert alert-warning mt-3 mb-0" role="alert"
+                     invisible="not prep_warnings">
+                    <strong>Warnings from the cutting:</strong>
+                    <field name="prep_warnings" readonly="1" nolabel="1"/>
+                </div>
                 <footer>
-                    <button string="Yes — Start" name="action_prepare_and_start"
+                    <button string="Yes — Approve" name="action_approve_cutting"
                             type="object" class="btn-primary"/>
-                    <button string="No — Prepare only" name="action_prepare_only"
-                            type="object" class="btn-secondary"/>
-                    <button string="Cancel" special="cancel" class="btn-light"/>
+                    <button string="No — Reject" name="action_reject_cutting"
+                            type="object" class="btn-secondary"
+                            confirm="Discard this cutting? Nothing will be written."/>
+                    <button string="Close" special="cancel" class="btn-light"/>
                 </footer>
             </form>
         </field>

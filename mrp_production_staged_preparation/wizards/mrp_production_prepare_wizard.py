@@ -24,6 +24,20 @@ class MrpProductionPrepareWizard(models.TransientModel):
         string="Cutting Patterns",
         related="cutting_optimization_id.pattern_count")
 
+    # TG 173288: предупрежденията от фоновата задача — над „Да/Не“.
+    prep_warnings = fields.Text(
+        string="Warnings", compute="_compute_prep_warnings")
+
+    @api.depends("production_ids.staged_prep_warnings")
+    def _compute_prep_warnings(self):
+        for wiz in self:
+            seen = []
+            for text in wiz.production_ids.mapped("staged_prep_warnings"):
+                for line in (text or "").splitlines():
+                    if line and line not in seen:
+                        seen.append(line)
+            wiz.prep_warnings = "\n".join(seen) or False
+
     @api.depends("production_ids.staged_cutting_optimization_id")
     def _compute_cutting_optimization_id(self):
         # Партидата е ЕДИН разкрой (cross-MO). Смесени разкрои не се показват
@@ -33,40 +47,41 @@ class MrpProductionPrepareWizard(models.TransientModel):
             wiz.cutting_optimization_id = opts if len(opts) == 1 else False
 
     def action_view_cutting(self):
-        """„Виж разкроя“ — отваря разкроя над прозореца, без да го затваря."""
+        """„Виж разкроя“ — справката с прътите в НОВ раздел (Любо 21.10).
+
+        Прозорецът за одобрение остава отворен — дотук разкроят го заместваше
+        и нямаше връщане към потвърждението (TG 173278).
+        """
         self.ensure_one()
+        opt = self.cutting_optimization_id
+        if hasattr(opt, "_cut_layout_url_action"):
+            return opt._cut_layout_url_action()
         return {
             "type": "ir.actions.act_window",
             "name": _("Cutting Run"),
             "res_model": "mrp.cutting.optimization",
-            "res_id": self.cutting_optimization_id.id,
+            "res_id": opt.id,
             "view_mode": "form",
             "target": "new",
         }
 
-    def _do(self, start):
-        # ADR-0098 / ADR-0100: изборът се записва и всичко тръгва във фонова
-        # задача — прозорецът се затваря веднага, известието идва накрая.
-        batch = self.env.context.get("staged_prep_batch", False)
-        self.production_ids.with_context(
-            staged_prep_batch=batch)._staged_prepare_enqueue(start)
+    def action_approve_cutting(self):
+        """„Да“ — задача Б: резервиране, Pre-Production, старт на позициите."""
+        self.production_ids._staged_release_enqueue(start=True)
         return {
             "type": "ir.actions.client",
             "tag": "display_notification",
             "params": {
                 "type": "info",
-                "title": _("Preparation started"),
-                "message": _("Running in the background for %s. "
-                             "You will be notified when it is ready.",
+                "title": _("Cutting approved"),
+                "message": _("Preparing in the background: %s. You will be "
+                             "notified when it is ready.",
                              ", ".join(self.production_ids.mapped("name"))),
                 "next": {"type": "ir.actions.act_window_close"},
             },
         }
 
-    def action_prepare_and_start(self):
-        # YES → стейджинг + In Processing (progress) + заключено.
-        return self._do(True)
-
-    def action_prepare_only(self):
-        # NO → стейджинг, но остава в Preparation (стартира се по-късно).
-        return self._do(False)
+    def action_reject_cutting(self):
+        """„Не“ — разкроят се маха, нищо не остава."""
+        self.production_ids._staged_reject_cutting()
+        return {"type": "ir.actions.act_window_close"}

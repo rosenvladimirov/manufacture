@@ -25,11 +25,18 @@
                 <!-- Като при вноса от ЛогиКал: етап + процент, обновяват се
                      сами през l10n_bg_live_refresh. -->
                 <div class="alert alert-info d-flex align-items-center gap-2 mb-0"
-                     role="status" invisible="staged_prep_job_state != 'queued'">
+                     role="status" invisible="staged_prep_job_state not in ('queued', 'releasing')">
                     <i class="fa fa-cog fa-spin" title="Working"/>
                     <span>Preparation is running in the background.</span>
                     <field name="staged_prep_stage" readonly="1" nolabel="1" class="mb-0"/>
                     <field name="staged_prep_progress" widget="progressbar" readonly="1" nolabel="1"/>
+                </div>
+                <div class="alert alert-warning d-flex align-items-center gap-2 mb-0"
+                     role="status" invisible="staged_prep_job_state != 'awaiting'">
+                    <i class="fa fa-scissors" title="Cutting"/>
+                    <span>The cutting is ready and awaits your approval.</span>
+                    <button name="action_staged_review_cutting" type="object"
+                            string="Review the Cutting" class="btn btn-sm btn-primary ms-auto"/>
                 </div>
                 <div class="alert alert-danger mb-0" role="alert"
                      invisible="staged_prep_job_state != 'failed'">
@@ -56,7 +63,7 @@
                         type="object"
                         string="Prepare for Production"
                         class="oe_highlight"
-                        invisible="(not staged_preparation_enabled) or state != 'preparation' or staged_prep_job_state == 'queued'"
+                        invisible="(not staged_preparation_enabled) or state != 'preparation' or staged_released or staged_prep_job_state in ('queued', 'awaiting', 'releasing')"
                         groups="mrp.group_mrp_user"/>
                 <!-- ADR-0098 (Любо 21.10): стартът е отделна стъпка след
                      подготовката — подготвено (released), още в Preparation. -->
@@ -64,7 +71,7 @@
                         type="object"
                         string="Start Production"
                         class="oe_highlight"
-                        invisible="(not staged_preparation_enabled) or (not staged_released) or state != 'preparation' or staged_prep_job_state == 'queued'"
+                        invisible="(not staged_preparation_enabled) or (not staged_released) or state != 'preparation' or staged_prep_job_state in ('queued', 'awaiting', 'releasing')"
                         groups="mrp.group_mrp_user"/>
                 <!-- Откат на подготовката: връща в draft, маха пикинга към
                      Pre-Production и връща движенията на едностъпково.
@@ -92,6 +99,10 @@
                         type="object"
                         string="Prepare for Production"
                         groups="mrp.group_mrp_user"/>
+                <button name="action_staged_review_cutting"
+                        type="object"
+                        string="Approve Cutting"
+                        groups="mrp.group_mrp_user"/>
                 <button name="action_staged_start"
                         type="object"
                         string="Start Production"
@@ -111,7 +122,8 @@
                 <field name="staged_released" optional="show" string="Released"
                        widget="boolean_toggle" readonly="1"/>
                 <field name="staged_prep_job_state" optional="show" widget="badge"
-                       decoration-info="staged_prep_job_state == 'queued'"
+                       decoration-info="staged_prep_job_state in ('queued', 'releasing')"
+                       decoration-warning="staged_prep_job_state == 'awaiting'"
                        decoration-danger="staged_prep_job_state == 'failed'"/>
             </xpath>
             <!-- Reference се свиваше до няколко символа, защото полето е без

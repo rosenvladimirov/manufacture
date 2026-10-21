@@ -49,6 +49,11 @@ class TestPrepareWizardCutting(TransactionCase):
     def test_view_cutting_opens_this_run_over_the_wizard(self):
         self.mos.staged_cutting_optimization_id = self.opt
         action = self._wizard().action_view_cutting()
-        self.assertEqual(action['res_model'], 'mrp.cutting.optimization')
-        self.assertEqual(action['res_id'], self.opt.id)
+        # Любо 21.10: справката с прътите в НОВ раздел (прозорецът остава);
+        # без плъгина — формата на разкроя над прозореца, както досега.
         self.assertEqual(action['target'], 'new')
+        if action['type'] == 'ir.actions.act_url':
+            self.assertTrue(action['url'].endswith('/%s' % self.opt.id))
+        else:
+            self.assertEqual(action['res_model'], 'mrp.cutting.optimization')
+            self.assertEqual(action['res_id'], self.opt.id)

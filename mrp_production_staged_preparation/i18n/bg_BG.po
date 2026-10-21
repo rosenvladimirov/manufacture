@@ -543,3 +543,147 @@ msgstr "Старт на производството"
 #: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
 msgid "Prepared for production in the background%(start)s."
 msgstr "Подготвена за производство във фонов режим%(start)s."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid "<strong>Warnings from the cutting:</strong>"
+msgstr "<strong>Предупреждения от разкроя:</strong>"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_list_staged_preparation
+msgid "Approve Cutting"
+msgstr "Одобри разкроя"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid "Approve the Cutting"
+msgstr "Одобрете разкроя"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production__staged_prep_warnings
+msgid "Cutting Warnings"
+msgstr "Предупреждения от разкроя"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/wizards/mrp_production_prepare_wizard.py:0
+msgid "Cutting approved"
+msgstr "Разкроят е одобрен"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Cutting approved — prepared for production%(start)s."
+msgstr "Разкроят е одобрен — подготвено за производство%(start)s."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields.selection,name:mrp_production_staged_preparation.selection__mrp_production__staged_prep_job_state__awaiting
+msgid "Cutting awaits approval"
+msgstr "Разкроят чака одобрение"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Cutting for approval: %s"
+msgstr "Разкрой за одобрение: %s"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Cutting ready — approve it"
+msgstr "Разкроят е готов — одобрете го"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Cutting rejected: %s. Nothing was written."
+msgstr "Разкроят е отказан: %s. Нищо не е записано."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields.selection,name:mrp_production_staged_preparation.selection__mrp_production__staged_prep_job_state__queued
+msgid "Cutting running"
+msgstr "Тече разкроят"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid "Discard this cutting? Nothing will be written."
+msgstr "Да се откаже ли този разкрой? Нищо няма да бъде записано."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "No cutting awaits approval here."
+msgstr "Тук няма разкрой, който чака одобрение."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid "No — Reject"
+msgstr "Не — отказвам"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/wizards/mrp_production_prepare_wizard.py:0
+msgid ""
+"Preparing in the background: %s. You will be notified when it is ready."
+msgstr ""
+"Подготовка във фонов режим: %s. Ще получите известие, когато е готова."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
+msgid "Review the Cutting"
+msgstr "Прегледай разкроя"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "The cutting is ready and awaits approval."
+msgstr "Разкроят е готов и чака одобрение."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "The cutting of %s awaits approval. Approve or reject it first."
+msgstr "Разкроят на %s чака одобрение. Първо го одобрете или откажете."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__prep_warnings
+msgid "Warnings"
+msgstr "Предупреждения"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Warnings:"
+msgstr "Предупреждения:"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid "Yes — Approve"
+msgstr "Да — одобрявам"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid ""
+"Yes — reserve, move the materials to Pre-Production and start\n"
+"                    the orders (in the background).<br/>\n"
+"                    No — the cutting is discarded; nothing is written."
+msgstr ""
+"Да — резервиране, пренасяне на материалите в Pre-Production и старт\n"
+"                    на поръчките (във фонов режим).<br/>\n"
+"                    Не — разкроят се отказва; нищо не се записва."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_form_staged_preparation
+msgid ""
+"<i class=\"fa fa-scissors\" title=\"Cutting\"/>\n"
+"                    <span>The cutting is ready and awaits your approval.</span>"
+msgstr ""
+"<i class=\"fa fa-scissors\" title=\"Cutting\"/>\n"
+"                    <span>Разкроят е готов и чака вашето одобрение.</span>"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid "<strong>Do you approve this cutting?</strong>"
+msgstr "<strong>Одобрявате ли този разкрой?</strong>"

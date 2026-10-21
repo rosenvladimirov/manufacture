@@ -1,24 +1,25 @@
 # -*- coding: utf-8 -*-
-"""„Подготви за производство“ е фонова задача (ADR-0098 / ADR-0100, 20.10).
+"""„Подготви за производство“: разкроят → одобрение → подготовка (ADR-0098 / ADR-0100).
 
-Любо: „фоновите задачи са задължителни, не препоръчителни“. На fulltest
-(20.10) 18 МО армировка смятаха разкроя в заявката на браузъра; второто
-натискане раждаше втори разкрой (1208/1209 → 1216) и двоен разход.
+Любо: „фоновите задачи са задължителни, не препоръчителни“ (20.10) и
+„Натискаш ПфП, започва оптимизация, изчислява всичко, дава ми разкроя и
+обобщените данни, пита ме дали одобрявам този разкрой и чак като кажа да
+започва да пише и да стартира позициите“ (21.10, TG 173286).
 
 Тук се пази:
-  ① бутонът НЕ смята нищо и няма прозорец (Любо 21.10) — пуска задачата;
-    МО-тата са „тече подготовка“; стартът е отделен бутон (⑦);
-  ② второ пускане за същите МО-та, докато задачата върви, се отказва;
+  ① бутонът НЕ смята нищо — пуска задача А; МО-тата са „тече разкроят“;
+  ② второ пускане, докато задачата върви, се отказва;
   ③ свършила / паднала задача не държи МО-то — може да се пусне наново;
-  ④ задачата: разкрой → гейт → материализация, после известие и чатър;
-    етапът и процентът се виждат като при вноса от ЛогиКал;
-  ⑤ отказ на гейта: нищо не остава, МО-то е „Preparation failed“ с причината,
-    задачата приключва чисто (не гърми);
+  ④ задача А: само разкроят (без резервация, без материализация) →
+    „Cutting awaits approval“, известие, бележка; етап и процент като при вноса;
+  ⑤ отказ на гейта: нищо не остава, „Preparation failed“ с причината;
   ⑥ един разкрой (Любо 21.10, TG 7298): МО в процес — избрано ИЛИ от стария
-    разкрой, който се заменя — ⇒ ПфП се отказва; всички в „Preparation“ ⇒ може;
-  ⑦ „Старт на производството“ — само подготвените в „Preparation“: In Progress
-    и заключени; неподготвено МО не се стартира оттук.
+    разкрой — ⇒ ПфП се отказва; всички в „Preparation“ ⇒ може;
+  ⑦ „Старт на производството“ — само подготвените в „Preparation“;
+  ⑧ „Да“ → задача Б: материализация и старт; „Не“ → разкроят се маха, нищо
+    не остава; докато чака одобрение — ново ПфП се отказва.
 """
+import logging
 from unittest.mock import patch
 
 from odoo.exceptions import UserError
@@ -43,12 +44,35 @@ class TestPrepareInBackground(TransactionCase):
         cls.mos.write({"state": "preparation"})
 
     def _launch(self):
-        """ПфП от списъка: без прозорец — задачата тръгва веднага (ADR-0098)."""
+        """ПфП от списъка: без прозорец — задача А тръгва веднага."""
         return self.mos.action_prepare_production_batch()
 
     def _job(self):
         return self.env["queue.job"].search(
             [("uuid", "=", self.mos[:1].staged_prep_job_uuid)])
+
+    def _perform(self):
+        Job.load(self.env, self.mos[:1].staged_prep_job_uuid).perform()
+
+    def _cut(self):
+        """Задача А с подменен гейт — оставя разкрой „за одобрение“."""
+        self._launch()
+        opt = self.env["mrp.cutting.optimization"].create({
+            "name": "T0098 cut", "material_domain": "mrp_production"})
+
+        def gate(mos):
+            mos.write({"staged_cutting_optimization_id": opt.id})
+            # като разкроя на живо (M002321, 21.10): предупреждение в лога
+            logging.getLogger("odoo.addons.cutting_plugin_t0098").warning(
+                "Saw '' has no mrp.saw.format mapping")
+            return opt
+        with patch(MODEL + "._staged_optimize_and_gate", autospec=True,
+                   side_effect=gate), \
+                patch(MODEL + "._staged_do_prepare") as prepare, \
+                patch.object(type(self.env["bus.bus"]), "_sendone"):
+            self._perform()
+        prepare.assert_not_called()
+        return opt
 
     def test_button_computes_nothing_and_queues_the_job(self):
         """① Нищо в заявката: нито гейт, нито материализация."""
@@ -57,14 +81,13 @@ class TestPrepareInBackground(TransactionCase):
             result = self._launch()
         gate.assert_not_called()
         prepare.assert_not_called()
-        self.assertEqual(set(self.mos.mapped("staged_prep_job_state")),
-                         {"queued"})
+        self.assertEqual(set(self.mos.mapped("staged_prep_job_state")), {"queued"})
         self.assertFalse(any(self.mos.mapped("staged_released")))
         job = self._job()
         self.assertEqual(job.method_name, "_staged_prepare_job")
         self.assertEqual(job.channel, "root.staged_preparation")
-        self.assertEqual(set(self.mos.mapped("staged_prep_job_uuid")),
-                         {job.uuid}, "една задача за цялата партида")
+        self.assertEqual(set(self.mos.mapped("staged_prep_job_uuid")), {job.uuid},
+                         "една задача за цялата партида")
         self.assertEqual(result["tag"], "display_notification")
 
     def test_second_launch_is_refused_while_running(self):
@@ -80,31 +103,41 @@ class TestPrepareInBackground(TransactionCase):
         self._launch()
         self._job().state = "failed"
         self.assertFalse(self.mos._staged_prep_running())
-        action = self.mos.action_prepare_production_batch()
-        self.assertEqual(action["tag"], "display_notification")
+        self.assertEqual(self.mos.action_prepare_production_batch()["tag"],
+                         "display_notification")
 
-    def test_the_job_prepares_and_tells(self):
-        """④ Задачата: гейт → материализация с избора; известие; чатър."""
+    def test_job_a_only_cuts_and_waits_for_approval(self):
+        """④ Задача А: разкроят без резервация; чака одобрение; известие, бележка."""
         self._launch()
-        # прогресът се пише със СВОЙ курсор — в тестовия режим на регистъра
-        # той минава през същата транзакция и тестът го вижда
         self.registry.enter_test_mode(self.cr)
         self.addCleanup(self.registry.leave_test_mode)
         with patch(MODEL + "._staged_optimize_and_gate") as gate, \
                 patch(MODEL + "._staged_do_prepare") as prepare, \
                 patch.object(type(self.env["bus.bus"]), "_sendone") as send:
-            Job.load(self.env, self._job().uuid).perform()
+            self._perform()
         gate.assert_called_once()
-        prepare.assert_called_once_with(start=False)  # стартът е отделен бутон
-        self.assertFalse(any(self.mos.mapped("staged_prep_job_state")))
+        self.assertTrue(gate.call_args is not None)
+        prepare.assert_not_called()
+        self.assertEqual(set(self.mos.mapped("staged_prep_job_state")), {"awaiting"})
+        self.assertFalse(any(self.mos.mapped("staged_released")))
         self.assertEqual(send.call_args.args[1], "simple_notification")
-        self.assertEqual(send.call_args.args[2]["type"], "success")
-        self.assertIn("in the background",
-                      self.mos[0].message_ids[:1].body or "")
-        # като при вноса: етапът и процентът се виждат, докато върви
+        self.assertIn("awaits approval", self.mos[0].message_ids[:1].body or "")
         self.mos.invalidate_recordset(["staged_prep_progress", "staged_prep_stage"])
         self.assertEqual(self.mos[0].staged_prep_progress, 95)
         self.assertEqual(self.mos[0].staged_prep_stage, "Finishing")
+
+    def test_job_a_cuts_without_reserving(self):
+        """④ Разкроят за одобрение носи `cut_allocation_no_assign`."""
+        self._launch()
+        seen = {}
+
+        def gate(mos):
+            seen["no_assign"] = mos.env.context.get("cut_allocation_no_assign")
+        with patch(MODEL + "._staged_optimize_and_gate", autospec=True,
+                   side_effect=gate), \
+                patch.object(type(self.env["bus.bus"]), "_sendone"):
+            self._perform()
+        self.assertTrue(seen.get("no_assign"))
 
     def test_a_refused_cut_leaves_nothing_and_says_why(self):
         """⑤ Отказ на гейта: материализация няма, причината е на МО-то."""
@@ -113,13 +146,11 @@ class TestPrepareInBackground(TransactionCase):
                    side_effect=UserError("A326: short 140 m")), \
                 patch(MODEL + "._staged_do_prepare") as prepare, \
                 patch.object(type(self.env["bus.bus"]), "_sendone") as send:
-            Job.load(self.env, self._job().uuid).perform()
+            self._perform()
         prepare.assert_not_called()
-        self.assertEqual(set(self.mos.mapped("staged_prep_job_state")),
-                         {"failed"})
+        self.assertEqual(set(self.mos.mapped("staged_prep_job_state")), {"failed"})
         self.assertEqual(self.mos[0].staged_prep_error, "A326: short 140 m")
         self.assertEqual(send.call_args.args[2]["type"], "danger")
-        # паднала ⇒ не държи — пуска се наново
         self.assertFalse(self.mos._staged_prep_running())
 
     def _old_run_with(self, other_state):
@@ -145,8 +176,8 @@ class TestPrepareInBackground(TransactionCase):
     def test_all_in_preparation_may_be_recut(self):
         """⑥ Контрола: старият разкрой е само с МО-та в „Preparation“ ⇒ може."""
         self._old_run_with("preparation")
-        action = self.mos[:1].action_prepare_production()
-        self.assertEqual(action["tag"], "display_notification")
+        self.assertEqual(self.mos[:1].action_prepare_production()["tag"],
+                         "display_notification")
 
     def test_start_is_a_separate_step(self):
         """⑦ Стартът: само подготвеното, после In Progress и заключено."""
@@ -156,3 +187,58 @@ class TestPrepareInBackground(TransactionCase):
         self.mos.action_staged_start()
         self.assertEqual(set(self.mos.mapped("state")), {"progress"})
         self.assertTrue(all(self.mos.mapped("is_locked")))
+
+    def test_yes_prepares_and_starts_in_job_b(self):
+        """⑧ „Да“ → задача Б: материализация и старт; бележка, известие."""
+        opt = self._cut()
+        action = self.mos[:1].action_staged_review_cutting()
+        wiz = self.env[action["res_model"]].with_context(**action["context"]).create({})
+        self.assertEqual(wiz.production_ids, self.mos, "одобрението е за цялата партида")
+        self.assertEqual(wiz.cutting_optimization_id, opt)
+        self.assertEqual(wiz.action_approve_cutting()["tag"], "display_notification")
+        self.assertEqual(set(self.mos.mapped("staged_prep_job_state")), {"releasing"})
+        self.assertEqual(self._job().method_name, "_staged_release_job")
+        with patch(MODEL + "._staged_do_prepare") as prepare, \
+                patch.object(type(self.env["bus.bus"]), "_sendone"):
+            self._perform()
+        prepare.assert_called_once_with(start=True)
+        self.assertFalse(any(self.mos.mapped("staged_prep_job_state")))
+
+    def test_no_discards_the_cut_and_nothing_stays(self):
+        """⑧ „Не“ → разкроят се маха; МО-тата — в Preparation, без разкрой."""
+        opt = self._cut()
+        action = self.mos.action_staged_review_cutting()
+        wiz = self.env[action["res_model"]].with_context(**action["context"]).create({})
+        wiz.action_reject_cutting()
+        self.assertFalse(opt.exists(), "отказаният разкрой остана")
+        self.assertFalse(any(self.mos.mapped("staged_cutting_optimization_id")))
+        self.assertFalse(any(self.mos.mapped("staged_prep_job_state")))
+        self.assertEqual(set(self.mos.mapped("state")), {"preparation"})
+        self.assertIn("rejected", self.mos[0].message_ids[:1].body or "")
+
+    def test_awaiting_blocks_a_new_cut(self):
+        """⑧ Докато разкроят чака одобрение — ново ПфП се отказва."""
+        self._cut()
+        with self.assertRaises(UserError):
+            self.mos.action_prepare_production_batch()
+
+    def test_view_cutting_opens_a_new_tab_and_keeps_the_screen(self):
+        """Любо 21.10: „Виж разкроя“ не заменя прозореца — нов раздел."""
+        self._cut()
+        action = self.mos.action_staged_review_cutting()
+        wiz = self.env[action["res_model"]].with_context(**action["context"]).create({})
+        view = wiz.action_view_cutting()
+        if view["type"] == "ir.actions.act_url":
+            self.assertEqual(view["target"], "new")
+        else:
+            self.assertEqual(view["target"], "new")
+
+    def test_cut_warnings_stay_on_the_approval_screen(self):
+        """⑨ Предупреждението от разкроя — в екрана „Да/Не“ и в бележката."""
+        self._cut()
+        self.assertIn("no mrp.saw.format mapping", self.mos[0].staged_prep_warnings or "")
+        self.assertIn("no mrp.saw.format mapping", self.mos[0].message_ids[:1].body or "")
+        action = self.mos.action_staged_review_cutting()
+        wiz = self.env[action["res_model"]].with_context(**action["context"]).create({})
+        self.assertEqual(wiz.prep_warnings.count("no mrp.saw.format mapping"), 1,
+                         "едно и също предупреждение — веднъж за партидата")
