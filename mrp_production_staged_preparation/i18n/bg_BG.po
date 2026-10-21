@@ -503,3 +503,15 @@ msgstr "Резервиране и преместване на материали
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prep_progress__stage
 msgid "Stage"
 msgstr "Етап"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid ""
+"Prepare for Production is refused: %(started)s already started production. "
+"One cutting run per order — the new run would replace the one these orders "
+"are cut by."
+msgstr ""
+"„Подготви за производство“ се отказва: %(started)s вече са в производство. "
+"Един разкрой на поръчка — новият би заменил разкроя, по който се режат тези "
+"поръчки."

@@ -1255,6 +1255,7 @@ class MrpProduction(models.Model):
                 "No staged MO in 'Preparation' to prepare. (Already released "
                 "MOs cannot be re-staged.)"))
         staged._staged_prep_check_not_running()
+        staged._staged_prep_check_nothing_started()
         # ADR-0098 / ADR-0100 (Любо, 20.10): тук НЕ се смята нищо. Прозорецът
         # пита само „старт сега или само подготви“; разкроят, гейтът и
         # материализацията вървят във фоновата задача (`_staged_prepare_job`).
@@ -2494,6 +2495,32 @@ class MrpProduction(models.Model):
                 "Wait for its notification.",
                 ", ".join(running.mapped("name"))))
 
+    def _staged_prep_check_nothing_started(self):
+        """Един разкрой винаги (ADR-0100, Любо 21.10, TG 7298): „ако поне една
+        поръчка е със статус In Process трябва да отказва ПфП“.
+
+        Новият разкрой заменя стария за избраните МО-та, затова се гледат и
+        МО-тата от СТАРИТЕ разкрои, които се заменят — не само избраните.
+        Пример 20.10: 1209 носи M002315 (в процес) + M002309/316 ⇒ повторна
+        ПфП на M002309/316 се отказва.
+        """
+        old_opts = self.mapped("staged_cutting_optimization_id")
+        Alloc = self.env.get("mrp.cutting.allocation")
+        if Alloc is not None:
+            old_opts |= Alloc.sudo().search(
+                [("production_id", "in", self.ids)]).mapped("optimization_id")
+        scope = self
+        if "production_ids" in old_opts._fields:
+            scope |= old_opts.mapped("production_ids")
+        started = scope.filtered(
+            lambda p: p.state in ("progress", "to_close", "done"))
+        if started:
+            raise UserError(_(
+                "Prepare for Production is refused: %(started)s already "
+                "started production. One cutting run per order — the new run "
+                "would replace the one these orders are cut by.",
+                started=", ".join(started.mapped("name"))))
+
     def _staged_prepare_enqueue(self, start):
         """Слага МО-тата в „тече подготовка“ и пуска фоновата задача."""
         self._staged_prep_check_not_running()
@@ -2528,6 +2555,7 @@ class MrpProduction(models.Model):
                 if batch:
                     report(5, _("Checking later-operation components"))
                     todo._staged_warn_late_components()
+                todo._staged_prep_check_nothing_started()
                 report(10, _("Cutting optimisation (%s orders)", len(todo)))
                 todo._staged_optimize_and_gate()
                 report(60, _("Reserving and moving materials to Pre-Production"))

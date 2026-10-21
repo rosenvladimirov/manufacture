@@ -13,7 +13,9 @@
   ④ задачата: разкрой → гейт → материализация, после известие и чатър;
     етапът и процентът се виждат като при вноса от ЛогиКал;
   ⑤ отказ на гейта: нищо не остава, МО-то е „Preparation failed“ с причината,
-    задачата приключва чисто (не гърми).
+    задачата приключва чисто (не гърми);
+  ⑥ един разкрой (Любо 21.10, TG 7298): МО в процес — избрано ИЛИ от стария
+    разкрой, който се заменя — ⇒ ПфП се отказва; всички в „Preparation“ ⇒ може.
 """
 from unittest.mock import patch
 
@@ -120,3 +122,29 @@ class TestPrepareInBackground(TransactionCase):
         self.assertEqual(send.call_args.args[2]["type"], "danger")
         # паднала ⇒ не държи — пуска се наново
         self.assertFalse(self.mos._staged_prep_running())
+
+    def _old_run_with(self, other_state):
+        """Старият разкрой носи mos[0] и трето МО в даденото състояние."""
+        other = self.env["mrp.production"].create({
+            "product_id": self.mos[0].product_id.id, "product_qty": 1.0})
+        other.write({"state": other_state})
+        opt = self.env["mrp.cutting.optimization"].create({
+            "name": "T0100 old run", "material_domain": "mrp_production",
+            "production_ids": [(6, 0, (self.mos[0] | other).ids)]})
+        self.mos[0].staged_cutting_optimization_id = opt
+        return other
+
+    def test_an_order_in_process_on_the_old_run_refuses(self):
+        """⑥ M002315 в процес на 1209 ⇒ повторна ПфП на M002309 — отказ."""
+        other = self._old_run_with("progress")
+        with self.assertRaises(UserError) as err:
+            self.mos[:1].action_prepare_production()
+        self.assertIn(other.name, str(err.exception))
+        with self.assertRaises(UserError):
+            self.mos.action_prepare_production_batch()
+
+    def test_all_in_preparation_may_be_recut(self):
+        """⑥ Контрола: старият разкрой е само с МО-та в „Preparation“ ⇒ може."""
+        self._old_run_with("preparation")
+        action = self.mos[:1].action_prepare_production()
+        self.assertEqual(action["res_model"], "mrp.production.prepare.wizard")
