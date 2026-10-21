@@ -24,6 +24,40 @@ class MrpProductionPrepareWizard(models.TransientModel):
         string="Cutting Patterns",
         related="cutting_optimization_id.pattern_count")
 
+    # ADR-0099 (Любо 21.10, TG 173297): допълването на разкроя — предложение,
+    # което човекът вижда и може да редактира преди „Да“.
+    topup_ids = fields.Many2many(
+        "mrp.production.topup", string="Top-up",
+        compute="_compute_topup_ids", inverse="_inverse_topup_ids", readonly=False)
+    waste_without_pct = fields.Float(
+        "Remnants without top-up (%)", compute="_compute_topup_waste")
+    waste_with_pct = fields.Float(
+        "Remnants with top-up (%)", compute="_compute_topup_waste")
+
+    @api.depends("cutting_optimization_id")
+    def _compute_topup_ids(self):
+        Topup = self.env["mrp.production.topup"]
+        for wiz in self:
+            wiz.topup_ids = Topup.search(
+                [("optimization_id", "=", wiz.cutting_optimization_id.id)]
+            ) if wiz.cutting_optimization_id else Topup
+
+    def _inverse_topup_ids(self):
+        """Редакцията на бройките се пише в самите редове (m2m → записите)."""
+
+    @api.depends("cutting_optimization_id", "topup_ids.qty")
+    def _compute_topup_waste(self):
+        for wiz in self:
+            patterns = wiz.cutting_optimization_id.pattern_ids
+            total = sum(p.bar_capacity_mm * p.usage_count for p in patterns)
+            rest = sum((p.remnant_length or 0.0) * p.usage_count for p in patterns)
+            used = sum(
+                (t.qty / t.block_qty if t.block_qty else 0.0)
+                * (t.cut_mm + (patterns[:1].kerf_mm or 0.0))
+                for t in wiz.topup_ids)
+            wiz.waste_without_pct = 100.0 * rest / total if total else 0.0
+            wiz.waste_with_pct = 100.0 * max(0.0, rest - used) / total if total else 0.0
+
     # TG 173288: предупрежденията от фоновата задача — над „Да/Не“.
     prep_warnings = fields.Text(
         string="Warnings", compute="_compute_prep_warnings")
@@ -74,6 +108,22 @@ class MrpProductionPrepareWizard(models.TransientModel):
             "params": {
                 "type": "info",
                 "title": _("Cutting approved"),
+                "message": _("Preparing in the background: %s. You will be "
+                             "notified when it is ready.",
+                             ", ".join(self.production_ids.mapped("name"))),
+                "next": {"type": "ir.actions.act_window_close"},
+            },
+        }
+
+    def action_approve_with_topup(self):
+        """„Да, с допълването“ — задача Б прилага редовете и разкроява наново."""
+        self.production_ids._staged_release_enqueue(start=True, topup=True)
+        return {
+            "type": "ir.actions.client",
+            "tag": "display_notification",
+            "params": {
+                "type": "info",
+                "title": _("Cutting approved with the top-up"),
                 "message": _("Preparing in the background: %s. You will be "
                              "notified when it is ready.",
                              ", ".join(self.production_ids.mapped("name"))),

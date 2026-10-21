@@ -14,3 +14,4 @@ from . import test_cutting_trial
 from . import test_pick_physical_bars
 from . import test_unplan_back_to_confirmed
 from . import test_prepare_in_background
+from . import test_cutting_topup

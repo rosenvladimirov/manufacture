@@ -1221,3 +1221,157 @@ msgstr ""
 #: code:addons/mrp_production_staged_preparation/static/src/js/staged_cut_ready_service.js:0
 msgid "Approve"
 msgstr "Одобри"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production_topup.py:0
+msgid "%(article)s: the top-up goes in whole pieces of %(step)s."
+msgstr "%(article)s: допълването е в цели парчета по %(step)s."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid "<strong>I propose to top up the cutting with:</strong>"
+msgstr "<strong>Предлагам да допълня разкроя с:</strong>"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__product_id
+msgid "Article"
+msgstr "Артикул"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production_topup.py:0
+msgid "Created to top up the cutting run %s from its remnants."
+msgstr "Създадена, за да допълни разкроя %s от остатъците му."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__cut_mm
+msgid "Cut Length (mm)"
+msgstr "Дължина на рязане (мм)"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model,name:mrp_production_staged_preparation.model_mrp_production_topup
+msgid "Cutting Top-up Proposal"
+msgstr "Предложение за допълване на разкроя"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Cutting again with the top-up"
+msgstr "Нов разкрой с допълването"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/wizards/mrp_production_prepare_wizard.py:0
+msgid "Cutting approved with the top-up"
+msgstr "Разкроят е одобрен с допълването"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production_topup.py:0
+msgid "Cutting top-up: +%(qty)s %(uom)s from the remnants of %(run)s."
+msgstr "Допълване на разкроя: +%(qty)s %(uom)s от остатъците на %(run)s."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__forecast_qty
+msgid "Forecast"
+msgstr "Прогнозна наличност"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__production_id
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid "Into Order"
+msgstr "Към поръчка"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__max_qty
+msgid "Max"
+msgstr "Макс."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid "New order for stock"
+msgstr "Нова поръчка за склад"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__over_max
+msgid "Over Max"
+msgstr "Над Макс."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__qty
+msgid "Quantity"
+msgstr "Количество"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__waste_with_pct
+msgid "Remnants with top-up (%)"
+msgstr "Остатъци с допълването (%)"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__waste_without_pct
+msgid "Remnants without top-up (%)"
+msgstr "Остатъци без допълването (%)"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_mrp_production_topup__production_id
+msgid ""
+"The order of this article in the cutting run; empty — a new order for stock "
+"is created."
+msgstr ""
+"Поръчката на този артикул в разкроя; празно — създава се нова поръчка за "
+"склад."
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production_topup.py:0
+msgid "The top-up quantity cannot be negative."
+msgstr "Количеството за допълване не може да е отрицателно."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__topup_ids
+msgid "Top-up"
+msgstr "Допълване"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production_topup.py:0
+msgid "Top-up %s"
+msgstr "Допълване %s"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Top-up proposal from the remnants"
+msgstr "Предложение за допълване от остатъците"
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production.py:0
+msgid "Top-up: orders for the remnants"
+msgstr "Допълване: поръчки за остатъците"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_mrp_production_topup__over_max
+msgid "Units above the reordering rule's Max after the top-up."
+msgstr "Бройки над Макс. на точката за поръчка след допълването."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_mrp_production_topup__block_qty
+msgid "Units cut together in one piece (a bundle of 12 bars gives 12)."
+msgstr "Бройки, рязани заедно в едно парче (сноп от 12 пръта дава 12)."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__block_qty
+msgid "Units per Piece"
+msgstr "Бройки в парче"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid "Without top-up"
+msgstr "Без допълване"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.view_mrp_production_prepare_wizard_form
+msgid "Yes, with the top-up"
+msgstr "Да, с допълването"

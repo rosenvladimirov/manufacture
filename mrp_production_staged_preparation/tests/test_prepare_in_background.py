@@ -111,7 +111,7 @@ class TestPrepareInBackground(TransactionCase):
         self._launch()
         self.registry.enter_test_mode(self.cr)
         self.addCleanup(self.registry.leave_test_mode)
-        with patch(MODEL + "._staged_optimize_and_gate") as gate, \
+        with patch(MODEL + "._staged_optimize_and_gate", return_value=False) as gate, \
                 patch(MODEL + "._staged_do_prepare") as prepare, \
                 patch.object(type(self.env["bus.bus"]), "_sendone") as send:
             self._perform()
@@ -245,3 +245,42 @@ class TestPrepareInBackground(TransactionCase):
         wiz = self.env[action["res_model"]].with_context(**action["context"]).create({})
         self.assertEqual(wiz.prep_warnings.count("no mrp.saw.format mapping"), 1,
                          "едно и също предупреждение — веднъж за партидата")
+
+    def test_yes_with_top_up_applies_cuts_again_and_prepares(self):
+        """ADR-0099: „Да, с допълването“ → приложи → нов разкрой → подготовка."""
+        opt = self._cut()
+        line = self.env["mrp.production.topup"].create({
+            "optimization_id": opt.id, "product_id": self.mos[0].product_id.id,
+            "production_id": self.mos[0].id, "block_qty": 1, "qty": 2, "cut_mm": 100})
+        action = self.mos.action_staged_review_cutting()
+        wiz = self.env[action["res_model"]].with_context(**action["context"]).create({})
+        self.assertEqual(wiz.topup_ids, line)
+        wiz.action_approve_with_topup()
+        with patch.object(type(self.env["mrp.production"]), "_staged_apply_topups",
+                          return_value=self.env["mrp.production"]) as apply_, \
+                patch(MODEL + "._staged_optimize_and_gate") as gate, \
+                patch(MODEL + "._staged_do_prepare") as prepare, \
+                patch.object(type(self.env["bus.bus"]), "_sendone"):
+            self._perform()
+        apply_.assert_called_once()
+        gate.assert_called_once()
+        prepare.assert_called_once_with(start=True)
+        self.assertFalse(line.exists(), "предложението остана след подготовката")
+
+    def test_without_top_up_ignores_the_proposal(self):
+        """ADR-0099: „Без допълване“ → разкроят както е, предложението се маха."""
+        opt = self._cut()
+        line = self.env["mrp.production.topup"].create({
+            "optimization_id": opt.id, "product_id": self.mos[0].product_id.id,
+            "block_qty": 1, "qty": 2, "cut_mm": 100})
+        action = self.mos.action_staged_review_cutting()
+        self.env[action["res_model"]].with_context(**action["context"]).create({}).action_approve_cutting()
+        with patch.object(type(self.env["mrp.production"]), "_staged_apply_topups") as apply_, \
+                patch(MODEL + "._staged_optimize_and_gate") as gate, \
+                patch(MODEL + "._staged_do_prepare") as prepare, \
+                patch.object(type(self.env["bus.bus"]), "_sendone"):
+            self._perform()
+        apply_.assert_not_called()
+        gate.assert_not_called()
+        prepare.assert_called_once_with(start=True)
+        self.assertFalse(line.exists())

@@ -2593,13 +2593,13 @@ class MrpProduction(models.Model):
             _("Cutting for approval: %s", ", ".join(self.mapped("name"))[:200]),
             batch=batch)
 
-    def _staged_release_enqueue(self, start=True):
+    def _staged_release_enqueue(self, start=True, topup=False):
         """„Да“ на разкроя: задача Б — резервиране, Pre-Production, старт."""
         self._staged_prep_check_not_running()
         return self._staged_prep_enqueue_job(
             "_staged_release_job", "releasing",
             _("Prepare for Production: %s", ", ".join(self.mapped("name"))[:200]),
-            start=start)
+            start=start, topup=topup)
 
     def _staged_prep_fail(self, exc, what):
         reason = exc.args[0] if exc.args else str(exc)
@@ -2670,8 +2670,11 @@ class MrpProduction(models.Model):
                     warnings += todo._staged_warn_late_components()
                 todo._staged_prep_check_nothing_started()
                 report(10, _("Cutting optimisation (%s orders)", len(todo)))
-                todo.with_context(
+                opt = todo.with_context(
                     cut_allocation_no_assign=True)._staged_optimize_and_gate()
+                if opt:
+                    report(90, _("Top-up proposal from the remnants"))
+                    todo._staged_compute_topups(opt)
                 report(95, _("Finishing"))
         except psycopg2.OperationalError:
             raise
@@ -2698,14 +2701,32 @@ class MrpProduction(models.Model):
                 model="mrp.production", res_ids=self.ids, mode="record")
         return True
 
-    def _staged_release_job(self, start=True):
-        """Задача Б (след „Да“): резервиране, Pre-Production, старт на позициите."""
+    def _staged_release_job(self, start=True, topup=False):
+        """Задача Б (след „Да“): резервиране, Pre-Production, старт на позициите.
+
+        С допълването (ADR-0099): редовете се прилагат (МО-то на варианта се
+        увеличава или се създава ново), разкроят се смята наново с тях и чак
+        тогава се подготвя.
+        """
         todo = self.filtered(
             lambda p: p.state == "preparation" and not p.staged_released)
         report = self._staged_prep_report
         try:
             with self.env.cr.savepoint():
                 todo._staged_prep_check_nothing_started()
+                opts = todo.mapped("staged_cutting_optimization_id")
+                lines = self.env["mrp.production.topup"].search(
+                    [("optimization_id", "in", opts.ids)])
+                if topup and lines.filtered(lambda t: t.qty > 0):
+                    report(10, _("Top-up: orders for the remnants"))
+                    new = todo._staged_apply_topups(lines)
+                    new.write({"staged_prep_job_uuid": self[:1].staged_prep_job_uuid,
+                               "staged_prep_job_state": "releasing"})
+                    todo |= new
+                    self |= new
+                    report(15, _("Cutting again with the top-up"))
+                    todo._staged_optimize_and_gate()
+                lines.unlink()
                 report(20, _("Reserving and moving materials to Pre-Production"))
                 todo.with_context(
                     staged_skip_optimize=True)._staged_do_prepare(start=start)
