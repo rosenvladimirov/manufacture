@@ -271,6 +271,8 @@ msgstr ""
 #: code:addons/mrp_production_staged_preparation/wizards/mrp_production_prepare_wizard.py:0
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_prepare_wizard__cutting_optimization_id
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__optimization_id
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_list_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.mrp_production_search_staged_preparation
 msgid "Cutting Run"
 msgstr ""
 
