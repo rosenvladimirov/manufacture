@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ADR-0099 (Любо 21.10, TG 173329): допълването на разкроя — само за
+         категориите с тази отметка (армировката). -->
+    <record id="product_category_form_cutting_topup" model="ir.ui.view">
+        <field name="name">product.category.form.cutting.topup</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='parent_id']" position="after">
+                <field name="cutting_topup"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
