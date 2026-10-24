@@ -51,6 +51,9 @@ class TestOldRemnantIsABar(TransactionCase):
         # 19: локацията има ЕДНА сметка (`valuation_account_id`); в 18 бяха
         # две — входяща и изходяща.
         cls.relabel_loc.valuation_account_id = acc('T93BLAB', 'T93B relabel')
+        # stock_lot_relabel 19.0.1.1.0: и сметката за връщането.
+        cls.relabel_loc.lot_relabel_out_account_id = acc(
+            'T93BLOUT', 'T93B relabel return')
         cls.meter = cls.env.ref('uom.product_uom_meter')
         cls.bar = cls.env['product.product'].create({
             'name': 'PVC frame T93B', 'is_storable': True, 'tracking': 'lot',

@@ -4,6 +4,30 @@ All notable changes to this module will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
+## [19.0.2.32.4] - 2026-10-22
+
+### Added
+
+- Порт от 18.0.2.27.4 → 18.0.2.32.4: ПфП е фонова задача (queue_job, канал
+  `root.staged_preparation`) — задача А само разкроява и чака одобрение
+  (`awaiting`), задача Б резервира, пренася в Pre-Production и стартира;
+  състояния queued / awaiting / releasing / failed; прогресът в
+  `mrp.production.prep.progress` (свой курсор); съветникът за одобрение
+  (Да / Да, с допълването / Без допълване / Не); допълването на разкроя от
+  остатъците (`mrp.production.topup`, отметка `cutting_topup` на категорията,
+  ADR-0099); JS услугата `staged_cut_ready` (известие / формата сама);
+  филтрите, лентите и бутоните; колоната „Разкрой“ в списъка на МО.
+
+### Changed (адаптации за 19)
+
+- `_sql_constraints` отпадна — ограничението на прогреса е `models.Constraint`.
+- `stock.warehouse.orderpoint.qty_multiple` отпадна — кратното на точката за
+  поръчка е `replenishment_uom_id`, преведено в единиците на артикула.
+- `kerf_mm` на модела на разкроя и `picking_ids` на разкроя идват с
+  mrp_cutting_optimization 1.36 — до тогава се четат меко (срез 0, без
+  трансфери на разкроя).
+- Тестовете: `registry_enter_test_mode()` вместо `Registry.enter_test_mode`.
+
 ## [19.0.2.27.4] - 2026-10-18
 
 ### Changed

@@ -57,6 +57,10 @@ class TestRemnantIsBornAtPfp(TransactionCase):
         # 19: локацията има ЕДНА сметка (`valuation_account_id`); в 18 бяха
         # две — входяща и изходяща.
         cls.relabel_loc.valuation_account_id = cls.acc_rel
+        # stock_lot_relabel 19.0.1.1.0: втората сметка се върна — връщането
+        # (ролята „in“) минава по `lot_relabel_out_account_id`.
+        cls.acc_rel_out = acc('T93PLOUT', 'T93P relabel return')
+        cls.relabel_loc.lot_relabel_out_account_id = cls.acc_rel_out
         cls.meter = cls.env.ref('uom.product_uom_meter')
         cls.bar = cls.env['product.product'].create({
             'name': 'PVC frame T93P', 'is_storable': True, 'tracking': 'lot',
@@ -308,7 +312,8 @@ class TestRemnantIsBornAtPfp(TransactionCase):
             self.assertEqual(self.env.company.currency_id.compare_amounts(
                 v_in, v_out), 0, "„+“ и „−“ се разминават")
             aml = (out | inn).account_move_id.line_ids
-            self.assertEqual(aml.account_id, self.acc_val | self.acc_rel)
+            self.assertEqual(aml.account_id,
+                             self.acc_val | self.acc_rel | self.acc_rel_out)
         # 4,63 × 2,00 и 4,25 × 2,00
         values = sorted(m.value
                         for m in relabels.filtered(
