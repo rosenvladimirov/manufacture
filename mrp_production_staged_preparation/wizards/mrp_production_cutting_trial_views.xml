@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- №116: пробният разкрой при отказ — пръти, остатъци и парчетата, които
+         не влизат. Нищо не е записано: пробата е откатена. -->
+    <record id="view_mrp_production_cutting_trial_form" model="ir.ui.view">
+        <field name="name">mrp.production.cutting.trial.form</field>
+        <field name="model">mrp.production.cutting.trial</field>
+        <field name="arch" type="xml">
+            <form string="Trial Cutting">
+                <p class="text-muted">
+                    Trial run only — nothing was saved and no stock was touched.
+                </p>
+                <field name="production_ids" widget="many2many_tags"/>
+                <field name="problems_text" invisible="not problems_text"
+                       class="text-danger"/>
+                <field name="report_html"/>
+                <footer>
+                    <button string="Close" special="cancel" class="btn-primary"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Бутонът на отказа (RedirectWarning) вика това действие в НОВА
+         транзакция; МО-тата идват в контекста (staged_trial_mo_ids). -->
+    <record id="action_staged_cutting_trial" model="ir.actions.server">
+        <field name="name">View Cutting (trial)</field>
+        <field name="model_id" ref="mrp.model_mrp_production"/>
+        <field name="state">code</field>
+        <field name="code">action = model._staged_cutting_trial_action(env.context.get("staged_trial_mo_ids") or [])</field>
+    </record>
+</odoo>

@@ -16,6 +16,33 @@
             <xpath expr="//field[@name='state']" position="before">
                 <field name="staged_preparation_enabled" invisible="1"/>
                 <field name="staged_released" invisible="1"/>
+                <field name="staged_prep_job_state" invisible="1"/>
+            </xpath>
+
+            <!-- ADR-0098 / ADR-0100: подготовката е фонова задача — докато
+                 върви и ако падне, се казва най-горе на формата. -->
+            <xpath expr="//sheet" position="before">
+                <!-- Като при вноса от ЛогиКал: етап + процент, обновяват се
+                     сами през l10n_bg_live_refresh. -->
+                <div class="alert alert-info d-flex align-items-center gap-2 mb-0"
+                     role="status" invisible="staged_prep_job_state not in ('queued', 'releasing')">
+                    <i class="fa fa-cog fa-spin" title="Working"/>
+                    <span>Preparation is running in the background.</span>
+                    <field name="staged_prep_stage" readonly="1" nolabel="1" class="mb-0"/>
+                    <field name="staged_prep_progress" widget="progressbar" readonly="1" nolabel="1"/>
+                </div>
+                <div class="alert alert-warning d-flex align-items-center gap-2 mb-0"
+                     role="status" invisible="staged_prep_job_state != 'awaiting'">
+                    <i class="fa fa-scissors" title="Cutting"/>
+                    <span>The cutting is ready and awaits your approval.</span>
+                    <button name="action_staged_review_cutting" type="object"
+                            string="Review the Cutting" class="btn btn-sm btn-primary ms-auto"/>
+                </div>
+                <div class="alert alert-danger mb-0" role="alert"
+                     invisible="staged_prep_job_state != 'failed'">
+                    <strong>Preparation failed — nothing was committed.</strong>
+                    <field name="staged_prep_error" readonly="1" nolabel="1"/>
+                </div>
             </xpath>
 
             <!-- Бадж „Released to floor" (подготвено за цеха): ъглова лента.
@@ -36,7 +63,15 @@
                         type="object"
                         string="Prepare for Production"
                         class="oe_highlight"
-                        invisible="(not staged_preparation_enabled) or state != 'preparation'"
+                        invisible="(not staged_preparation_enabled) or state != 'preparation' or staged_released or staged_prep_job_state in ('queued', 'awaiting', 'releasing')"
+                        groups="mrp.group_mrp_user"/>
+                <!-- ADR-0098 (Любо 21.10): стартът е отделна стъпка след
+                     подготовката — подготвено (released), още в Preparation. -->
+                <button name="action_staged_start"
+                        type="object"
+                        string="Start Production"
+                        class="oe_highlight"
+                        invisible="(not staged_preparation_enabled) or (not staged_released) or state != 'preparation' or staged_prep_job_state in ('queued', 'awaiting', 'releasing')"
                         groups="mrp.group_mrp_user"/>
                 <!-- Откат на подготовката: връща в draft, маха пикинга към
                      Pre-Production и връща движенията на едностъпково.
@@ -64,6 +99,14 @@
                         type="object"
                         string="Prepare for Production"
                         groups="mrp.group_mrp_user"/>
+                <button name="action_staged_review_cutting"
+                        type="object"
+                        string="Approve Cutting"
+                        groups="mrp.group_mrp_user"/>
+                <button name="action_staged_start"
+                        type="object"
+                        string="Start Production"
+                        groups="mrp.group_mrp_user"/>
                 <!-- Откат за маркираната партида. Методът сам филтрира
                      неподходящите редове, за да не спира заради един. -->
                 <button name="action_unprepare_production_wizard"
@@ -78,12 +121,32 @@
             <xpath expr="//field[@name='state']" position="before">
                 <field name="staged_released" optional="show" string="Released"
                        widget="boolean_toggle" readonly="1"/>
+                <field name="staged_prep_job_state" optional="show" widget="badge"
+                       decoration-info="staged_prep_job_state in ('queued', 'releasing')"
+                       decoration-warning="staged_prep_job_state == 'awaiting'"
+                       decoration-danger="staged_prep_job_state == 'failed'"/>
+                <!-- Любо 21.10 (TG 173376): номерът на разкроя до МО-то. -->
+                <field name="staged_cutting_optimization_id" optional="show"
+                       string="Cutting Run"/>
             </xpath>
             <!-- Reference се свиваше до няколко символа, защото полето е без
                  зададена ширина и губи борбата за място. Реалната дължина е
                  11 знака (WH/MO/00016) → 150px е с резерв. -->
             <xpath expr="//field[@name='name']" position="attributes">
                 <attribute name="width">100px</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- №119: „Plan“ от списъка носи знак, че е натиснат оттам — след него
+         списъкът се отваря наново с филтъра „In Preparation“. -->
+    <record id="mrp_production_tree_plan_to_preparation" model="ir.ui.view">
+        <field name="name">mrp.production.list.plan.to.preparation</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header/button[@name='button_plan']" position="attributes">
+                <attribute name="context">{'staged_plan_from_list': True}</attribute>
             </xpath>
         </field>
     </record>
@@ -98,8 +161,20 @@
                 <separator/>
                 <filter name="staged_released" string="Released to Floor"
                         domain="[('staged_released', '=', True)]"/>
-                <filter name="staged_in_preparation" string="In Preparation"
+                <!-- Любо 21.10 (TG 173376): всички МО на един разкрой. -->
+                <field name="staged_cutting_optimization_id" string="Cutting Run"/>
+                <filter name="group_staged_cutting_run" string="Cutting Run"
+                        context="{'group_by': 'staged_cutting_optimization_id'}"/>
+            </xpath>
+            <!-- Любо 21.10 (TG 173294): „Preparation“ в групата със състоянията,
+                 до Confirmed; до него — разкроите, които чакат одобрение.
+                 Името staged_in_preparation остава: „Plan“ от списъка (№119)
+                 отваря списъка с него. -->
+            <xpath expr="//filter[@name='filter_confirmed']" position="after">
+                <filter name="staged_in_preparation" string="Preparation"
                         domain="[('state', '=', 'preparation')]"/>
+                <filter name="staged_cut_awaiting" string="Cutting awaits approval"
+                        domain="[('staged_prep_job_state', '=', 'awaiting')]"/>
             </xpath>
             <!-- Ядреният „To Do" не знае за статус preparation → операторът
                  губеше МО-то от поглед в момента, в който започне работа по

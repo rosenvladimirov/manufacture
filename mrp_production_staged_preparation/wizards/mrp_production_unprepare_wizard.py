@@ -23,17 +23,9 @@ class MrpProductionUnprepareWizard(models.TransientModel):
         for wizard in self:
             productions = wizard.production_ids
             wizard.production_count = len(productions)
-            pickings = self.env["stock.picking"]
-            for production in productions:
-                warehouse = production._staged_warehouse()
-                pbm = warehouse.pbm_loc_id if warehouse else False
-                if not pbm:
-                    continue
-                consumptions = production.move_raw_ids.filtered(
-                    lambda m: m.state not in ("done", "cancel")
-                    and m.location_id.id == pbm.id)
-                pickings |= consumptions.mapped("move_orig_ids.picking_id")
-            wizard.picking_count = len(pickings)
+            # №93: същото правило като самия откат — по старата верига
+            # (`move_orig_ids`) броят беше винаги 0 след ④ (10.09).
+            wizard.picking_count = len(productions._staged_prep_pickings())
 
     def _do(self, target_state):
         self.ensure_one()
