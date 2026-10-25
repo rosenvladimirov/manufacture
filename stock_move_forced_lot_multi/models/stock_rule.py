@@ -212,11 +212,23 @@ class StockRule(models.Model):
                 result.append(procurement)
                 continue
 
+            # Набавяне без положително количество не се разделя. Ядрото пуска
+            # такова при запис на количеството на суровина в потвърдено МО
+            # (mrp stock.move.write → _run_procurement с РАЗЛИКАТА, тук 0 —
+            # напр. „Update BoM“). Количеството на лота идва от таблицата с
+            # парчетата, не от набавянето, и без тази проверка набавяне за 0
+            # поръчваше стъклото наново (т. 13, Теолино 25.10, P00311).
+            rounding = procurement.product_uom.rounding
+            if float_compare(procurement.product_qty, 0.0,
+                             precision_rounding=rounding) <= 0:
+                result.append(procurement)
+                continue
+
             po_split_count = len(separate_lots.filtered(
                 lambda l: l.po_split and not (l.force_split and l.split_buffer_qty)
             ))
 
-            split_total_qty = 0.0
+            lot_qtys = []
             for lot in separate_lots:
                 qty = self._get_split_qty_for_lot(lot, procurement, po_split_count)
                 if qty <= 0:
@@ -234,7 +246,10 @@ class StockRule(models.Model):
                         procurement.product_qty,
                     )
                     continue
+                lot_qtys.append((lot, qty))
 
+            split_total_qty = 0.0
+            for lot, qty in lot_qtys:
                 split_total_qty += qty
                 lot_values = dict(procurement.values)
                 lot_values["forced_lot_ids"] = lot
@@ -249,7 +264,6 @@ class StockRule(models.Model):
                     values=lot_values,
                 ))
 
-            rounding = procurement.product_uom.rounding
             parent_remaining_qty = float_round(
                 procurement.product_qty - split_total_qty,
                 precision_rounding=rounding,
