@@ -336,6 +336,9 @@ class MrpProduction(models.Model):
             "workorder_id": False,
             # 19: procurement.group отпадна — групирането е по stock.reference.
             "reference_ids": [(6, 0, pg.ids)],
+            # 19: трансферите на МО-то се смятат през production_group_id
+            # (copy=False) — без него пикът не се вижда от МО-то
+            "production_group_id": self.production_group_id.id,
             "picking_id": False,
             "picking_type_id": (pbm_type.id if pbm_type
                                 else consumption.picking_type_id.id),
@@ -626,6 +629,7 @@ class MrpProduction(models.Model):
                     # 19: procurement.group отпадна — групирането на
                     # пикинга е по stock.reference (препратките на МО-то).
                     "reference_ids": [(6, 0, pg.ids if pg else [])],
+                    "production_group_id": self.production_group_id.id,
                     "picking_type_id": (pbm_type.id if pbm_type
                                         else self.picking_type_id.id),
                     "company_id": self.company_id.id,
@@ -1684,6 +1688,7 @@ class MrpProduction(models.Model):
                     "procure_method": "make_to_stock",
                     "raw_material_production_id": production.id,
                     "reference_ids": [(6, 0, pg.ids)],
+                    "production_group_id": production.production_group_id.id,
                     "picking_id": False,
                     "picking_type_id": production.picking_type_id.id,
                     "workorder_id": wo_id,
