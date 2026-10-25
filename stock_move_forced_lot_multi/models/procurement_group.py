@@ -100,6 +100,17 @@ class ProcurementGroup(models.Model):
                 result.append(procurement)
                 continue
 
+            # Набавяне без положително количество не се разделя. Ядрото пуска
+            # такова при запис на количеството на суровина в потвърдено МО
+            # (mrp stock.move.write → _run_procurement с РАЗЛИКАТА, тук 0 —
+            # напр. „Update BoM“). Количеството на лота идва от таблицата с
+            # парчетата, не от набавянето, и без тази проверка набавяне за 0
+            # поръчваше стъклото наново (т. 13, Теолино 25.10, P00311 в rc19).
+            if float_compare(procurement.product_qty, 0.0,
+                             precision_rounding=procurement.product_uom.rounding) <= 0:
+                result.append(procurement)
+                continue
+
             po_split_count = len(separate_lots.filtered(
                 lambda l: l.po_split and not (l.force_split and l.split_buffer_qty)
             ))
