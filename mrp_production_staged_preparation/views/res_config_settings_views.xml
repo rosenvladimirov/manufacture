@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- №258: презареждането на допълването на разкроя — настройка на фирмата, 0–50 % -->
+    <record id="res_config_settings_view_form_cutting_topup" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.staged.cutting.topup</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="mrp.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//setting[@id='security_lead_time']" position="after">
+                <setting id="cutting_topup_overfill" string="Cutting Top-up Overfill" company_dependent="1"
+                         help="The cutting top-up may fill the remnants up to the reordering rule's Max plus this percentage (0–50 %)">
+                    <field name="cutting_topup_overfill" class="o_light_label" style="width: 6rem;"/>
+                    <span>%</span>
+                </setting>
+            </xpath>
+        </field>
+    </record>
+</odoo>

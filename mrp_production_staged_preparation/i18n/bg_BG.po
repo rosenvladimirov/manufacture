@@ -1297,8 +1297,8 @@ msgstr "Нова поръчка за склад"
 
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__over_max
-msgid "Over Max"
-msgstr "Над Макс."
+msgid "Over Ceiling"
+msgstr "Над тавана"
 
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__qty
@@ -1355,8 +1355,8 @@ msgstr "Допълване: поръчки за остатъците"
 
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,help:mrp_production_staged_preparation.field_mrp_production_topup__over_max
-msgid "Units above the reordering rule's Max after the top-up."
-msgstr "Бройки над Макс. на точката за поръчка след допълването."
+msgid "Units above the ceiling (Max plus the top-up overfill) after the top-up."
+msgstr "Бройки над тавана (Max плюс презареждането) след допълването."
 
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,help:mrp_production_staged_preparation.field_mrp_production_topup__block_qty
@@ -1393,3 +1393,40 @@ msgstr ""
 "Остатъците на разкроя се предлагат на вариантите на артикулите от тази "
 "категория с точка за поръчка Макс. > 0 (напр. армировката). Изключено — нищо"
 " не се предлага."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__ceiling_qty
+msgid "Ceiling"
+msgstr "Таван"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_mrp_production_topup__ceiling_qty
+msgid "The most the top-up may reach: the reordering rule's Max plus the company's top-up overfill."
+msgstr "Най-много до колкото може да стигне допълването: Max на точката за поръчка плюс презареждането на фирмата."
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_res_company__cutting_topup_overfill
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_res_config_settings__cutting_topup_overfill
+msgid "Top-up Overfill (%)"
+msgstr "Презареждане на допълването (%)"
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_res_company__cutting_topup_overfill
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_res_config_settings__cutting_topup_overfill
+msgid "The cutting top-up may fill up to the reordering rule's Max plus this percentage (0–50 %). 0 — up to Max only. The reordering rule itself is not affected."
+msgstr "Допълването на разкроя може да пълни до Max на точката за поръчка плюс този процент (0–50 %). 0 — само до Max. Самата точка за поръчка не се засяга."
+
+#. module: mrp_production_staged_preparation
+#: code:addons/mrp_production_staged_preparation/models/mrp_production_topup.py:0
+msgid "The top-up overfill must be between 0 and 50 %."
+msgstr "Презареждането на допълването трябва да е между 0 и 50 %."
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.res_config_settings_view_form_cutting_topup
+msgid "Cutting Top-up Overfill"
+msgstr "Презареждане на допълването на разкроя"
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.res_config_settings_view_form_cutting_topup
+msgid "The cutting top-up may fill the remnants up to the reordering rule's Max plus this percentage (0–50 %)"
+msgstr "Допълването на разкроя може да пълни остатъците до Max на точката за поръчка плюс този процент (0–50 %)"

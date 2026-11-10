@@ -43,6 +43,7 @@
                             <field name="production_id" readonly="1" string="Into Order"
                                    placeholder="New order for stock"/>
                             <field name="max_qty" readonly="1" optional="show"/>
+                            <field name="ceiling_qty" readonly="1" optional="show"/>
                             <field name="forecast_qty" readonly="1" optional="show"/>
                             <field name="over_max" readonly="1" invisible="over_max == 0"/>
                             <field name="block_qty" column_invisible="1"/>
