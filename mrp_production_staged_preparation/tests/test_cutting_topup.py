@@ -16,7 +16,12 @@
   ⑥ „Да, с допълването“: МО-то на варианта се увеличава; вариант без МО в
     разкроя → ново МО за склад;
   ⑦ само категория с отметка „Допълване на разкроя от остатъците“ (Любо:
-    „само за железата“, TG 173329) — без нея нищо не се предлага.
+    „само за железата“, TG 173329) — без нея нищо не се предлага;
+  ⑧ №258 презареждането: таванът е Max × (1 + p) — МО-то вече е напълнило Max,
+    а допълването пак предлага до p отгоре (Любо 10.11, TG 176894);
+  ⑨ p е между 0 и 50 %; предупреждението „над тавана“ брои спрямо тавана.
+
+Тестовете ①–⑦ вървят при p = 0 (поведението отпреди №258).
 """
 from unittest.mock import patch
 
@@ -72,6 +77,7 @@ class TestCuttingTopup(TransactionCase):
             "product_id": cls.v300.id, "warehouse_id": wh.id, "location_id": wh.lot_stock_id.id,
             "product_min_qty": 0, "product_max_qty": 288,
             "replenishment_uom_id": dozen.id})
+        cls.mos.company_id.cutting_topup_overfill = 0.0
 
     @classmethod
     def _mo(cls, product, qty, cut, pieces):
@@ -148,3 +154,29 @@ class TestCuttingTopup(TransactionCase):
         self.assertFalse(self._topups())
         self.categ.cutting_topup = True
         self.assertTrue(self._topups())
+
+    def _overfill(self, pct, max_qty=24):
+        self.mos.company_id.cutting_topup_overfill = pct
+        self.rule.product_max_qty = max_qty
+
+    def test_overfill_proposes_above_a_full_max(self):
+        """⑧ Max 24, прогнозна 24 (МО-то е напълнило Max): p 50 % ⇒ +12; p 0 ⇒ нищо."""
+        self._overfill(50.0)
+        line = self._topups(forecast=24)
+        self.assertEqual(line.qty, 12, "таванът 24 × 1,5 = 36 дава място за едно парче от 12")
+        self.assertEqual(line.max_qty, 24)
+        self.assertEqual(line.ceiling_qty, 36)
+        self.assertEqual(line.over_max, 0)
+        self._overfill(0.0)
+        self.assertFalse(self._topups(forecast=24))
+
+    def test_overfill_is_between_0_and_50(self):
+        """⑨ Над 50 % или под 0 — отказ; „над тавана“ брои спрямо тавана, не спрямо Max."""
+        company = self.mos.company_id
+        for bad in (50.5, -1.0):
+            with self.assertRaises(ValidationError):
+                company.cutting_topup_overfill = bad
+        self._overfill(50.0)
+        line = self._topups(forecast=24)
+        line.qty = 24
+        self.assertEqual(line.over_max, 12, "24 + 24 − 36")

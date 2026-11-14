@@ -5,8 +5,8 @@
 
 Остатъците на прътите в разкроя за одобрение се пълнят с вариантите на СЪЩИЯ
 артикул, които имат точка за поръчка с Max > 0 — най-късите първо, докато в
-модела има място за още едно парче (дължина + рез), най-много до Max −
-прогнозната наличност. Задача А само ПРЕДЛАГА (редове тук); човекът ги вижда
+модела има място за още едно парче (дължина + рез), най-много до Max × (1 + p) −
+прогнозната наличност (№258: p = „презареждане“ на фирмата, 0–50 %). Задача А само ПРЕДЛАГА (редове тук); човекът ги вижда
 в екрана за одобрение, може да ги редактира, а „Да, с допълването“ ги прилага
 в задача Б: увеличава МО-то на варианта в разкроя или създава ново МО за
 склад, разкроява наново и подготвя.
@@ -42,15 +42,22 @@ class MrpProductionTopup(models.Model):
     qty = fields.Float("Quantity")
     cut_mm = fields.Float("Cut Length (mm)")
     max_qty = fields.Float("Max")
+    # №258: таванът на предложението — Max × (1 + презареждането) към момента на сметката
+    ceiling_qty = fields.Float(
+        "Ceiling",
+        help="The most the top-up may reach: the reordering rule's Max plus the "
+             "company's top-up overfill.")
     forecast_qty = fields.Float("Forecast")
     over_max = fields.Float(
-        "Over Max", compute="_compute_over_max",
-        help="Units above the reordering rule's Max after the top-up.")
+        "Over Ceiling", compute="_compute_over_max",
+        help="Units above the ceiling (Max plus the top-up overfill) after the top-up.")
 
-    @api.depends("qty", "max_qty", "forecast_qty")
+    @api.depends("qty", "max_qty", "ceiling_qty", "forecast_qty")
     def _compute_over_max(self):
         for line in self:
-            line.over_max = max(0.0, line.forecast_qty + line.qty - line.max_qty)
+            # редовете отпреди №258 нямат таван — броим спрямо Max
+            ceiling = line.ceiling_qty or line.max_qty
+            line.over_max = max(0.0, line.forecast_qty + line.qty - ceiling)
 
     @api.constrains("qty", "block_qty")
     def _check_blocks(self):
@@ -73,6 +80,33 @@ class ProductCategory(models.Model):
         help="The remnants of a cutting run are offered to variants of the "
              "articles of this category that have a reordering rule with "
              "Max > 0 (e.g. the reinforcement). Off — nothing is offered.")
+
+
+class ResCompany(models.Model):
+    _inherit = "res.company"
+
+    # №258 (Любо 10.11, TG 176894 / 176896): „трябва да залагаме някакъв процент
+    # презареждане“ — МО-то вече е напълнило Max, без процента нищо не се предлага;
+    # таванът 50 % отсява най-оборотните.
+    cutting_topup_overfill = fields.Float(
+        "Top-up Overfill (%)", default=50.0,
+        help="The cutting top-up may fill up to the reordering rule's Max plus "
+             "this percentage (0–50 %). 0 — up to Max only. The reordering rule "
+             "itself is not affected.")
+
+    @api.constrains("cutting_topup_overfill")
+    def _check_cutting_topup_overfill(self):
+        for company in self:
+            if not 0.0 <= company.cutting_topup_overfill <= 50.0:
+                raise ValidationError(_(
+                    "The top-up overfill must be between 0 and 50 %."))
+
+
+class ResConfigSettings(models.TransientModel):
+    _inherit = "res.config.settings"
+
+    cutting_topup_overfill = fields.Float(
+        related="company_id.cutting_topup_overfill", readonly=False)
 
 
 class MrpProduction(models.Model):
@@ -129,6 +163,9 @@ class MrpProduction(models.Model):
                 delta.setdefault(mo.product_id.product_tmpl_id, (nominal - cut, block))
 
         # Кандидатите: вариантите на същите шаблони с точка за поръчка Max > 0.
+        # №258: таванът е Max × (1 + p) — p е презареждането на фирмата на разкроя.
+        company = self[:1].company_id or self.env.company
+        overfill = 1.0 + (company.cutting_topup_overfill or 0.0) / 100.0
         candidates = []
         for tmpl, (diff, block) in delta.items():
             if not tmpl.categ_id.cutting_topup:
@@ -146,7 +183,8 @@ class MrpProduction(models.Model):
                         continue
                     cut, vblock, mo = nominal - diff, block, False
                 step = max(vblock, self._staged_rule_multiple(rule)) or 1.0
-                room = rule.product_max_qty - rule.qty_forecast
+                ceiling = rule.product_max_qty * overfill
+                room = ceiling - rule.qty_forecast
                 room_pieces = int(math.floor(room / vblock + 1e-9)) if vblock else 0
                 # кратното на точката за поръчка — в цели парчета
                 per = max(1, int(round(step / vblock))) if vblock else 1
@@ -156,6 +194,7 @@ class MrpProduction(models.Model):
                 candidates.append({
                     "product": variant, "cut": cut, "block": vblock, "mo": mo,
                     "room": room_pieces, "per": per, "rule": rule, "taken": 0,
+                    "ceiling": ceiling,
                 })
         if not candidates:
             return Topup
@@ -191,6 +230,7 @@ class MrpProduction(models.Model):
                 "qty": pieces * cand["block"],
                 "cut_mm": cand["cut"],
                 "max_qty": cand["rule"].product_max_qty,
+                "ceiling_qty": cand["ceiling"],
                 "forecast_qty": cand["rule"].qty_forecast,
             })
         return Topup.create(lines)

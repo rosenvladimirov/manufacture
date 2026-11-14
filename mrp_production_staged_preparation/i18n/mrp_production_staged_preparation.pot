@@ -609,7 +609,7 @@ msgstr ""
 
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__over_max
-msgid "Over Max"
+msgid "Over Ceiling"
 msgstr ""
 
 #. module: mrp_production_staged_preparation
@@ -1120,7 +1120,7 @@ msgstr ""
 
 #. module: mrp_production_staged_preparation
 #: model:ir.model.fields,help:mrp_production_staged_preparation.field_mrp_production_topup__over_max
-msgid "Units above the reordering rule's Max after the top-up."
+msgid "Units above the ceiling (Max plus the top-up overfill) after the top-up."
 msgstr ""
 
 #. module: mrp_production_staged_preparation
@@ -1271,4 +1271,42 @@ msgstr ""
 msgid ""
 "⚠ Prepared while later-operation components are not yet available (%s). They"
 " should arrive before consumption (e.g. glass at installation)."
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_mrp_production_topup__ceiling_qty
+msgid "Ceiling"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_mrp_production_topup__ceiling_qty
+msgid "The most the top-up may reach: the reordering rule's Max plus the company's top-up overfill."
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_res_company__cutting_topup_overfill
+#: model:ir.model.fields,field_description:mrp_production_staged_preparation.field_res_config_settings__cutting_topup_overfill
+msgid "Top-up Overfill (%)"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_res_company__cutting_topup_overfill
+#: model:ir.model.fields,help:mrp_production_staged_preparation.field_res_config_settings__cutting_topup_overfill
+msgid "The cutting top-up may fill up to the reordering rule's Max plus this percentage (0–50 %). 0 — up to Max only. The reordering rule itself is not affected."
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#. odoo-python
+#: code:addons/mrp_production_staged_preparation/models/mrp_production_topup.py:0
+msgid "The top-up overfill must be between 0 and 50 %."
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.res_config_settings_view_form_cutting_topup
+msgid "Cutting Top-up Overfill"
+msgstr ""
+
+#. module: mrp_production_staged_preparation
+#: model_terms:ir.ui.view,arch_db:mrp_production_staged_preparation.res_config_settings_view_form_cutting_topup
+msgid "The cutting top-up may fill the remnants up to the reordering rule's Max plus this percentage (0–50 %)"
 msgstr ""

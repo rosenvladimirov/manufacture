@@ -9,7 +9,7 @@
         "internal component picks are deferred until 'Prepare for Production' "
         "releases the MO to the floor."
     ),
-    "version": "19.0.2.32.5",
+    "version": "19.0.2.34.0",
     "category": "Manufacturing",
     "website": "https://github.com/rosenvladimirov/manufacture-experts",
     "author": "Rosen Vladimirov, Terraros Commerce Ltd.",
@@ -41,6 +41,7 @@
         "views/stock_picking_type_views.xml",
         "views/mrp_production_views.xml",
         "views/product_category_views.xml",
+        "views/res_config_settings_views.xml",
         "views/stock_picking_views.xml",
     ],
 }

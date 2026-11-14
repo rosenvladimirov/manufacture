@@ -31,6 +31,8 @@ class TestCuttingTrial(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # копието на живата база е с потребители на български — съобщенията се сверяват с английския източник
+        cls.env = cls.env(context=dict(cls.env.context, lang="en_US"))
         cls.Opt = cls.env['mrp.cutting.optimization']
         cls.OptCls = type(cls.Opt)
         cls.bar = cls.env['product.product'].create({

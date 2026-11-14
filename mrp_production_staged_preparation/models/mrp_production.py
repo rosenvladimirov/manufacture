@@ -2744,7 +2744,8 @@ class MrpProduction(models.Model):
                     todo |= new
                     self |= new
                     report(15, _("Cutting again with the top-up"))
-                    todo._staged_optimize_and_gate()
+                    # „Да“ вече е казано — новият разкрой заменя стария без второ потвърждение (№265)
+                    todo.with_context(cut_takeover_confirmed=True)._staged_optimize_and_gate()
                     # TG 173318: замененият разкрой (без поръчки, без трансфери)
                     # не остава като празен запис.
                     # 19: `picking_ids` на разкроя идва с mrp_cutting_optimization
@@ -2756,6 +2757,12 @@ class MrpProduction(models.Model):
                                 [("staged_cutting_optimization_id", "=", old.id)]):
                             old.unlink()
                 lines.unlink()
+                # №265 (Любо 13.11, TG 177305): „Одобри“ е потвърждението на разкроя — ако той заменя
+                # действащ, заменя го сега (плъгинът на разкроя); резервира подготовката по-долу
+                current = todo.mapped("staged_cutting_optimization_id")
+                if hasattr(current, "_cut_confirm_takeover"):
+                    current.filtered("cut_pending_takeover").with_context(
+                        cut_allocation_no_assign=True)._cut_confirm_takeover()
                 report(20, _("Reserving and moving materials to Pre-Production"))
                 todo.with_context(
                     staged_skip_optimize=True)._staged_do_prepare(start=start)
@@ -2809,7 +2816,8 @@ class MrpProduction(models.Model):
         bars = opts.mapped("pattern_ids.bar_product_id") if opts else self.env["product.product"]
         Alloc = self.env.get("mrp.cutting.allocation")
         if Alloc is not None:
-            Alloc.search([("production_id", "in", self.ids)]).unlink()
+            # №265: само разпределенията на отхвърления разкрой — действащият (потвърден) остава
+            Alloc.search([("production_id", "in", self.ids), ("optimization_id", "in", opts.ids)]).unlink()
         if "forced_lot_ids" in self.env["stock.move"]._fields and bars:
             self.move_raw_ids.filtered(
                 lambda m: m.product_id in bars and m.state not in ("done", "cancel")

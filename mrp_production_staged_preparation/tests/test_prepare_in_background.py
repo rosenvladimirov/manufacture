@@ -36,6 +36,8 @@ class TestPrepareInBackground(TransactionCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
+        # копието на живата база е с потребители на български — съобщенията се сверяват с английския източник
+        cls.env = cls.env(context=dict(cls.env.context, lang="en_US"))
         product = cls.env["product.product"].create({
             "name": "T0098 window", "is_storable": True})
         cls.mos = cls.env["mrp.production"].create([
@@ -153,7 +155,9 @@ class TestPrepareInBackground(TransactionCase):
         prepare.assert_not_called()
         self.assertEqual(set(self.mos.mapped("staged_prep_job_state")), {"failed"})
         self.assertEqual(self.mos[0].staged_prep_error, "A326: short 140 m")
-        self.assertEqual(send.call_args.args[2]["type"], "danger")
+        # шината носи и други изпращания (live.refresh на живата база) — известието е simple_notification
+        notices = [c.args[2] for c in send.call_args_list if c.args[1] == "simple_notification"]
+        self.assertEqual([n["type"] for n in notices], ["danger"])
         self.assertFalse(self.mos._staged_prep_running())
 
     def _old_run_with(self, other_state):
