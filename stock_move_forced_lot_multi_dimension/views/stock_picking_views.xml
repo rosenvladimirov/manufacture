@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Приемането: бройките по размера на лотовете до м² (Теолино, TG 174900);
+         в 19 списъкът на движенията е move_ids (move_ids_without_package отпадна) -->
+    <record id="view_picking_form_forced_lot_dimension" model="ir.ui.view">
+        <field name="name">stock.picking.form.forced.lot.dimension</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='move_ids']/list/field[@name='product_uom_qty']" position="after">
+                <field name="lot_pcs_qty" readonly="1" optional="show"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

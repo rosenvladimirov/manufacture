@@ -115,3 +115,42 @@ class TestLotDimension(TransactionCase):
             po_split=True, product_uom_qty=0.5, final_quantity=7.0,
         )
         self.assertAlmostEqual(self.env["stock.rule"]._po_split_total_area(lot), 3.5)
+
+    # ------------------------------------------------------------------
+    # 1.3.0: бройките на хода при приемане (Теолино, TG 174900)
+    # ------------------------------------------------------------------
+    def _move(self, product, qty, uom, lots):
+        wh = self.env["stock.warehouse"].search(
+            [("company_id", "=", self.env.company.id)], limit=1)
+        return self.env["stock.move"].create({
+            "product_id": product.id,
+            "product_uom_qty": qty,
+            "product_uom": uom.id,
+            "location_id": self.env.ref("stock.stock_location_suppliers").id,
+            "location_dest_id": wh.lot_stock_id.id,
+            "forced_lot_ids": [(6, 0, lots.ids)],
+        })
+
+    def test_move_pieces_from_forced_lots(self):
+        """Без редове: 10 m² при лот 1000×500 → 20; 13 m при прът 6500 mm → 2."""
+        glass = self._lot(self.glass, "G-M", width=1000.0, height=500.0)
+        self.assertAlmostEqual(self._move(self.glass, 10.0, self.uom_m2, glass).lot_pcs_qty, 20.0)
+        bar = self._lot(self.bar, "B-M", width=6500.0)
+        self.assertAlmostEqual(self._move(self.bar, 13.0, self.uom_m, bar).lot_pcs_qty, 2.0)
+
+    def test_move_pieces_mixed_sizes_and_lines(self):
+        """Лотове с различен размер без редове → 0; с редове — всеки по своя размер."""
+        a = self._lot(self.glass, "G-A", width=1000.0, height=500.0)
+        b = self._lot(self.glass, "G-B", width=1000.0, height=1000.0)
+        move = self._move(self.glass, 4.0, self.uom_m2, a | b)
+        self.assertEqual(move.lot_pcs_qty, 0.0)
+        move._action_confirm()
+        # резервацията вече може да е разцепила реда по лотовете — броим само нашите
+        move.move_line_ids.unlink()
+        self.env["stock.move.line"].create([{
+            "move_id": move.id, "product_id": self.glass.id, "lot_id": lot.id,
+            "quantity": 2.0, "product_uom_id": self.uom_m2.id,
+            "location_id": move.location_id.id, "location_dest_id": move.location_dest_id.id,
+        } for lot in a | b])
+        # 2 / 0.5 + 2 / 1.0
+        self.assertAlmostEqual(move.lot_pcs_qty, 6.0)

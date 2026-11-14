@@ -1,5 +1,18 @@
 # Changelog
 
+## 19.0.1.3.0 (2026-11-14)
+
+### Added
+- Port of 18.0.1.3.0: `stock.move.lot_pcs_qty` "Pieces (calc.)" — pieces by
+  the size of the lots (m² over the area of one piece, m over the bar
+  length, 2 decimals, not rounded), shown after Demand on the receipt's
+  Operations tab (Teolino, TG 174900).
+
+### Changed (19)
+- UoM family by common reference (`_uom_is_related`) instead of
+  `category_id`; the picking list is `move_ids`
+  (`move_ids_without_package` is gone).
+
 ## 19.0.1.2.0 (2026-10-18)
 
 ### Changed

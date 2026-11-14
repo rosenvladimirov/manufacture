@@ -1,0 +1,30 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* stock_move_forced_lot_multi_dimension
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0\n"
+"Report-Msgid-Bugs-To: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: stock_move_forced_lot_multi_dimension
+#: model:ir.model.fields,field_description:stock_move_forced_lot_multi_dimension.field_stock_move__lot_pcs_qty
+msgid "Pieces (calc.)"
+msgstr "Бройки (изчисл.)"
+
+#. module: stock_move_forced_lot_multi_dimension
+#: model:ir.model.fields,help:stock_move_forced_lot_multi_dimension.field_stock_move__lot_pcs_qty
+msgid ""
+"Pieces by the size of the lots: square metres over the area of one piece, "
+"metres over the length of one bar. A fraction is shown as it is, not "
+"rounded."
+msgstr ""
+"Бройки по размера на лотовете: квадратните метри през площта на една бройка,"
+" метрите през дължината на един прът. Дробната част се показва както е, без"
+" закръгляне."
