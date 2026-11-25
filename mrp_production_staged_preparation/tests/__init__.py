@@ -15,3 +15,4 @@ from . import test_pick_physical_bars
 from . import test_unplan_back_to_confirmed
 from . import test_prepare_in_background
 from . import test_cutting_topup
+from . import test_prep_failure_does_not_hide_the_cause

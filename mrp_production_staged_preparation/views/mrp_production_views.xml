@@ -17,6 +17,10 @@
                 <field name="staged_preparation_enabled" invisible="1"/>
                 <field name="staged_released" invisible="1"/>
                 <field name="staged_prep_job_state" invisible="1"/>
+                <!-- №312: бутоните питат ЖИВА ЛИ Е задачата, не какво
+                     е започнало. Иначе МО, изоставено от умряла задача,
+                     остава без бутон, с който човек да го върне. -->
+                <field name="staged_prep_job_alive" invisible="1"/>
             </xpath>
 
             <!-- ADR-0098 / ADR-0100: подготовката е фонова задача — докато
@@ -25,11 +29,21 @@
                 <!-- Като при вноса от ЛогиКал: етап + процент, обновяват се
                      сами през l10n_bg_live_refresh. -->
                 <div class="alert alert-info d-flex align-items-center gap-2 mb-0"
-                     role="status" invisible="staged_prep_job_state not in ('queued', 'releasing')">
+                     role="status" invisible="not staged_prep_job_alive">
                     <i class="fa fa-cog fa-spin" title="Working"/>
                     <span>Preparation is running in the background.</span>
                     <field name="staged_prep_stage" readonly="1" nolabel="1" class="mb-0"/>
                     <field name="staged_prep_progress" widget="progressbar" readonly="1" nolabel="1"/>
+                </div>
+                <!-- №312: колелцето спря да се върти вечно. Задача, която
+                     е умряла, без да се отбележи, се казва така — заедно с
+                     бутона „Prepare for Production", който пак е видим. -->
+                <div class="alert alert-warning d-flex align-items-center gap-2 mb-0"
+                     role="alert"
+                     invisible="staged_prep_job_alive or staged_prep_job_state not in ('queued', 'releasing')">
+                    <i class="fa fa-exclamation-triangle" title="Stopped"/>
+                    <span>The background job stopped without finishing. Nothing
+                          was committed — you can prepare this order again.</span>
                 </div>
                 <div class="alert alert-warning d-flex align-items-center gap-2 mb-0"
                      role="status" invisible="staged_prep_job_state != 'awaiting'">
@@ -63,7 +77,7 @@
                         type="object"
                         string="Prepare for Production"
                         class="oe_highlight"
-                        invisible="(not staged_preparation_enabled) or state != 'preparation' or staged_released or staged_prep_job_state in ('queued', 'awaiting', 'releasing')"
+                        invisible="(not staged_preparation_enabled) or state != 'preparation' or staged_released or staged_prep_job_state == 'awaiting' or staged_prep_job_alive"
                         groups="mrp.group_mrp_user"/>
                 <!-- ADR-0098 (Любо 21.10): стартът е отделна стъпка след
                      подготовката — подготвено (released), още в Preparation. -->
@@ -71,7 +85,7 @@
                         type="object"
                         string="Start Production"
                         class="oe_highlight"
-                        invisible="(not staged_preparation_enabled) or (not staged_released) or state != 'preparation' or staged_prep_job_state in ('queued', 'awaiting', 'releasing')"
+                        invisible="(not staged_preparation_enabled) or (not staged_released) or state != 'preparation' or staged_prep_job_state == 'awaiting' or staged_prep_job_alive"
                         groups="mrp.group_mrp_user"/>
                 <!-- Откат на подготовката: връща в draft, маха пикинга към
                      Pre-Production и връща движенията на едностъпково.

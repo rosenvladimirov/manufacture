@@ -126,6 +126,17 @@ class MrpProduction(models.Model):
              "the order cannot be prepared again; when it ends you get a "
              "notification and a note in the chatter.")
     staged_prep_job_uuid = fields.Char(copy=False, readonly=True)
+    # №312 (25.11): полето по-горе казва какво е ЗАПОЧНАЛО, не какво още
+    # тече. Умре ли задачата, без да успее да се отбележи (срив, спрян
+    # работник, паднал обработчик на грешката), МО-то остава на „тече
+    # подготовка“ — а екранът криеше бутона именно по полето и нямаше как
+    # човек да го върне. Бутоните вече питат ЖИВА ЛИ Е задачата.
+    staged_prep_job_alive = fields.Boolean(
+        string="Background job still running",
+        compute="_compute_staged_prep_job_alive",
+        help="True only while the background job behind this order is still "
+             "alive in the queue. An order left behind by a job that died is "
+             "not blocked: it can be prepared again.")
     staged_prep_error = fields.Text(
         string="Preparation Error", copy=False, readonly=True)
     # Любо 21.10 (TG 173288): „да записва грешките във формичката за
@@ -2527,6 +2538,18 @@ class MrpProduction(models.Model):
         ]).mapped("uuid"))
         return queued.filtered(lambda p: p.staged_prep_job_uuid in alive)
 
+    @api.depends("staged_prep_job_state", "staged_prep_job_uuid")
+    def _compute_staged_prep_job_alive(self):
+        """Същата истина, която пази сървърът — но видима и за екрана.
+
+        `_staged_prep_check_not_running` отдавна пита опашката, а изгледът
+        питаше само полето. Оттам идваше разминаването: сървърът би пуснал
+        ПфП наново, а бутонът го нямаше (№312, 21 МО на RC1, 25.11).
+        """
+        running = self._staged_prep_running()
+        for production in self:
+            production.staged_prep_job_alive = production in running
+
     def _staged_prep_check_not_running(self):
         """Второ пускане за същите МО-та се отказва, докато върви първото."""
         running = self._staged_prep_running()
@@ -2602,18 +2625,42 @@ class MrpProduction(models.Model):
             start=start, topup=topup)
 
     def _staged_prep_fail(self, exc, what):
+        """Обработчикът на провала НЕ бива да пада сам.
+
+        Падне ли той, истинската причина се губи и — по-лошото — МО-тата
+        остават в „тече подготовка“, без бутон, по който човек да ги върне.
+        Затова тук се пипа в този ред: първо причината в лога, после само
+        съществуващите записи.
+
+        Откъде идват несъществуващите: `_staged_release_job` работи в
+        savepoint и при допълване СЪЗДАВА МО (`self |= new`). Гръмне ли
+        нещо след това, savepoint-ът се връща, редът изчезва от базата, а
+        recordset-ът още носи id-то му. Всяко четене по него (`mapped`,
+        `write`, `message_post`) гърми с MissingError ВМЕСТО причината.
+        """
         reason = exc.args[0] if exc.args else str(exc)
+        # Първо в лога, и само с id-та: `self.ids` е чист Python и не чете
+        # от базата. Оттук нататък причината е записана и нищо не може да
+        # я скрие.
         if not isinstance(exc, UserError):
-            _logger.exception("Staged: %s на %s падна", what,
-                              ", ".join(self.mapped("name")))
-        self.write({"staged_prep_job_state": "failed",
+            _logger.exception("Staged: %s на %s падна", what, self.ids)
+        live = self.exists()
+        gone = sorted(set(self.ids) - set(live.ids))
+        if gone:
+            _logger.warning(
+                "Staged: %s — записите %s вече ги няма (върнати при отката "
+                "на savepoint-а); отбелязвам останалите: %s",
+                what, gone, live.ids)
+        if not live:
+            return False
+        live.write({"staged_prep_job_state": "failed",
                     "staged_prep_error": reason})
-        for production in self:
+        for production in live:
             production.message_post(
                 body=_("Prepare for Production failed in the background. "
                        "Nothing was committed.\n\n%s", reason),
                 subject=_("Preparation failed"))
-        self._staged_prep_notify(failed=True, reason=reason)
+        live._staged_prep_notify(failed=True, reason=reason)
         return False
 
     def _staged_cut_link(self):
@@ -2817,8 +2864,14 @@ class MrpProduction(models.Model):
             uuid, self.ids, progress, stage)
 
     def _staged_prep_notify(self, failed, reason="", title=None):
-        """Известие до натисналия (той е потребителят на задачата)."""
-        names = ", ".join(self.mapped("name"))
+        """Известие до натисналия (той е потребителят на задачата).
+
+        Чете се само по съществуващи записи: известието е последната
+        стъпка и при провал тръгва с recordset, в който може да има МО,
+        върнато при отката — то не бива да събаря и самото известие.
+        """
+        live = self.exists()
+        names = ", ".join(live.mapped("name"))
         if failed:
             payload = {"type": "danger", "sticky": True,
                        "title": _("Preparation failed"),
@@ -2831,4 +2884,4 @@ class MrpProduction(models.Model):
             self.env.user.partner_id, "simple_notification", payload)
         if "live.refresh" in self.env:
             self.env["live.refresh"].notify(
-                model="mrp.production", res_ids=self.ids, mode="record")
+                model="mrp.production", res_ids=live.ids, mode="record")
