@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Рендерерът на Ганта „Планирай център“: линията „сега“ в контейнера
+         на клетките (Г9). Стрелката „пусни тук“ е обикновен DOM, който
+         рендерерът слага по време на влачене (Г8). -->
+    <t t-name="mrp_workcenter_crew_roster.CrewGanttRenderer" t-inherit="web_gantt.GanttRenderer" t-inherit-mode="primary">
+        <!-- №142: коренът носи клас, когато неработното време е скрито (CSS-ът е само за този Гант). -->
+        <xpath expr="//div[hasclass('o_gantt_renderer')]" position="attributes">
+            <attribute name="t-att-class">{ o_has_row_headers: hasRowHeaders, 'pe-auto': isDragging, o_crew_off_time_hidden: crewHidden.size }</attribute>
+        </xpath>
+        <!-- В 18 няма GanttTimeDisplayBadge (от 19): котвата е баджът при resize. -->
+        <xpath expr="//GanttResizeBadge[@reactive='resizeBadgeReactive']" position="after">
+            <t t-set="crewNow" t-value="crewNowLine()"/>
+            <div t-if="crewNow"
+                class="o_crew_now_line"
+                t-att-class="{ o_crew_now_line_folded: crewNow.folded }"
+                t-att-style="crewNow.style"
+                t-att-title="crewNow.title"
+                t-att-data-col="crewNow.col"
+            />
+        </xpath>
+    </t>
+
+    <!-- Заглавието на реда на пистата: заключена от друг (Р38) и застъпване
+         в пистата (Р30 на екрана). -->
+    <t t-name="mrp_workcenter_crew_roster.CrewGanttRenderer.RowHeader" t-inherit="web_gantt.GanttRenderer.RowHeader" t-inherit-mode="primary">
+        <xpath expr="//span[hasclass('text-truncate')]" position="after">
+            <t t-set="crewLockTitle" t-value="crewRowLockTitle(row)"/>
+            <i t-if="crewLockTitle"
+                class="o_crew_lane_lock fa fa-lock ms-1 text-danger"
+                role="img"
+                t-att-title="crewLockTitle"
+                t-att-aria-label="crewLockTitle"
+            />
+            <i t-if="crewConflictRows.has(row.id)"
+                class="o_crew_lane_conflict_icon fa fa-exclamation-triangle ms-1 text-warning"
+                role="img"
+                t-att-title="crewConflictTitle"
+                t-att-aria-label="crewConflictTitle"
+            />
+        </xpath>
+    </t>
+
+</templates>

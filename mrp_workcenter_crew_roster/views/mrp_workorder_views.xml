@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Работна поръчка, форма (M2/M3, Р24): екипът е само за четене —
+         нарядът е единственият източник. До екипа: нарядът, минутите на
+         човек и предупреждението за претоварване (M11); до МО: срокът и
+         „Закъснява“ (SPEC §4). Наследява изгледа на EE, който добавя
+         employee_assigned_ids, за да е гарантиран редът на xpath-ите. -->
+    <record id="mrp_workorder_view_form_inherit_crew_roster" model="ir.ui.view">
+        <field name="name">mrp.workorder.form.inherit.crew.roster</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp_workorder.mrp_workorder_view_form_inherit_workorder"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='employee_assigned_ids']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='employee_assigned_ids']" position="after">
+                <field name="is_overloaded" invisible="1"/>
+                <field name="overload_message" invisible="not is_overloaded"
+                       class="text-warning fw-bold" readonly="1"/>
+                <field name="roster_id" readonly="1" invisible="not roster_id"/>
+                <!-- №145 на Теолино: делът, който бригадата дели. -->
+                <field name="crew_share" invisible="not crew_share"/>
+                <label for="minutes_per_person"/>
+                <div class="o_row">
+                    <field name="minutes_per_person" widget="float_time"/>
+                    <span>minutes</span>
+                </div>
+            </xpath>
+            <xpath expr="//group/group/field[@name='production_id']" position="after">
+                <field name="deadline" invisible="not deadline"/>
+                <field name="is_late" invisible="not is_late" widget="boolean"
+                       decoration-danger="is_late"/>
+                <field name="crew_date" invisible="not crew_date"/>
+                <field name="crew_shift_key" invisible="not crew_shift_key"/>
+                <field name="crew_lane" readonly="1"/>
+                <field name="crew_planned_finish" invisible="not crew_planned_finish"/>
+                <field name="crew_stretch_hours" widget="float_time"
+                       invisible="not crew_stretch_hours"/>
+                <field name="crew_is_overstretched" invisible="not crew_is_overstretched"
+                       decoration-danger="crew_is_overstretched"/>
+                <!-- Р33 изменено (1.5.5): конфликт по зависимост. -->
+                <field name="crew_dep_conflict" invisible="not crew_dep_conflict"
+                       decoration-warning="crew_dep_conflict"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Редактируемият списък на поръчките (в МО): екипът само за четене;
+         декорациите на списъка не се пипат. -->
+    <record id="mrp_production_workorder_tree_editable_view_inherit_crew_roster" model="ir.ui.view">
+        <field name="name">mrp.production.work.order.list.editable.inherit.crew.roster</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp_workorder.mrp_production_workorder_tree_editable_view_inherit_workorder"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='employee_assigned_ids']" position="attributes">
+                <attribute name="readonly">1</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Търсене: „След срока“ (is_late по SPEC §4, през _search). Стандартният
+         филтър „Late“ (започнала със закъснение) остава. -->
+    <record id="view_mrp_production_workorder_filter_inherit_crew_roster" model="ir.ui.view">
+        <field name="name">mrp.production.work.order.select.inherit.crew.roster</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.view_mrp_production_workorder_form_view_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//filter[@name='late']" position="after">
+                <filter string="Past Deadline" name="crew_late" domain="[('is_late', '=', True)]"
+                        help="Open work orders that end after the deadline of the manufacturing order, or whose deadline has passed"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- №145 на Теолино (ADR-0070): делът на бригадата е на операцията —
+         алтернативните центрове правят едно и също. -->
+    <record id="mrp_routing_workcenter_form_view_inherit_crew_roster" model="ir.ui.view">
+        <field name="name">mrp.routing.workcenter.form.crew.roster</field>
+        <field name="model">mrp.routing.workcenter</field>
+        <field name="inherit_id" ref="mrp.mrp_routing_workcenter_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='time_cycle']" position="before">
+                <field name="crew_share"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

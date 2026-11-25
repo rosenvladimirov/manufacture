@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- „Rearrange Plan“ (фаза 2, §9.13.3): входните данни на двигателя M6.
+         Отваря се само от Ганта (Ф2-4) с crew_workcenter_ids / crew_date_from /
+         crew_date_to в контекста — без default_* (Ф3). -->
+    <record id="mrp_workcenter_replan_wizard_view_form" model="ir.ui.view">
+        <field name="name">mrp.workcenter.replan.wizard.form</field>
+        <field name="model">mrp.workcenter.replan.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Rearrange Plan">
+                <group>
+                    <group name="scope" string="Scope">
+                        <field name="workcenter_ids" widget="many2many_tags"
+                               options="{'no_create': True}"/>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="scope" widget="radio"/>
+                    </group>
+                    <group name="order" string="Order">
+                        <field name="priority_key"/>
+                        <field name="partner_filter_ids" widget="many2many_tags"
+                               options="{'no_create': True}"/>
+                    </group>
+                </group>
+                <group name="partners" string="Customer Order"
+                       invisible="priority_key != 'partner'">
+                    <field name="partner_line_ids" nolabel="1" colspan="2">
+                        <list editable="bottom">
+                            <field name="sequence" widget="handle"/>
+                            <field name="partner_id" options="{'no_create': True}"/>
+                        </list>
+                    </field>
+                </group>
+                <group name="options" string="Options">
+                    <field name="respect_roster"/>
+                    <field name="use_alternatives"/>
+                </group>
+                <footer>
+                    <button name="action_apply" type="object" string="Rearrange"
+                            class="btn-primary" data-hotkey="q"
+                            confirm="Rearrange the not started work orders of the selected work centers? You can undo it from the report."/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Празен контекст (Ф3): подразбиращите се стойности идват от
+         ключовете crew_*, които подава Гантът. Полето е изрично „{}“, а не
+         пропуснато: пропуснато поле не се нулира при -u, и контекст, сложен
+         веднъж (ръчно или от стара версия), би останал (намерено от
+         мутацията f2_wiz_action_with_context, 8.4). -->
+    <record id="mrp_workcenter_replan_wizard_action" model="ir.actions.act_window">
+        <field name="name">Rearrange Plan</field>
+        <field name="res_model">mrp.workcenter.replan.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{}</field>
+    </record>
+</odoo>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Бригадата в картона (страница „Работа“), историята по договора (своя страница
+         „Бригади“ — в 18 страница „Заплащане“ има само с hr_payroll) и заместниците -->
+    <record id="hr_employee_view_form_crew" model="ir.ui.view">
+        <field name="name">hr.employee.form.crew</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='parent_id']" position="after">
+                <field name="crew_id" groups="hr.group_hr_user"/>
+                <field name="crew_substitute_ids" widget="many2many_tags" groups="hr.group_hr_user"/>
+            </xpath>
+            <xpath expr="//page[@name='hr_settings']" position="before">
+                <page name="crew" string="Crews" groups="hr.group_hr_user">
+                    <field name="contract_id" invisible="1"/>
+                    <field name="crew_membership_ids" groups="hr.group_hr_user" readonly="not contract_id"
+                           context="{'default_contract_id': contract_id}">
+                        <list editable="bottom">
+                            <field name="crew_id"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </list>
+                    </field>
+                    <group string="Night Work (Labour Code, Art. 140)" groups="hr.group_hr_user">
+                        <group>
+                            <field name="crew_night_medical_date"/>
+                            <field name="crew_night_consent_needed"/>
+                            <field name="crew_night_consent_date" invisible="not crew_night_consent_needed"/>
+                            <field name="crew_night_consent_revoked" invisible="not crew_night_consent_needed"/>
+                        </group>
+                        <group>
+                            <field name="crew_pregnancy_from"/>
+                            <field name="crew_pregnancy_to"/>
+                        </group>
+                    </group>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_employee_view_list_crew" model="ir.ui.view">
+        <field name="name">hr.employee.list.crew</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='job_id']" position="after">
+                <field name="crew_id" optional="show" groups="hr.group_hr_user"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="hr_employee_view_search_crew" model="ir.ui.view">
+        <field name="name">hr.employee.search.crew</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='job_id']" position="after">
+                <field name="crew_id" groups="hr.group_hr_user"/>
+            </xpath>
+            <xpath expr="//filter[@name='group_job']" position="after">
+                <filter name="group_crew" string="Crew" context="{'group_by': 'crew_id'}"
+                        groups="hr.group_hr_user"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

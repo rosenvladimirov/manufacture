@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="planning_crew_rotation_generate_view_form" model="ir.ui.view">
+        <field name="name">planning.crew.rotation.generate.form</field>
+        <field name="model">planning.crew.rotation.generate</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="rotation_id" readonly="1"/>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                    <group invisible="not previewed">
+                        <field name="count_created"/>
+                        <field name="count_updated"/>
+                        <field name="count_deleted"/>
+                        <field name="count_kept"/>
+                        <field name="count_conflicts"/>
+                        <field name="count_open"/>
+                        <field name="count_substituted"/>
+                        <field name="count_warnings"/>
+                        <field name="previewed" invisible="1"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_preview" type="object" string="Preview"
+                            class="btn-secondary"/>
+                    <button name="action_generate" type="object" string="Generate"
+                            class="btn-primary"/>
+                    <button special="cancel" string="Cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>

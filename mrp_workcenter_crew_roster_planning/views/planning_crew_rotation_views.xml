@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="planning_crew_rotation_view_form_workcenters" model="ir.ui.view">
+        <field name="name">planning.crew.rotation.form.workcenters</field>
+        <field name="model">planning.crew.rotation</field>
+        <field name="inherit_id" ref="planning_crew_rotation.planning_crew_rotation_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='crews']//field[@name='offset_days']" position="after">
+                <field name="leader_id"/>
+            </xpath>
+            <xpath expr="//page[@name='coverage']" position="before">
+                <page name="workcenters" string="Work Centers">
+                    <field name="workcenter_ids" context="{'default_crew_rotation_id': id}">
+                        <list>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="resource_calendar_id"/>
+                        </list>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_crew_rotation_generate_view_form_rosters" model="ir.ui.view">
+        <field name="name">planning.crew.rotation.generate.form.rosters</field>
+        <field name="model">planning.crew.rotation.generate</field>
+        <field name="inherit_id" ref="planning_crew_rotation.planning_crew_rotation_generate_view_form"/>
+        <field name="arch" type="xml">
+            <field name="count_substituted" position="after">
+                <field name="count_rosters_created"/>
+                <field name="count_rosters_updated"/>
+                <field name="count_rosters_deleted"/>
+                <field name="count_rosters_manual"/>
+            </field>
+        </field>
+    </record>
+</odoo>

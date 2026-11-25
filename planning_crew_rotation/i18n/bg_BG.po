@@ -1,0 +1,1090 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* planning_crew_rotation
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-14 16:22+0000\n"
+"PO-Revision-Date: 2026-10-14 16:22+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: bg_BG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_membership.py:0
+msgid "%(employee)s is already in crew %(crew)s from %(date)s."
+msgstr "%(employee)s вече е в бригада %(crew)s от %(date)s."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields.selection,name:planning_crew_rotation.selection__planning_crew_rotation__preset__2-2-4
+msgid "2-2-4 (8 days: 2 day, 2 night, 4 off)"
+msgstr "2-2-4 (8 дни: 2 дневни, 2 нощни, 4 почивни)"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields.selection,name:planning_crew_rotation.selection__planning_crew_rotation__preset__4-on-4-off
+msgid "4-on-4-off (16 days)"
+msgstr "4 на 4 (16 дни)"
+
+#. module: planning_crew_rotation
+#: model:ir.model.constraint,message:planning_crew_rotation.constraint_planning_crew_rotation_line_position_unique
+msgid "A day of the cycle appears only once."
+msgstr "Всеки ден от цикъла се среща само веднъж."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__message_needaction
+msgid "Action Needed"
+msgstr "Нужно действие"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__active
+msgid "Active"
+msgstr "Активно"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__reload_needed
+msgid ""
+"An approved leave touches generated shifts of this rotation; generate the "
+"shifts again to re-arrange them with substitutes."
+msgstr ""
+"Утвърден отпуск засяга генерирани смени от тази ротация; генерирайте смените"
+" отново, за да се пренаредят със заместници."
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid ""
+"An approved leave touches generated shifts. Generate the shifts again to\n"
+"                        re-arrange them with substitutes."
+msgstr ""
+"Утвърден отпуск засяга генерирани смени. Генерирайте смените отново, за да\n"
+"                        се пренаредят със заместници."
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid "Approve"
+msgstr "Утвърди"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "Approve the rotation before generating shifts."
+msgstr "Утвърдете ротацията, преди да генерирате смени."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields.selection,name:planning_crew_rotation.selection__planning_crew_rotation__state__approved
+msgid "Approved"
+msgstr "Утвърдена"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__approved_by_id
+msgid "Approved By"
+msgstr "Утвърдена от"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__approved_date
+msgid "Approved Date"
+msgstr "Дата на утвърждаване"
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid "Archived"
+msgstr "Архивирана"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__message_attachment_count
+msgid "Attachment Count"
+msgstr "Брой прикачени файлове"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__count_substituted
+msgid "By Substitutes"
+msgstr "От заместници"
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_generate_view_form
+msgid "Cancel"
+msgstr "Отказ"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_slot__crew_manual
+msgid "Changed by Hand"
+msgstr "Променена ръчно"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_slot__crew_manual
+msgid ""
+"Changed by hand after the crew rotation generated it; generating again does "
+"not touch it."
+msgstr ""
+"Променена ръчно, след като ротацията я е генерирала; повторното генериране "
+"не я пипа."
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid "Check"
+msgstr "Провери"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "Choose a preset first."
+msgstr "Първо изберете образец."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__code
+msgid "Code"
+msgstr "Код"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__color
+msgid "Color"
+msgstr "Цвят"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__company_id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__company_id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__company_id
+msgid "Company"
+msgstr "Фирма"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__calendar_id
+msgid "Company Shift Schedule"
+msgstr "Сменен график на фирмата"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__count_conflicts
+msgid "Conflicts"
+msgstr "Конфликти"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__version_id
+msgid "Contract Version"
+msgstr "Версия на договора"
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid "Coverage"
+msgstr "Покритие"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__coverage_html
+msgid "Coverage Html"
+msgstr "Покритие (HTML)"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__create_uid
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__create_uid
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__create_uid
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__create_uid
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_line__create_uid
+msgid "Created by"
+msgstr "Създадено от"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__create_date
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__create_date
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__create_date
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__create_date
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_line__create_date
+msgid "Created on"
+msgstr "Създадено на"
+
+#. module: planning_crew_rotation
+#: model:ir.model,name:planning_crew_rotation.model_planning_crew
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_employee__crew_id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__crew_id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_slot__crew_id
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_membership_view_search
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_slot_view_search_crew
+msgid "Crew"
+msgstr "Бригада"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_slot__crew_date
+msgid "Crew Day"
+msgstr "Ден на бригадата"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_slot__crew_generated
+msgid "Crew Generated"
+msgstr "Генерирана от ротация"
+
+#. module: planning_crew_rotation
+#: model:ir.actions.act_window,name:planning_crew_rotation.planning_crew_membership_action
+#: model:ir.ui.menu,name:planning_crew_rotation.planning_crew_membership_menu
+msgid "Crew Members"
+msgstr "Членове на бригади"
+
+#. module: planning_crew_rotation
+#: model:ir.model,name:planning_crew_rotation.model_planning_crew_membership
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_slot__crew_membership_id
+msgid "Crew Membership"
+msgstr "Членство в бригада"
+
+#. module: planning_crew_rotation
+#: model:ir.model,name:planning_crew_rotation.model_planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_slot__crew_rotation_id
+msgid "Crew Rotation"
+msgstr "Ротация на бригади"
+
+#. module: planning_crew_rotation
+#: model:ir.model,name:planning_crew_rotation.model_planning_crew_rotation_line
+msgid "Crew Rotation Day"
+msgstr "Ден от ротацията"
+
+#. module: planning_crew_rotation
+#: model:ir.actions.act_window,name:planning_crew_rotation.planning_crew_rotation_action
+#: model:ir.ui.menu,name:planning_crew_rotation.planning_crew_rotation_menu
+msgid "Crew Rotations"
+msgstr "Ротации на бригади"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/wizard/planning_crew_rotation_generate.py:0
+msgid "Crew Shifts"
+msgstr "Смени на бригадите"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_employee__crew_substitute_ids
+msgid "Crew Substitutes"
+msgstr "Заместници в бригадата"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_employee__crew_membership_ids
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_version__crew_membership_ids
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__crew_ids
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.hr_employee_view_form_crew
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid "Crews"
+msgstr "Бригади"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__line_ids
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid "Cycle"
+msgstr "Цикъл"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__cycle_length
+msgid "Cycle Length"
+msgstr "Дължина на цикъла"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__anchor_date
+msgid "Cycle Start"
+msgstr "Начало на цикъла"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__date_from
+msgid "Date From"
+msgstr "От дата"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__date_to
+msgid "Date To"
+msgstr "До дата"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_line__day_number
+msgid "Day"
+msgstr "Ден"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "Day %(day)s of the cycle: %(shift)s is worked by %(count)s crews."
+msgstr "Ден %(day)s от цикъла: %(shift)s се работи от %(count)s бригади."
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid ""
+"Day %(day)s of the cycle: only %(rest)s hours of rest before the next shift."
+msgstr ""
+"Ден %(day)s от цикъла: само %(rest)s часа почивка до следващата смяна."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__anchor_date
+msgid "Day 0 of the cycle — by default the first day of the month."
+msgstr "Ден 0 на цикъла — по подразбиране първо число на месеца."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__day_template_id
+msgid "Day Shift"
+msgstr "Дневна смяна"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation_line__position
+msgid "Day of the cycle, starting from 0."
+msgstr "Ден от цикъла, броено от 0."
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid "Day off"
+msgstr "Почивен ден"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid ""
+"Days %(from)s–%(to)s of the cycle: %(hours)s hours in seven days — above "
+"%(max)s."
+msgstr ""
+"Дни %(from)s–%(to)s от цикъла: %(hours)s часа за седем дни — над %(max)s."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__department_id
+msgid "Department"
+msgstr "Отдел"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_employee__display_name
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_leave__display_name
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_version__display_name
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__display_name
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__display_name
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__display_name
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__display_name
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_line__display_name
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_slot__display_name
+msgid "Display Name"
+msgstr "Име за показване"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields.selection,name:planning_crew_rotation.selection__planning_crew_rotation__state__draft
+msgid "Draft"
+msgstr "Чернова"
+
+#. module: planning_crew_rotation
+#: model:ir.model,name:planning_crew_rotation.model_hr_employee
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__employee_id
+msgid "Employee"
+msgstr "Служител"
+
+#. module: planning_crew_rotation
+#: model:ir.model,name:planning_crew_rotation.model_hr_version
+msgid "Employee Contract"
+msgstr "Договор на служителя"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_membership__date_to
+msgid "Empty means until further notice."
+msgstr "Празно означава до второ нареждане."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__preset
+msgid "Fills the cycle and four crews from a known pattern."
+msgstr "Попълва цикъла и четирите бригади по известен образец."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__message_follower_ids
+msgid "Followers"
+msgstr "Последователи"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__message_partner_ids
+msgid "Followers (Partners)"
+msgstr "Последователи (партньори)"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__date_from
+msgid "From"
+msgstr "От"
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_slot_view_search_crew
+msgid "From Crew Rotation"
+msgstr "От ротация на бригади"
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_generate_view_form
+msgid "Generate"
+msgstr "Генерирай"
+
+#. module: planning_crew_rotation
+#: model:ir.model,name:planning_crew_rotation.model_planning_crew_rotation_generate
+msgid "Generate Crew Shifts"
+msgstr "Генериране на смените на бригадите"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid "Generate Shifts"
+msgstr "Генерирай смени"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__has_message
+msgid "Has Message"
+msgstr "Има съобщение"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew__offset_days
+msgid "How many days the crew is ahead in the cycle."
+msgstr "С колко дни бригадата е напред в цикъла."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_employee__id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_leave__id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_version__id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_line__id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_slot__id
+msgid "ID"
+msgstr "ID"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__message_needaction
+msgid "If checked, new messages require your attention."
+msgstr "Ако е отметнато, новите съобщения изискват вниманието ви."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__message_has_error
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr "Ако е отметнато, някои съобщения имат грешка при доставката."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__message_is_follower
+msgid "Is Follower"
+msgstr "Е последовател"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__write_uid
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__write_uid
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__write_uid
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__write_uid
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_line__write_uid
+msgid "Last Updated by"
+msgstr "Последно обновено от"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__write_date
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__write_date
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__write_date
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__write_date
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_line__write_date
+msgid "Last Updated on"
+msgstr "Последно обновено на"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/hr_leave.py:0
+msgid ""
+"Leave of %(employee)s from %(date_from)s to %(date_to)s touches generated "
+"shifts; generate the shifts again."
+msgstr ""
+"Отпускът на %(employee)s от %(date_from)s до %(date_to)s засяга генерирани "
+"смени; генерирайте смените отново."
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid "Load"
+msgstr "Зареди"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__member_count
+msgid "Member Count"
+msgstr "Брой членове"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__membership_ids
+msgid "Membership"
+msgstr "Членство"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__message_has_error
+msgid "Message Delivery error"
+msgstr "Грешка при доставка на съобщение"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__message_ids
+msgid "Messages"
+msgstr "Съобщения"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__name
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__name
+msgid "Name"
+msgstr "Име"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__night_template_id
+msgid "Night Shift"
+msgstr "Нощна смяна"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__message_needaction_counter
+msgid "Number of Actions"
+msgstr "Брой действия"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__message_has_error_counter
+msgid "Number of errors"
+msgstr "Брой грешки"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__message_needaction_counter
+msgid "Number of messages requiring action"
+msgstr "Брой съобщения, изискващи действие"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr "Брой съобщения с грешка при доставка"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__offset_days
+msgid "Offset (Days)"
+msgstr "Отместване (дни)"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__count_open
+msgid "Open Shifts"
+msgstr "Отворени смени"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields.selection,name:planning_crew_rotation.selection__planning_crew_rotation__preset__panama
+msgid "Panama 2-2-3 (56 days)"
+msgstr "Панама 2-2-3 (56 дни)"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__summing_period_months
+msgid ""
+"Period of the summed accounting of working time (Art. 142 of the Labour "
+"Code): 1 to 4 months, up to 12 with a collective agreement."
+msgstr ""
+"Период на сумираното изчисляване на работното време (чл. 142 КТ): от 1 до 4 "
+"месеца, до 12 с колективен трудов договор."
+
+#. module: planning_crew_rotation
+#: model:ir.model,name:planning_crew_rotation.model_planning_slot
+msgid "Planning Shift"
+msgstr "Смяна в планирането"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_line__position
+msgid "Position"
+msgstr "Позиция"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__preset
+msgid "Preset"
+msgstr "Образец"
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_generate_view_form
+msgid "Preview"
+msgstr "Преглед"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__previewed
+msgid "Previewed"
+msgstr "Прегледано"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation_generate__count_conflicts
+msgid ""
+"Published shifts or shifts changed by hand that differ from the rotation; "
+"they are left as they are."
+msgstr ""
+"Публикувани или ръчно променени смени, които се разминават с ротацията; "
+"остават, както са."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__reload_needed
+msgid "Reload Needed"
+msgstr "Нужно презареждане"
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid "Reset to Draft"
+msgstr "Върни в чернова"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__role_id
+msgid "Role"
+msgstr "Роля"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew__role_id
+msgid "Role of the generated shifts."
+msgstr "Роля на генерираните смени."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew__rotation_id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__rotation_id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__rotation_id
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_line__rotation_id
+msgid "Rotation"
+msgstr "Ротация"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr "Грешка при доставка на SMS"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__sequence
+msgid "Sequence"
+msgstr "Последователност"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "Set the day and the night shift of the company schedule first."
+msgstr "Първо задайте дневната и нощната смяна на фирмения график."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_line__template_id
+msgid "Shift"
+msgstr "Смяна"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/wizard/planning_crew_rotation_generate.py:0
+msgid ""
+"Shifts from %(date_from)s to %(date_to)s: %(created)s created, %(updated)s "
+"updated, %(deleted)s deleted, %(conflicts)s conflicts, %(open)s open."
+msgstr ""
+"Смени от %(date_from)s до %(date_to)s: създадени %(created)s, обновени "
+"%(updated)s, изтрити %(deleted)s, конфликти %(conflicts)s, отворени "
+"%(open)s."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation_generate__count_open
+msgid "Shifts of employees on leave without a free substitute."
+msgstr "Смени на служители в отпуск без свободен заместник."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__state
+msgid "State"
+msgstr "Състояние"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_slot__crew_substitute_for_id
+msgid "Substitute For"
+msgstr "Замества"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__summing_period_months
+msgid "Summed Accounting Period (Months)"
+msgstr "Период на сумирано отчитане (месеци)"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__calendar_id
+msgid ""
+"The approved shift schedule of the company that the crews split between "
+"them, e.g. two shifts of 12 hours, seven days a week."
+msgstr ""
+"Утвърденият сменен график на фирмата, който бригадите си поделят, напр. две "
+"смени по 12 часа, седем дни в седмицата."
+
+#. module: planning_crew_rotation
+#: model:ir.model.constraint,message:planning_crew_rotation.constraint_planning_crew_code_unique
+msgid "The crew letter must be unique in the rotation."
+msgstr "Буквата на бригадата трябва да е уникална в ротацията."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_hr_employee__crew_id
+msgid "The crew of the employee today."
+msgstr "Бригадата на служителя днес."
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid ""
+"The crews cover the company schedule and the cycle keeps the Labour Code "
+"limits."
+msgstr ""
+"Бригадите покриват фирмения график и цикълът спазва ограниченията на КТ."
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "The cycle is empty."
+msgstr "Цикълът е празен."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__day_template_id
+msgid "The day shift of the company schedule, used by the presets."
+msgstr "Дневната смяна на фирмения график, ползва се от образците."
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "The end date is before the start date."
+msgstr "Крайната дата е преди началната."
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_membership.py:0
+msgid "The end of the crew membership is before its start."
+msgstr "Краят на членството в бригадата е преди началото му."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew__code
+msgid "The letter of the crew, e.g. A."
+msgstr "Буквата на бригадата, напр. А."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__night_template_id
+msgid "The night shift of the company schedule, used by the presets."
+msgstr "Нощната смяна на фирмения график, ползва се от образците."
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid ""
+"The rotation %(name)s is approved; reset it to draft to change the cycle."
+msgstr ""
+"Ротацията %(name)s е утвърдена; върнете я в чернова, за да промените цикъла."
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "The rotation has no crews."
+msgstr "Ротацията няма бригади."
+
+#. module: planning_crew_rotation
+#: model:ir.model.constraint,message:planning_crew_rotation.constraint_planning_crew_rotation_name_company_unique
+msgid "The rotation name must be unique per company."
+msgstr "Името на ротацията трябва да е уникално във фирмата."
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "The shift %(shift)s lasts %(hours)s hours — above %(max)s."
+msgstr "Смяната %(shift)s е %(hours)s часа — над %(max)s."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation_line__template_id
+msgid "The shift of this day of the cycle; empty means a day off."
+msgstr "Смяната в този ден от цикъла; празно означава почивен ден."
+
+#. module: planning_crew_rotation
+#: model:ir.model,name:planning_crew_rotation.model_hr_leave
+msgid "Time Off"
+msgstr "Отпуск"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_membership__date_to
+msgid "To"
+msgstr "До"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__count_created
+msgid "To Create"
+msgstr "За създаване"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__count_deleted
+msgid "To Delete"
+msgstr "За изтриване"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__count_updated
+msgid "To Update"
+msgstr "За обновяване"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__count_kept
+msgid "Unchanged"
+msgstr "Без промяна"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__website_message_ids
+msgid "Website Messages"
+msgstr "Съобщения от уебсайта"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__website_message_ids
+msgid "Website communication history"
+msgstr "История на комуникацията от уебсайта"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_hr_employee__crew_substitute_ids
+msgid ""
+"Who takes the shifts of this employee during an approved leave, in this "
+"order; the first one who is free gets the shift."
+msgstr ""
+"Кой поема смените на служителя по време на утвърден отпуск, в този ред; "
+"смяната получава първият свободен."
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/wizard/planning_crew_rotation_generate.py:0
+msgid "crew_rotation_id"
+msgstr ""
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid "e.g. Extrusion"
+msgstr "напр. Екструзия"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_employee__crew_membership_all_ids
+msgid "Crew History"
+msgstr "История на бригадите"
+
+#. module: planning_crew_rotation
+#: model:ir.actions.server,name:planning_crew_rotation.ir_cron_crew_refresh_ir_actions_server
+msgid "Crew Rotation: refresh the crew of employees"
+msgstr "Ротация на бригади: обнови бригадата на служителите"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_hr_employee__crew_id
+msgid ""
+"The crew of the employee today. Changing it closes the current crew "
+"membership yesterday and opens a new one from today."
+msgstr ""
+"Бригадата на служителя днес. Смяната ѝ затваря текущото членство с вчерашна "
+"дата и отваря ново от днес."
+
+#. module: planning_crew_rotation
+#: model:ir.ui.menu,name:planning_crew_rotation.planning_menu_schedule_by_crew
+msgid "By Crew"
+msgstr "По бригада"
+
+#. module: planning_crew_rotation
+#: model_terms:ir.actions.act_window,help:planning_crew_rotation.planning_action_schedule_by_crew
+msgid "Generate the shifts from an approved crew rotation."
+msgstr "Генерирайте смените от утвърдена ротация на бригади."
+
+#. module: planning_crew_rotation
+#: model_terms:ir.actions.act_window,help:planning_crew_rotation.planning_action_schedule_by_crew
+msgid "No crew shifts yet."
+msgstr "Още няма смени на бригади."
+
+#. module: planning_crew_rotation
+#: model:ir.actions.act_window,name:planning_crew_rotation.planning_action_schedule_by_crew
+msgid "Schedule by Crew"
+msgstr "График по бригада"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields.selection,name:planning_crew_rotation.selection__planning_crew_rotation__summing_period_months__12
+msgid "12 (collective agreement)"
+msgstr "12 (с колективен трудов договор)"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "Above Norm"
+msgstr "Над нормата"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_slot__crew_has_warning
+msgid "Crew Has Warning"
+msgstr "Има предупреждение"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_hr_employee__crew_night_consent_revoked
+#: model:ir.model.fields,help:planning_crew_rotation.field_hr_version__crew_night_consent_revoked
+msgid ""
+"From this day the written consent no longer applies (Ordinance on working "
+"time, Art. 7: at least 3 days notice)."
+msgstr ""
+"От този ден писменото съгласие не важи (чл. 7 от Наредбата за работното "
+"време: поне 3 дни предизвестие)."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_slot__crew_warning
+msgid "Labour Code Warning"
+msgstr "Предупреждение по КТ"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation_generate__count_warnings
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_slot_view_search_crew
+msgid "Labour Code Warnings"
+msgstr "Предупреждения по КТ"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_hr_employee__crew_night_consent_needed
+#: model:ir.model.fields,help:planning_crew_rotation.field_hr_version__crew_night_consent_needed
+msgid ""
+"Mother of a child under 6 or of a child with a disability, employee with "
+"reassigned work or studying without leaving work: night work only with "
+"written consent (Labour Code, Art. 140, para. 4, items 3–5)."
+msgstr ""
+"Майка на дете до 6 години или на дете с увреждане, трудоустроен или учещ без"
+" откъсване от производството: нощен труд само с писмено съгласие (чл. 140, "
+"ал. 4, т. 3–5 КТ)."
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.hr_employee_view_form_crew
+msgid "Night Work (Labour Code, Art. 140)"
+msgstr "Нощен труд (чл. 140 КТ)"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_employee__crew_night_consent_date
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_version__crew_night_consent_date
+msgid "Night Work Consent Given"
+msgstr "Писмено съгласие за нощен труд от"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_employee__crew_night_consent_revoked
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_version__crew_night_consent_revoked
+msgid "Night Work Consent Withdrawn"
+msgstr "Съгласието е оттеглено от"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_employee__crew_night_medical_date
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_version__crew_night_medical_date
+msgid "Night Work Medical Exam"
+msgstr "Медицински преглед за нощен труд"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_employee__crew_night_consent_needed
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_version__crew_night_consent_needed
+msgid "Night Work Only With Written Consent"
+msgstr "Нощен труд само с писмено съгласие"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_hr_employee__crew_night_medical_date
+#: model:ir.model.fields,help:planning_crew_rotation.field_hr_version__crew_night_medical_date
+msgid ""
+"Night workers are hired only after a medical exam (Labour Code, Art. 140a)."
+msgstr "Нощен труд се полага само след медицински преглед (чл. 140а КТ)."
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "Night ×1.143"
+msgstr "С нощните ×1,143"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "Norm"
+msgstr "Норма"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__norm_warning_count
+msgid "Norm Warning Count"
+msgstr "Брой над нормата"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "Per Year"
+msgstr "За година"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid ""
+"Period %(from)s – %(to)s. Hours above the norm are overtime (Ordinance on "
+"working time, Art. 9d): at most 150 h a year (Labour Code, Art. 146). "
+"Warning only."
+msgstr ""
+"Период %(from)s – %(to)s. Часовете над нормата са извънреден труд (чл. 9г от"
+" Наредбата за работното време): до 150 ч годишно (чл. 146 КТ). Само "
+"предупреждение."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_employee__crew_pregnancy_from
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_version__crew_pregnancy_from
+msgid "Pregnancy / IVF From"
+msgstr "Бременност / ин витро от"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_employee__crew_pregnancy_to
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_hr_version__crew_pregnancy_to
+msgid "Pregnancy / IVF To"
+msgstr "Бременност / ин витро до"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_hr_employee__crew_pregnancy_from
+#: model:ir.model.fields,help:planning_crew_rotation.field_hr_version__crew_pregnancy_from
+msgid ""
+"Pregnancy or advanced stage of in-vitro treatment: night work and overtime "
+"are forbidden (Labour Code, Art. 140 and 147)."
+msgstr ""
+"Бременност или напреднал етап на лечение ин витро: нощният и извънредният "
+"труд са забранени (чл. 140 и 147 КТ)."
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "Scheduled"
+msgstr "По графика"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation__norm_html
+msgid ""
+"Scheduled hours of every member for the current summed accounting period "
+"against the norm (Ordinance on working time, Art. 9a–9b); night hours count "
+"×1.143. Hours above the norm are overtime (Art. 9d) — warning only."
+msgstr ""
+"Часовете по графика на всеки член за текущия период на сумирано изчисляване "
+"спрямо нормата (чл. 9а–9б от Наредбата за работното време); нощните часове "
+"се броят ×1,143. Часовете над нормата са извънреден труд (чл. 9г) — само "
+"предупреждение."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_crew_rotation_generate__count_warnings
+msgid ""
+"Shifts that break a rule of the Labour Code for the employee (rest, weekly "
+"hours, night work); they are created with a warning."
+msgstr ""
+"Смени, които нарушават правило на КТ за служителя (почивка, седмични часове,"
+" нощен труд); създават се с предупреждение."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,help:planning_crew_rotation.field_planning_slot__crew_warning
+msgid ""
+"What the shift breaks in the Labour Code for this employee (rest, weekly "
+"hours, night work). Warning only — the shift is kept."
+msgstr ""
+"Какво от КТ нарушава смяната за този служител (почивка, седмични часове, "
+"нощен труд). Само предупреждение — смяната остава."
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_crew_rotation__norm_html
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid "Working Time Norm"
+msgstr "Норма на работното време"
+
+#. module: planning_crew_rotation
+#: model_terms:ir.ui.view,arch_db:planning_crew_rotation.planning_crew_rotation_view_form
+msgid ""
+"employees are scheduled above\n"
+"                                the norm of the period — the hours above it are overtime."
+msgstr ""
+"служители са по графика над\n"
+"                                нормата за периода — часовете над нея са извънреден труд."
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "less than 12 h rest between shifts (Labour Code, Art. 152)"
+msgstr "по-малко от 12 ч почивка между смените (чл. 152 КТ)"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "less than 24 h weekly rest (Labour Code, Art. 153)"
+msgstr "по-малко от 24 ч седмична почивка (чл. 153 КТ)"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "more than 56 h in 7 days (Labour Code, Art. 142)"
+msgstr "над 56 ч за 7 дни (чл. 142 КТ)"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "night work is forbidden in pregnancy / IVF (Labour Code, Art. 140)"
+msgstr "нощен труд е забранен при бременност / ин витро (чл. 140 КТ)"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "night work needs written consent (Labour Code, Art. 140)"
+msgstr "нощен труд само с писмено съгласие (чл. 140 КТ)"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "night work under 18 is forbidden (Labour Code, Art. 140)"
+msgstr "нощен труд под 18 години е забранен (чл. 140 КТ)"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "no medical exam for night work (Labour Code, Art. 140a)"
+msgstr "няма медицински преглед за нощен труд (чл. 140а КТ)"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/planning_crew_rotation.py:0
+msgid "overlaps another shift"
+msgstr "застъпва се с друга смяна"
+
+#. module: planning_crew_rotation
+#: model:ir.model.fields,field_description:planning_crew_rotation.field_planning_slot__crew_warning_codes
+msgid "Crew Warning Codes"
+msgstr "Кодове на предупрежденията"
+
+#. module: planning_crew_rotation
+#: code:addons/planning_crew_rotation/models/hr_employee.py:0
+msgid "%s has no running contract: the crew is kept in the contract."
+msgstr "%s няма текущ договор: бригадата се води в договора."

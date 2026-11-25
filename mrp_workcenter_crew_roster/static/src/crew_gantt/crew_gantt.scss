@@ -1,0 +1,171 @@
+// Гантът „Планирай център“ с писти (TECH_DESIGN §9.4).
+
+// Линията „сега“ (Р34): абсолютно в клетката на подколоната; на сгъната
+// колона е на сгъвката.
+.o_gantt_cells .o_crew_now_line {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 0;
+    border-left: 2px solid $danger;
+    z-index: 5;
+    pointer-events: none;
+
+    &.o_crew_now_line_folded {
+        border-left-style: dashed;
+    }
+}
+
+// Стрелката „пусни тук“ (Р32) между два вагона. Над вагоните (те са на
+// z-index 10/11 в EE): нивото „interact“ на Ганта (20).
+.o_gantt_cells .o_crew_drop_arrow {
+    position: absolute;
+    width: 0;
+    margin-left: -1px;
+    border-left: 3px solid $primary;
+    z-index: 20;
+    pointer-events: none;
+
+    &::before {
+        content: "";
+        position: absolute;
+        top: -8px;
+        left: -8px;
+        border-left: 6px solid transparent;
+        border-right: 6px solid transparent;
+        border-top: 8px solid $primary;
+    }
+
+    // Р32 (09.10): празно място — X залепва за края на предходната.
+    &.o_crew_drop_arrow_snap {
+        border-left-style: dashed;
+    }
+
+    &.o_crew_drop_arrow_forbidden {
+        border-left-color: $danger;
+
+        &::before {
+            border-top-color: $danger;
+        }
+    }
+}
+
+// Призракът при влачене: вмъкване или забрана (започнат вагон, заключена писта).
+// Призракът е ПОД вагоните (z-index 1 в EE) — вижда се в разтвореното място.
+.o_gantt_cells .o_drag_hover {
+    &.o_crew_drop_insert {
+        outline: 2px dashed $primary;
+        outline-offset: -2px;
+    }
+
+    &.o_crew_drop_snap {
+        outline: 2px dotted $primary;
+        outline-offset: -2px;
+    }
+
+    &.o_crew_drop_forbidden {
+        outline: 2px solid $danger;
+        background-color: rgba($danger, 0.25) !important;
+    }
+}
+
+// „Разтваряне“ (Р32 на екрана): избутваните вагони се отместват надясно с
+// ширината на призрака, докато C виси над мястото — само на екрана (Р36).
+.o_gantt_cells .o_gantt_pill_wrapper.o_crew_drop_open {
+    transform: translateX(var(--o-crew-open-shift, 0));
+}
+
+// Разтегната над максимума поръчка мига (Р37); без анимация — дебел контур.
+@keyframes o_crew_overstretch_blink {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba($danger, 0);
+    }
+    50% {
+        box-shadow: 0 0 0 3px $danger;
+    }
+}
+
+.o_gantt_cells .o_gantt_pill.o_crew_overstretch {
+    animation: o_crew_overstretch_blink 1s step-end infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+        box-shadow: 0 0 0 3px $danger;
+    }
+}
+
+// Вагон, преместен от влака на живо (само на екрана, Р36).
+.o_gantt_cells .o_gantt_pill.o_crew_trained {
+    background-image: repeating-linear-gradient(
+        -45deg,
+        rgba($white, 0.25) 0 4px,
+        transparent 4px 8px
+    );
+}
+
+// Конфликт по зависимост (Р33 изменено, 1.5.5; Р35): наследникът почва
+// преди края на предшественика — И ДВЕТЕ мигат, като при Р37.
+@keyframes o_crew_dep_conflict_blink {
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba($warning, 0);
+    }
+    50% {
+        box-shadow: 0 0 0 3px $warning;
+    }
+}
+
+.o_gantt_cells .o_gantt_pill.o_crew_dep_conflict {
+    outline: 2px dotted $warning;
+    animation: o_crew_dep_conflict_blink 1s step-end infinite;
+
+    @media (prefers-reduced-motion: reduce) {
+        animation: none;
+        box-shadow: 0 0 0 3px $warning;
+    }
+}
+
+// Застъпване в пистата (Р30 на екрана).
+.o_gantt_cells .o_gantt_cell.o_crew_lane_conflict {
+    background-image: repeating-linear-gradient(
+        45deg,
+        rgba($warning, 0.18) 0 6px,
+        transparent 6px 12px
+    );
+}
+
+// Чуждо влачене (Р38): вагонът, който се мести, и стрелката на другия.
+.o_gantt_cells .o_gantt_pill.o_crew_remote_moving {
+    outline: 2px dashed $info;
+    opacity: 0.7;
+}
+
+.o_gantt_cells .o_gantt_pill.o_crew_remote_after::after {
+    content: "";
+    position: absolute;
+    top: -4px;
+    bottom: -4px;
+    right: -3px;
+    border-right: 3px solid $info;
+}
+
+// №142: неработните подколони са участъци с нулева ширина — заглавките на
+// изцяло скрит ден или седмица не преливат в съседните колони.
+.o_crew_off_time_hidden {
+    .o_gantt_header_cell,
+    .o_gantt_header_title {
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+    }
+}
+
+// Непланираната поръчка в дългосрочния план (Росен 14.10.2026): стои на
+// датите на МО-то, пунктирана; влаченето в пистата я планира.
+.o_gantt_cells .o_gantt_pill.o_crew_unplanned {
+    opacity: 0.75;
+    background-image: none;
+    border: 2px dashed currentColor;
+}
+

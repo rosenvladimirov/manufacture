@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mrp_workcenter_crew_roster_planning.CrewShiftDialog">
+        <Dialog size="'md'" title.translate="Edit Crews">
+            <ul class="o_crew_shift_list ps-0 mb-0">
+                <li t-foreach="props.crews" t-as="crew" t-key="crew.id"
+                    class="btn btn-outline-secondary w-100 text-start mb-2 fw-normal py-2 d-flex justify-content-between align-items-center"
+                    t-att-class="{'active': selected.ids.includes(crew.id), 'disabled opacity-50': !crew.leader_id}"
+                    t-att-name="crew.name"
+                    t-on-click="() => crew.leader_id and this.toggle(crew)">
+                    <span>
+                        <i t-if="selected.ids.includes(crew.id)" class="fa fa-check me-2"/>
+                        <span class="fw-bold" t-esc="crew.name"/>
+                    </span>
+                    <span class="text-muted small">
+                        <t t-esc="crew.members"/> · <t t-esc="crew.leader_name or '—'"/>
+                    </span>
+                </li>
+            </ul>
+            <div t-if="!props.crews.length" class="text-muted">No crews in an approved rotation.</div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="confirm">Done</button>
+                <button class="btn btn-secondary" t-on-click="props.close">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="mrp_workcenter_crew_roster_planning.CrewShiftKickDialog">
+        <Dialog size="'md'" title.translate="Kick Out of the Work Orders">
+            <p>Who stops working on the work orders? They stay in the list.</p>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary o_crew_shift_kick_selected" t-on-click="() => this.kick('selected')">
+                    <t t-if="props.selectedName">The Selected: <t t-esc="props.selectedName"/></t>
+                    <t t-else="">The Selected</t>
+                </button>
+                <button class="btn btn-danger o_crew_shift_kick_all" t-on-click="() => this.kick('all')">Everyone</button>
+                <button class="btn btn-secondary" t-on-click="props.close">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+
+    <t t-name="mrp_workcenter_crew_roster_planning.CrewShiftGroupDialog">
+        <Dialog size="'lg'" title.translate="Edit Groups">
+            <div class="o_crew_shift_groups_editor">
+                <div class="d-flex align-items-center gap-2 mb-3">
+                    <span class="fw-bold">Crew leader:</span>
+                    <select class="form-select w-auto o_crew_shift_group_leader" t-model="state.leaderId">
+                        <option t-foreach="props.leaders" t-as="leader" t-key="leader.id"
+                                t-att-value="leader.id" t-esc="leader.name"/>
+                    </select>
+                    <button class="btn btn-outline-danger ms-auto o_crew_shift_clear_groups" t-on-click="clearGroups">Clear Groups</button>
+                    <button class="btn btn-outline-secondary o_crew_shift_add_group" t-on-click="addGroup">+ Group</button>
+                </div>
+                <div class="d-flex align-items-center gap-2 mb-2 text-muted small">
+                    <span class="flex-grow-1"/>
+                    <button t-foreach="numbers" t-as="number" t-key="number"
+                            class="btn btn-sm btn-link text-danger o_crew_shift_remove_group px-2"
+                            t-att-data-group="number" t-att-title="number"
+                            t-on-click="() => this.removeGroup(number)">× <t t-esc="number"/></button>
+                </div>
+                <div t-foreach="props.people" t-as="person" t-key="person.id"
+                     class="d-flex align-items-center gap-2 mb-2 o_crew_shift_group_person" t-att-name="person.name">
+                    <span class="flex-grow-1 text-truncate" t-esc="person.name"/>
+                    <button t-foreach="numbers" t-as="number" t-key="number"
+                            class="btn o_crew_shift_group_btn"
+                            t-att-class="state.assign[person.id] === number ? 'btn-primary active' : 'btn-outline-secondary'"
+                            t-att-data-group="number"
+                            t-on-click="() => this.setGroup(person, number)" t-esc="number"/>
+                </div>
+                <div t-if="!props.people.length" class="text-muted">No people in the list.</div>
+            </div>
+            <t t-set-slot="footer">
+                <button class="btn btn-primary" t-on-click="confirm">Done</button>
+                <button class="btn btn-secondary" t-on-click="props.close">Cancel</button>
+            </t>
+        </Dialog>
+    </t>
+</templates>

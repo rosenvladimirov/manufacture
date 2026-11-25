@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Партидата на препланирането: отчетът и снимката (стар → нов план).
+         Бутонът „Undo“ (фаза 2, §9.13.3) се вижда само когато има какво да
+         се върне (crew_can_undo); проверките остават в action_undo. -->
+    <record id="mrp_workcenter_replan_batch_view_form" model="ir.ui.view">
+        <field name="name">mrp.workcenter.replan.batch.form</field>
+        <field name="model">mrp.workcenter.replan.batch</field>
+        <field name="arch" type="xml">
+            <form string="Replan Batch" create="0" edit="0">
+                <header>
+                    <field name="crew_can_undo" invisible="1"/>
+                    <button name="action_undo_report" type="object" string="Undo"
+                            class="btn-primary" data-hotkey="u"
+                            invisible="not crew_can_undo"
+                            confirm="Return the work orders to their places before this replanning?"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="source"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group>
+                            <field name="workcenter_ids" widget="many2many_tags"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="report" string="Report">
+                            <field name="report_html"/>
+                        </page>
+                        <page name="lines" string="Work Orders">
+                            <field name="line_ids">
+                                <list>
+                                    <field name="sequence" column_invisible="True"/>
+                                    <field name="workorder_id"/>
+                                    <field name="production_id" optional="show"/>
+                                    <field name="old_workcenter_id"/>
+                                    <field name="old_date_start"/>
+                                    <field name="old_date_finished" optional="hide"/>
+                                    <field name="new_workcenter_id"/>
+                                    <field name="new_date_start"/>
+                                    <field name="new_date_finished"/>
+                                    <field name="old_lane" optional="hide"/>
+                                    <field name="new_lane" optional="hide"/>
+                                    <field name="reason" optional="show"/>
+                                    <field name="result"
+                                           decoration-danger="result == 'failed'"
+                                           decoration-warning="result == 'outside_period'"/>
+                                    <field name="message" optional="show"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="mrp_workcenter_replan_batch_view_list" model="ir.ui.view">
+        <field name="name">mrp.workcenter.replan.batch.list</field>
+        <field name="model">mrp.workcenter.replan.batch</field>
+        <field name="arch" type="xml">
+            <list string="Replan Batches" create="0">
+                <field name="name"/>
+                <field name="source"/>
+                <field name="user_id"/>
+                <field name="workcenter_ids" widget="many2many_tags"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+</odoo>

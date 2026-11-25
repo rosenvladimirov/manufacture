@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <!-- Бригадата в картона следва назначенията с дати -->
+    <record id="ir_cron_crew_refresh" model="ir.cron">
+        <field name="name">Crew Rotation: refresh the crew of employees</field>
+        <field name="model_id" ref="hr.model_hr_employee"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_crew_refresh()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="nextcall" eval="(DateTime.now() + timedelta(days=1)).strftime('%Y-%m-%d 00:10:00')"/>
+    </record>
+</odoo>

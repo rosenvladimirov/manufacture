@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="mrp_workcenter_crew_roster_planning.CrewShiftToolbar">
+        <div class="o_crew_shift_toolbar btn-group w-100 p-2 flex-shrink-0" role="group">
+            <button type="button" class="btn o_crew_shift_people"
+                    t-att-class="crewShift.mode === 'people' ? 'btn-primary' : 'btn-outline-secondary'"
+                    t-on-click="() => this.setCrewShiftMode('people')">People</button>
+            <button type="button" class="btn o_crew_shift_crew"
+                    t-att-class="crewShift.mode === 'crew' ? 'btn-primary' : 'btn-outline-secondary'"
+                    t-on-click="() => this.setCrewShiftMode('crew')">Shift/Crew</button>
+            <button type="button" class="btn o_crew_shift_group"
+                    t-att-class="crewShift.mode === 'group' ? 'btn-primary' : 'btn-outline-secondary'"
+                    t-on-click="() => this.setCrewShiftMode('group')">Groups</button>
+        </div>
+    </t>
+
+    <t t-name="mrp_workcenter_crew_roster_planning.CrewShiftCrews">
+        <ul t-if="crewShift.crews.length" class="o_crew_shift_crews list-group h-100 overflow-y-auto pb-5">
+            <li t-foreach="crewShift.crews" t-as="crew" t-key="crew.id"
+                class="list-group-item d-flex flex-column gap-1 py-2 cursor-pointer border-end-0 border-top-0"
+                t-att-class="{'o_admin_user o_crew_shift_selected': crew.id === crewShift.selected}"
+                t-att-name="crew.name"
+                t-on-click="() => this.selectCrew(crew)">
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                    <span class="fw-bold text-truncate" t-esc="crew.name"/>
+                    <span class="badge text-bg-secondary"><t t-esc="crew.working"/>/<t t-esc="crew.members"/></span>
+                </div>
+                <div class="small text-muted text-truncate">
+                    <span class="o_crew_shift_leader_name" t-esc="crew.leader_name"/>
+                </div>
+                <div t-foreach="crew.workcenters" t-as="wc" t-key="wc.id" class="d-flex justify-content-between">
+                    <span t-attf-class="o_tag o_tag_color_{{wc.id % 11}} badge rounded" t-esc="wc.name"/>
+                    <span class="o_tabular_nums fw-bold text-action" t-esc="wc.people"/>
+                </div>
+            </li>
+        </ul>
+        <div t-else="" class="d-flex justify-content-center align-items-center h-100">
+            <span class="text-muted">No crews on shift</span>
+        </div>
+    </t>
+
+    <t t-name="mrp_workcenter_crew_roster_planning.CrewShiftGroups">
+        <ul t-if="crewShift.groups.length" class="o_crew_shift_groups list-group h-100 overflow-y-auto pb-5">
+            <li t-foreach="crewShift.groups" t-as="group" t-key="group.id"
+                class="list-group-item d-flex flex-column gap-1 py-2 cursor-pointer border-end-0 border-top-0"
+                t-att-class="{'o_admin_user o_crew_shift_selected': group.id === crewShift.groupSelected}"
+                t-att-name="group.name"
+                t-on-click="() => this.selectGroup(group)">
+                <div class="d-flex justify-content-between align-items-center gap-2">
+                    <span class="fw-bold" t-esc="group.name"/>
+                    <span class="ms-auto badge text-bg-secondary"><t t-esc="group.working"/>/<t t-esc="group.members"/></span>
+                    <button class="btn btn-sm btn-link text-danger p-0 o_crew_shift_group_remove"
+                            t-att-title="group.name"
+                            t-on-click.stop="() => this.removeGroupFromList(group)">×</button>
+                </div>
+                <div class="small text-muted o_crew_shift_group_names" t-esc="group.names.join(', ')"/>
+                <div t-foreach="group.workcenters" t-as="wc" t-key="wc.id" class="d-flex justify-content-between">
+                    <span t-attf-class="o_tag o_tag_color_{{wc.id % 11}} badge rounded" t-esc="wc.name"/>
+                    <span class="o_tabular_nums fw-bold text-action" t-esc="wc.people"/>
+                </div>
+            </li>
+        </ul>
+        <div t-else="" class="d-flex justify-content-center align-items-center h-100">
+            <span class="text-muted">No groups yet</span>
+        </div>
+    </t>
+
+    <t t-name="mrp_workcenter_crew_roster_planning.CrewShiftFooter">
+        <button t-if="crewShift.mode === 'crew'" class="o_crew_shift_edit btn btn-secondary flex-grow-1"
+                t-on-click="() => this.editCrews()">Edit Crews</button>
+        <button t-if="crewShift.mode === 'group'" class="o_crew_shift_edit_groups btn btn-secondary flex-grow-1"
+                t-on-click="() => this.editGroups()">Edit Groups</button>
+        <button class="o_crew_shift_kick btn btn-outline-danger" t-on-click="() => this.kick()">Kick Out</button>
+    </t>
+
+    <!-- 18: един шаблон на панела — лентата и бригадите/групите над списъка с хората,
+         а долу „Add Operator“ (само в „Човеци“) редом с „Изритай“ -->
+    <t t-inherit="mrp_workorder.MrpDisplayEmployeesPanel" t-inherit-mode="extension">
+        <xpath expr="//ul" position="before">
+            <t t-call="mrp_workcenter_crew_roster_planning.CrewShiftToolbar"/>
+            <t t-if="crewShift.mode === 'crew'" t-call="mrp_workcenter_crew_roster_planning.CrewShiftCrews"/>
+            <t t-elif="crewShift.mode === 'group'" t-call="mrp_workcenter_crew_roster_planning.CrewShiftGroups"/>
+        </xpath>
+        <xpath expr="//ul" position="attributes">
+            <attribute name="t-if">crewShift.mode === 'people'</attribute>
+        </xpath>
+        <xpath expr="//div[@t-esc='employee.name']" position="after">
+            <span t-if="crewShift.leaders[employee.id]" class="o_crew_shift_leader badge text-bg-warning align-self-start"
+                  t-att-title="crewShift.leaders[employee.id]">Crew leader</span>
+        </xpath>
+        <xpath expr="//button[@t-on-click='props.popupAddEmployee']" position="replace">
+            <div class="o_crew_shift_footer d-flex gap-2 position-fixed position-lg-absolute bottom-0 w-100 border-top bg-view p-2">
+                <button t-if="crewShift.mode === 'people'"
+                        class="o_crew_shift_add_operator btn btn-light d-flex align-items-center gap-2 flex-grow-1"
+                        t-on-click="props.popupAddEmployee">
+                    <i class="fa fa-plus"/>
+                    <span>Add Operator</span>
+                </button>
+                <t t-call="mrp_workcenter_crew_roster_planning.CrewShiftFooter"/>
+            </div>
+        </xpath>
+    </t>
+
+    <t t-inherit="mrp_workorder.PinPopup" t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('popup-input')]" position="before">
+            <div t-if="props.popupData.crewLeader" class="o_crew_shift_pin_leader fw-bold fs-4 text-center px-3"
+                 t-esc="props.popupData.crewLeader"/>
+        </xpath>
+    </t>
+
+    <t t-inherit="mrp_workorder.MrpDisplay" t-inherit-mode="extension">
+        <xpath expr="//MrpDisplayEmployeesPanel" position="attributes">
+            <attribute name="updateEmployees.bind">useEmployee.getConnectedEmployees</attribute>
+        </xpath>
+    </t>
+</templates>

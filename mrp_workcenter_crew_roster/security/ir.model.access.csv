@@ -1,0 +1,12 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mrp_workcenter_roster_user,mrp.workcenter.roster user,model_mrp_workcenter_roster,mrp.group_mrp_user,1,1,1,0
+access_mrp_workcenter_roster_manager,mrp.workcenter.roster manager,model_mrp_workcenter_roster,mrp.group_mrp_manager,1,1,1,1
+access_mrp_workcenter_plan_select_user,mrp.workcenter.plan.select user,model_mrp_workcenter_plan_select,mrp.group_mrp_user,1,1,1,1
+access_mrp_workcenter_replan_batch_user,mrp.workcenter.replan.batch user,model_mrp_workcenter_replan_batch,mrp.group_mrp_user,1,0,1,0
+access_mrp_workcenter_replan_batch_manager,mrp.workcenter.replan.batch manager,model_mrp_workcenter_replan_batch,mrp.group_mrp_manager,1,1,1,1
+access_mrp_workcenter_replan_batch_line_user,mrp.workcenter.replan.batch.line user,model_mrp_workcenter_replan_batch_line,mrp.group_mrp_user,1,0,1,0
+access_mrp_workcenter_replan_batch_line_manager,mrp.workcenter.replan.batch.line manager,model_mrp_workcenter_replan_batch_line,mrp.group_mrp_manager,1,1,1,1
+access_mrp_workcenter_lane_lock_user,mrp.workcenter.lane.lock user,model_mrp_workcenter_lane_lock,mrp.group_mrp_user,1,0,0,0
+access_mrp_workcenter_lane_lock_manager,mrp.workcenter.lane.lock manager,model_mrp_workcenter_lane_lock,mrp.group_mrp_manager,1,1,1,1
+access_mrp_workcenter_replan_wizard_user,mrp.workcenter.replan.wizard user,model_mrp_workcenter_replan_wizard,mrp.group_mrp_user,1,1,1,1
+access_mrp_workcenter_replan_wizard_partner_user,mrp.workcenter.replan.wizard.partner user,model_mrp_workcenter_replan_wizard_partner,mrp.group_mrp_user,1,1,1,1

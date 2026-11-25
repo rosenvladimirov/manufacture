@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- „Plan Work Center“: избор на центровете, после Гантът или нарядът им.
+         Менюто „Crew Roster“ идва тук с crew_plan_target='roster' и тогава
+         основният бутон е нарядът (№5). -->
+    <record id="mrp_workcenter_plan_select_view_form" model="ir.ui.view">
+        <field name="name">mrp.workcenter.plan.select.form</field>
+        <field name="model">mrp.workcenter.plan.select</field>
+        <field name="arch" type="xml">
+            <form string="Plan Work Center">
+                <group>
+                    <!-- Р40: много към много; алтернативите се довличат
+                         (onchange), разгънатите се помнят невидимо. -->
+                    <field name="workcenter_ids" widget="many2many_tags"
+                           options="{'no_create': True}"/>
+                    <field name="crew_expanded_ids" invisible="1"/>
+                </group>
+                <footer>
+                    <button name="action_open_gantt" type="object" string="Gantt"
+                            class="btn-primary" data-hotkey="q"
+                            invisible="context.get('crew_plan_target') == 'roster'"/>
+                    <button name="action_open_roster" type="object" string="Crew Roster"
+                            class="btn-secondary" data-hotkey="w"
+                            invisible="context.get('crew_plan_target') == 'roster'"/>
+                    <button name="action_open_roster" type="object" string="Crew Roster"
+                            class="btn-primary" data-hotkey="q"
+                            invisible="context.get('crew_plan_target') != 'roster'"/>
+                    <button name="action_open_gantt" type="object" string="Gantt"
+                            class="btn-secondary" data-hotkey="w"
+                            invisible="context.get('crew_plan_target') != 'roster'"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="mrp_workcenter_plan_select_action" model="ir.actions.act_window">
+        <field name="name">Plan Work Center</field>
+        <field name="res_model">mrp.workcenter.plan.select</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- „Crew Roster“: същият избор, нарядът е основният бутон.
+         Без default_* в контекста (Ф3). -->
+    <record id="mrp_workcenter_plan_select_roster_action" model="ir.actions.act_window">
+        <field name="name">Crew Roster</field>
+        <field name="res_model">mrp.workcenter.plan.select</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'crew_plan_target': 'roster'}</field>
+    </record>
+</odoo>

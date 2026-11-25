@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Ротацията: цикъл + котва + бригади с отместване -->
+    <record id="planning_crew_rotation_view_form" model="ir.ui.view">
+        <field name="name">planning.crew.rotation.form</field>
+        <field name="model">planning.crew.rotation</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_open_generate" type="object" string="Generate Shifts"
+                            class="btn-primary" invisible="state != 'approved'"/>
+                    <button name="action_check" type="object" string="Check"/>
+                    <button name="action_approve" type="object" string="Approve"
+                            invisible="state != 'draft'"/>
+                    <button name="action_reset_draft" type="object" string="Reset to Draft"
+                            invisible="state != 'approved'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="not reload_needed">
+                        An approved leave touches generated shifts. Generate the shifts again to
+                        re-arrange them with substitutes.
+                    </div>
+                    <widget name="web_ribbon" title="Archived" bg_color="text-bg-danger" invisible="active"/>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="e.g. Extrusion"
+                                   readonly="state == 'approved'"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="department_id" readonly="state == 'approved'"/>
+                            <field name="calendar_id" readonly="state == 'approved'"/>
+                            <field name="anchor_date" readonly="state == 'approved'"/>
+                            <field name="summing_period_months"/>
+                        </group>
+                        <group>
+                            <field name="day_template_id" readonly="state == 'approved'"/>
+                            <field name="night_template_id" readonly="state == 'approved'"/>
+                            <label for="preset"/>
+                            <div class="o_row">
+                                <field name="preset" readonly="state == 'approved'"/>
+                                <button name="action_load_preset" type="object" string="Load"
+                                        class="btn-link" invisible="state == 'approved' or not preset"/>
+                            </div>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                            <field name="active" invisible="1"/>
+                            <field name="reload_needed" invisible="1"/>
+                            <field name="approved_by_id" invisible="not approved_by_id"/>
+                            <field name="approved_date" invisible="not approved_date"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page name="crews" string="Crews">
+                            <field name="crew_ids" readonly="state == 'approved'">
+                                <list editable="bottom">
+                                    <field name="code"/>
+                                    <field name="offset_days"/>
+                                    <field name="role_id"/>
+                                    <field name="member_count"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="cycle" string="Cycle">
+                            <field name="line_ids" readonly="state == 'approved'">
+                                <list editable="bottom">
+                                    <field name="position" column_invisible="1"/>
+                                    <field name="day_number"/>
+                                    <field name="template_id" placeholder="Day off"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page name="coverage" string="Coverage">
+                            <field name="coverage_html" nolabel="1"/>
+                        </page>
+                        <page name="norm" string="Working Time Norm">
+                            <field name="norm_warning_count" invisible="1"/>
+                            <div class="alert alert-warning" role="alert" invisible="not norm_warning_count">
+                                <field name="norm_warning_count" class="oe_inline"/> employees are scheduled above
+                                the norm of the period — the hours above it are overtime.
+                            </div>
+                            <field name="norm_html" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <chatter/>
+            </form>
+        </field>
+    </record>
+
+    <record id="planning_crew_rotation_view_list" model="ir.ui.view">
+        <field name="name">planning.crew.rotation.list</field>
+        <field name="model">planning.crew.rotation</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="department_id"/>
+                <field name="cycle_length"/>
+                <field name="anchor_date"/>
+                <field name="reload_needed" widget="boolean_toggle" readonly="1"/>
+                <field name="state" widget="badge" decoration-success="state == 'approved'"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="planning_crew_rotation_action" model="ir.actions.act_window">
+        <field name="name">Crew Rotations</field>
+        <field name="res_model">planning.crew.rotation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Назначенията: кой в коя бригада -->
+    <record id="planning_crew_membership_view_list" model="ir.ui.view">
+        <field name="name">planning.crew.membership.list</field>
+        <field name="model">planning.crew.membership</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="employee_id"/>
+                <field name="crew_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="planning_crew_membership_view_search" model="ir.ui.view">
+        <field name="name">planning.crew.membership.search</field>
+        <field name="model">planning.crew.membership</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="employee_id"/>
+                <field name="crew_id"/>
+                <field name="rotation_id"/>
+                <group>
+                    <filter name="group_crew" string="Crew" context="{'group_by': 'crew_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="planning_crew_membership_action" model="ir.actions.act_window">
+        <field name="name">Crew Members</field>
+        <field name="res_model">planning.crew.membership</field>
+        <field name="view_mode">list</field>
+        <field name="context">{'search_default_group_crew': 1}</field>
+    </record>
+</odoo>

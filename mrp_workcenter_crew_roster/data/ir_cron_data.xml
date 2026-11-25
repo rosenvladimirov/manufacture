@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Влакът на времето (Р34–Р36, M18): на всеки час дотяга плана
+             към „сега“. Инсталира се ИЗКЛЮЧЕН (§9.3 M18, В10) — включва се
+             след живия тест със съгласие на Росен. -->
+        <record id="ir_cron_crew_train" model="ir.cron">
+            <field name="name">Crew: train</field>
+            <field name="model_id" ref="mrp.model_mrp_workcenter"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_crew_train()</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">hours</field>
+            <field name="active" eval="False"/>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Гантът „Планирай център“ (TECH_DESIGN §4): нов PRIMARY изглед върху
+         стандартния Гант на поръчките. Стандартният не се пипа; priority 20
+         (Ф10), за да НЕ стане изгледът по подразбиране за mrp.workorder
+         (стандартният е с priority 10). Действията сочат изрично view_id.
+         Разширенията на родителя (вкл. popover-ите на други модули) се
+         наследяват. -->
+    <record id="mrp_workorder_crew_gantt_view" model="ir.ui.view">
+        <field name="name">mrp.workorder.crew.gantt</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp_workorder.mrp_workorder_view_gantt"/>
+        <field name="mode">primary</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <xpath expr="//gantt" position="attributes">
+                <attribute name="js_class">mrp_crew_gantt</attribute>
+                <!-- Р29, Р31 (1.5.0): център → писта; изгледът по служител
+                     остава в „Work Orders by Employee“ (контекстът group_by). -->
+                <attribute name="default_group_by">workcenter_id,crew_lane</attribute>
+                <!-- Г-5: по-фина стъпка при влачене. -->
+                <attribute name="precision">{'day': 'hour:quarter', 'week': 'day:half', 'month': 'day:half', 'year': 'day:full'}</attribute>
+                <!-- Т7, И4: зависимостите безусловно, без групата
+                     mrp.group_mrp_workorder_dependencies. -->
+                <attribute name="dependency_field">blocked_by_workorder_ids</attribute>
+                <attribute name="dependency_inverted_field">needed_by_workorder_ids</attribute>
+                <attribute name="progress_bar">workcenter_id,employee_assigned_ids</attribute>
+                <!-- Ф10: декорациите ЗАПАЗВАТ стандартните условия и добавят
+                     закъснението (червено) и претоварването (жълто). -->
+                <attribute name="decoration-danger">is_late or (json_popover and 'text-danger' in json_popover)</attribute>
+                <attribute name="decoration-warning">is_overloaded or state == 'cancel' or (json_popover and 'text-warning' in json_popover)</attribute>
+                <!-- №145 на Теолино: бригадата дели дял, но за деня няма наряд. -->
+                <attribute name="decoration-info">crew_no_crew</attribute>
+            </xpath>
+            <xpath expr="//field[@name='json_popover']" position="after">
+                <field name="is_late"/>
+                <field name="is_overloaded"/>
+                <field name="deadline"/>
+                <field name="crew_names"/>
+                <field name="crew_no_crew"/>
+                <!-- Пистата, мигането (Р37, Р33 изменено) и планираният
+                     край при старта. -->
+                <field name="crew_lane"/>
+                <field name="crew_is_overstretched"/>
+                <field name="crew_dep_conflict"/>
+                <field name="crew_planned_finish"/>
+                <field name="crew_center_durations"/>
+                <!-- Непланираната (дългосрочният план, Росен 14.10.2026). -->
+                <field name="crew_is_unplanned"/>
+            </xpath>
+            <xpath expr="//templates//ul" position="inside">
+                <li t-if="deadline"><strong>Deadline: </strong><t t-esc="deadline.toFormat('F')"/></li>
+                <li><strong>Crew: </strong><t t-esc="crew_names or ''"/></li>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Дългосрочното планиране (Росен 14.10.2026): същият Гант, но върху
+         „началото/края в плана“ — непланираната поръчка стои на датите на МО-то
+         (пунктирана); влаченето ѝ през `crew_drop` я планира. -->
+    <record id="mrp_workorder_crew_gantt_longterm_view" model="ir.ui.view">
+        <field name="name">mrp.workorder.crew.gantt.longterm</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp_workorder_crew_gantt_view"/>
+        <field name="mode">primary</field>
+        <field name="priority">21</field>
+        <field name="arch" type="xml">
+            <xpath expr="//gantt" position="attributes">
+                <attribute name="date_start">crew_gantt_start</attribute>
+                <attribute name="date_stop">crew_gantt_stop</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Гантът „Планирай център“: отваря се през избора на център или smart
+         бутона „Plan“ — те добавят search_default_workcenter_id и
+         crew_workcenter_id. Тук контекстът е празен (Ф3). -->
+    <record id="mrp_workorder_crew_gantt_action" model="ir.actions.act_window">
+        <field name="name">Plan Work Center</field>
+        <field name="res_model">mrp.workorder</field>
+        <field name="view_mode">gantt,list,form</field>
+        <field name="view_id" ref="mrp_workorder_crew_gantt_view"/>
+        <field name="search_view_id" ref="mrp.view_mrp_production_workorder_form_view_filter"/>
+    </record>
+
+    <!-- „Work Orders by Employee“: нашият Гант без филтър по център, само за
+         преглед; групирането е по служител. Без бутона „Recompute“ (няма
+         crew_workcenter_id). -->
+    <record id="mrp_workorder_crew_gantt_employee_action" model="ir.actions.act_window">
+        <field name="name">Work Orders by Employee</field>
+        <field name="res_model">mrp.workorder</field>
+        <field name="view_mode">gantt,list,form</field>
+        <field name="view_id" ref="mrp_workorder_crew_gantt_view"/>
+        <field name="search_view_id" ref="mrp.view_mrp_production_workorder_form_view_filter"/>
+        <field name="context">{'group_by': ['employee_assigned_ids']}</field>
+    </record>
+
+    <!-- Smart бутон „Plan“ на формата на центъра: нашият Гант за центъра. -->
+    <record id="mrp_workcenter_view_inherit_crew_roster" model="ir.ui.view">
+        <field name="name">mrp.workcenter.form.inherit.crew.roster</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="inherit_id" ref="mrp.mrp_workcenter_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_crew_plan_gantt" type="object"
+                        class="oe_stat_button" icon="fa-tasks"
+                        invisible="not id" groups="mrp.group_mrp_user">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Plan</span>
+                    </div>
+                </button>
+                <!-- №146 на Теолино: нарядите на центъра от картата му. -->
+                <button name="action_crew_rosters" type="object"
+                        class="oe_stat_button" icon="fa-users"
+                        invisible="not id" groups="mrp.group_mrp_user">
+                    <field name="crew_roster_count" widget="statinfo" string="Crew Rosters"/>
+                </button>
+            </xpath>
+            <!-- Пистите и тревогата (Р29, Р37): пише ги MRP Manager (К14). -->
+            <xpath expr="//group[@name='capacity']" position="inside">
+                <field name="crew_lane_count"/>
+                <field name="crew_responsible_id"/>
+                <field name="crew_max_stretch_hours"/>
+                <field name="crew_snap_head"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

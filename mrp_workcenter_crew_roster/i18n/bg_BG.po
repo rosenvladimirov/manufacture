@@ -1,0 +1,1789 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-06 22:00+0000\n"
+"PO-Revision-Date: 2026-10-06 22:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: bg_BG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "%(count)s work order(s) considered."
+msgstr "Разгледани работни поръчки: %(count)s."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder.py:0
+msgid "%(employee)s: %(load).2f h planned, capacity %(capacity).2f h"
+msgstr "%(employee)s: планирани %(load).2f ч, капацитет %(capacity).2f ч"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "%(mo)s: the start changed; the dates of the component moves follow it."
+msgstr ""
+"%(mo)s: началото е променено; датите на движенията на материалите го "
+"следват."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid ""
+"%(mo)s: the work order(s) %(wo)s could not be planned; the end of the "
+"manufacturing order is computed, not planned."
+msgstr ""
+"%(mo)s: работните поръчки %(wo)s не можаха да се планират; краят на "
+"производствената поръчка е изчислен, а не планиран."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_lanes.py:0
+msgid ""
+"%(pred)s now ends at %(end)s, after the planned start of %(wo)s (%(start)s)."
+" The train did not move it."
+msgstr ""
+"%(pred)s вече свършва в %(end)s — след планираното начало на %(wo)s "
+"(%(start)s). Влакът не я премести."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_renderer.js:0
+msgid "%(user)s is moving %(wo)s"
+msgstr "%(user)s мести %(wo)s"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_renderer.js:0
+msgid "%(user)s is moving work orders in this lane. Try again in a minute."
+msgstr ""
+"%(user)s мести работни поръчки в тази писта. Опитайте пак след минута."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_lanes.py:0
+msgid ""
+"%(wc)s cannot have %(count)s lane(s): these open work orders are in a higher"
+" lane: %(wos)s."
+msgstr ""
+"%(wc)s не може да има %(count)s писта(и): тези отворени работни поръчки са в"
+" по-горна писта: %(wos)s."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "%(wc)s has no lane %(lane)s."
+msgstr "%(wc)s няма писта %(lane)s."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "%(wo)s cannot start in the past; it starts now."
+msgstr "%(wo)s не може да започне в миналото; започва сега."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "%(wo)s starts after its predecessor %(pred)s."
+msgstr "%(wo)s започва след предходната си операция %(pred)s."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_lanes.py:0
+msgid "%(wo)s: %(h).1f h past its planned end (max %(max).1f h)"
+msgstr "%(wo)s: %(h).1f ч след планирания край (максимум %(max).1f ч)"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_view_inherit_crew_roster
+msgid "<span class=\"o_stat_text\">Plan</span>"
+msgstr "<span class=\"o_stat_text\">План</span>"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workorder_view_form_inherit_crew_roster
+msgid "<span>minutes</span>"
+msgstr "<span>минути</span>"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workorder_crew_gantt_view
+msgid "<strong>Crew: </strong>"
+msgstr "<strong>Екип: </strong>"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workorder_crew_gantt_view
+msgid "<strong>Deadline: </strong>"
+msgstr "<strong>Срок: </strong>"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.constraint,message:mrp_workcenter_crew_roster.constraint_mrp_workcenter_lane_lock_unique_lane
+msgid "A lane of a work center can be locked only once."
+msgstr "Писта на работен център може да бъде заключена само веднъж."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "A started or finished work order cannot be moved."
+msgstr "Започната или приключена работна поръчка не може да се мести."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "A started work order cannot be moved."
+msgstr "Започната работна поръчка не може да се мести."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter__crew_max_stretch_hours
+msgid ""
+"A started work order running this many hours past its planned end raises an "
+"alert to the responsible. 0 disables the alert."
+msgstr ""
+"Започната работна поръчка, която продължава толкова часа след планирания си "
+"край, вдига тревога до отговорника. 0 изключва тревогата."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_renderer.js:0
+msgid "Another user"
+msgstr "Друг потребител"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch__state__applied
+msgid "Applied"
+msgstr "Приложена"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__batch_id
+msgid "Batch"
+msgstr "Партида"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_plan_select_view_form
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_wizard_view_form
+msgid "Cancel"
+msgstr "Отказ"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__company_id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__company_id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__company_id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__company_id
+msgid "Company"
+msgstr "Фирма"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_list
+msgid "Copy from Yesterday"
+msgstr "Копирай от вчера"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__create_uid
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_plan_select__create_uid
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__create_uid
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__create_uid
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__create_uid
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard_partner__create_uid
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__create_uid
+msgid "Created by"
+msgstr "Създадено от"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__create_date
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_plan_select__create_date
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__create_date
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__create_date
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__create_date
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard_partner__create_date
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__create_date
+msgid "Created on"
+msgstr "Създадено на"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__employee_ids
+msgid "Crew"
+msgstr "Наряд"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_date
+msgid "Crew Day"
+msgstr "Ден на наряда"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter__crew_lane_stamp
+msgid "Crew Lane Stamp"
+msgstr "Печат на пистите"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_names
+msgid "Crew Members"
+msgstr "Членове на екипа"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.actions.act_window,name:mrp_workcenter_crew_roster.mrp_workcenter_plan_select_roster_action
+#: model:ir.actions.act_window,name:mrp_workcenter_crew_roster.mrp_workcenter_roster_action
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__roster_id
+#: model:ir.ui.menu,name:mrp_workcenter_crew_roster.menu_mrp_workcenter_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_plan_select_view_form
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_form
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_list
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_search
+msgid "Crew Roster"
+msgstr "Наряд по центрове"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/wizard/mrp_workcenter_plan_select.py:0
+msgid "Crew Roster: %(wc)s"
+msgstr "Наряд: %(wc)s"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_shift_key
+msgid "Crew Shift"
+msgstr "Смяна на наряда"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__crew_size
+msgid "Crew Size"
+msgstr "Брой хора"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_split_signature
+msgid "Crew Split Signature"
+msgstr "Подпис на разделянето"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_crew_split.py:0
+msgid "Crew share: %(employee)s"
+msgstr "Дял от наряда: %(employee)s"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.actions.server,name:mrp_workcenter_crew_roster.ir_cron_crew_train_ir_actions_server
+msgid "Crew: train"
+msgstr "Наряд: влак на времето"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__date
+msgid "Date"
+msgstr "Дата"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_search
+msgid "Day"
+msgstr "Ден"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__deadline
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_wizard__priority_key__deadline
+msgid "Deadline"
+msgstr "Срок"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__calendar_id
+msgid ""
+"Define the working schedule of the resource. If not set, the resource will "
+"have fully flexible working hours."
+msgstr ""
+"Работният график на ресурса. Ако не е зададен, ресурсът работи с напълно "
+"гъвкаво работно време."
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.actions.act_window,help:mrp_workcenter_crew_roster.mrp_workcenter_roster_action
+msgid "Define who works on the work center in each shift"
+msgstr "Определете кой работи на работния център във всяка смяна"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_dep_conflict_since
+msgid "Dependency Conflict Since"
+msgstr "Конфликт по зависимост от"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_ir_websocket__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_plan_select__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard_partner__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_resource_calendar_leaves__display_name
+msgid "Display Name"
+msgstr "Име за показване"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch__source__drop
+msgid "Drop Here"
+msgstr "Пусни тук"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_renderer.js:0
+msgid "Drop the work order in a lane of a work center."
+msgstr "Пуснете работната поръчка в писта на работен център."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch_line__reason__drop
+msgid "Dropped"
+msgstr "Пусната"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__minutes_per_person
+msgid ""
+"Expected duration divided by the number of people in the crew (0 when the "
+"crew is empty)."
+msgstr ""
+"Очакваната продължителност, разделена на броя хора в екипа (0 при празен "
+"екип)."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__expires_at
+msgid "Expires At"
+msgstr "Изтича в"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch_line__result__failed
+msgid "Failed"
+msgstr "Неуспешно"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_split_signature
+msgid ""
+"Fingerprint of the shifts, crews and times of the last split of the time "
+"among the crew. While it does not change, the work order is not split again."
+msgstr ""
+"Отпечатък на смените, нарядите и времената при последното разделяне на "
+"времето между екипа. Докато не се промени, поръчката не се разделя отново."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "Finished Work Orders of the Day"
+msgstr "Приключени работни поръчки за деня"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_plan_select_view_form
+msgid "Gantt"
+msgstr "Гант"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter__crew_lane_count
+msgid ""
+"How many work orders the work center runs at the same time. A lane is a time"
+" band in which work orders follow each other without overlapping."
+msgstr ""
+"Колко работни поръчки центърът върти едновременно. Пистата е лента във "
+"времето, в която поръчките вървят една след друга, без да се застъпват."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_ir_websocket__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_plan_select__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard_partner__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_resource_calendar_leaves__id
+msgid "ID"
+msgstr "ID"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "Impossible to plan the work order %(wo)s."
+msgstr "Работната поръчка %(wo)s не може да се планира."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__deadline
+msgid ""
+"Informative date allowing to define when the manufacturing order should be "
+"processed at the latest to fulfill delivery on time."
+msgstr ""
+"Информативна дата, позволяваща да се определи кога производствената поръчка "
+"трябва да бъде обработена най-късно, за да се изпълни доставката навреме."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__params
+msgid "Input Data"
+msgstr "Входни данни"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__lane
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_lane
+msgid "Lane"
+msgstr "Писта"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_lane_lock.py:0
+msgid ""
+"Lane %(lane)s of %(wc)s is being moved by %(user)s. Try again in a minute."
+msgstr ""
+"Писта %(lane)s на %(wc)s се мести от %(user)s. Опитайте отново след минута."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_model.js:0
+msgid "Lane %s"
+msgstr "Писта %s"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid ""
+"Lane overflow: %(wo)s started on %(wc)s while every lane is busy with "
+"started work orders."
+msgstr ""
+"Препълване на пистите: %(wo)s е започната на %(wc)s, докато всички писти са "
+"заети от започнати работни поръчки."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter__crew_lane_count
+msgid "Lanes"
+msgstr "Писти"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__write_uid
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_plan_select__write_uid
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__write_uid
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__write_uid
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__write_uid
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard_partner__write_uid
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__write_uid
+msgid "Last Updated by"
+msgstr "Последно променено от"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__write_date
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_plan_select__write_date
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__write_date
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__write_date
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__write_date
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard_partner__write_date
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__write_date
+msgid "Last Updated on"
+msgstr "Последно променено на"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__is_late
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_wizard__scope__late
+msgid "Late"
+msgstr "Закъснява"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__date
+msgid ""
+"Local day (in the time zone of the work center's working schedule) on which "
+"the shift starts."
+msgstr ""
+"Местният ден (в часовата зона на работния график на центъра), в който "
+"започва смяната."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_date
+msgid ""
+"Local day of the shift in which the work order starts, in the time zone of "
+"the work center's working schedule. A night shift belongs to the day on "
+"which it starts."
+msgstr ""
+"Местният ден на смяната, в която започва работната поръчка, в часовата зона "
+"на работния график на центъра. Нощната смяна е на деня, в който започва."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_arch_parser.js:0
+msgid "Manual Reschedule"
+msgstr "Ръчно препланиране"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__production_id
+msgid "Manufacturing Order"
+msgstr "Производствена поръчка"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "Manufacturing Orders"
+msgstr "Производствени поръчки"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__production_snapshot
+msgid "Manufacturing Orders Before"
+msgstr "Производствени поръчки преди"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter__crew_max_stretch_hours
+msgid "Maximum Stretch (Hours)"
+msgstr "Максимално разтягане (часове)"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__message
+msgid "Message"
+msgstr "Съобщение"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__minutes_per_person
+msgid "Minutes per Person"
+msgstr "Минути на човек"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch_line__result__moved
+msgid "Moved"
+msgstr "Преместена"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch_line__reason__train
+msgid "Moved by the Train"
+msgstr "Преместена от влака"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__name
+msgid "Name"
+msgstr "Име"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__new_date_finished
+msgid "New End"
+msgstr "Нов край"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__new_duration_expected
+msgid "New Expected Duration"
+msgstr "Нова очаквана продължителност"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__new_lane
+msgid "New Lane"
+msgstr "Нова писта"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__new_date_start
+msgid "New Start"
+msgstr "Ново начало"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__new_workcenter_id
+msgid "New Work Center"
+msgstr "Нов работен център"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_lanes.py:0
+msgid "No available slot."
+msgstr "Няма свободен интервал."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "No crew roster for the shift"
+msgstr "Няма наряд за смяната"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "No free lane on %(wc)s at this time."
+msgstr "Няма свободна писта на %(wc)s в това време."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "No shift in the working schedule"
+msgstr "Няма смяна в работния график"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "No time to split"
+msgstr "Няма време за разделяне"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "None."
+msgstr "Няма."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__note
+msgid "Note"
+msgstr "Бележка"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_form
+msgid "Note..."
+msgstr "Бележка..."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_roster.py:0
+msgid ""
+"Nothing to copy: every shift of the day already has a crew roster or there "
+"is no earlier roster."
+msgstr ""
+"Няма какво да се копира: всяка смяна на деня вече има наряд или няма по-"
+"ранен наряд."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_renderer.js:0
+msgid "Now: %s"
+msgstr "Сега: %s"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__old_date_finished
+msgid "Old End"
+msgstr "Стар край"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__old_duration_expected
+msgid "Old Expected Duration"
+msgstr "Стара очаквана продължителност"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__old_lane
+msgid "Old Lane"
+msgstr "Стара писта"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__old_date_start
+msgid "Old Start"
+msgstr "Старо начало"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__old_workcenter_id
+msgid "Old Work Center"
+msgstr "Стар работен център"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid ""
+"Only the author of the replanning or a manufacturing manager can undo it."
+msgstr ""
+"Само авторът на препланирането или мениджър на производството може да го "
+"отмени."
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.view_mrp_production_workorder_filter_inherit_crew_roster
+msgid ""
+"Open work orders that end after the deadline of the manufacturing order, or "
+"whose deadline has passed"
+msgstr ""
+"Отворени работни поръчки, които свършват след срока на производствената "
+"поръчка или чийто срок е минал"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__sequence
+msgid "Order in which the work order was planned."
+msgstr "Редът, в който е планирана работната поръчка."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_time_original
+msgid "Original Time Log"
+msgstr "Първоначално отчетено време"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch_line__result__outside_period
+msgid "Outside the Period"
+msgstr "Извън периода"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_renderer.js:0
+msgid "Overlapping work orders in this lane"
+msgstr "Застъпващи се работни поръчки в тази писта"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__overload_message
+msgid "Overload"
+msgstr "Претоварване"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__is_overloaded
+msgid "Overloaded"
+msgstr "Претоварен"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_is_overstretched
+msgid "Overstretched"
+msgstr "Над максималното разтягане"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch__state__partial
+msgid "Partially Undone"
+msgstr "Частично отменена"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.view_mrp_production_workorder_filter_inherit_crew_roster
+msgid "Past Deadline"
+msgstr "След срока"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.actions.act_window,name:mrp_workcenter_crew_roster.mrp_workcenter_plan_select_action
+#: model:ir.actions.act_window,name:mrp_workcenter_crew_roster.mrp_workorder_crew_gantt_action
+#: model:ir.ui.menu,name:mrp_workcenter_crew_roster.menu_mrp_workcenter_plan_select
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_plan_select_view_form
+msgid "Plan Work Center"
+msgstr "Планирай център"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter.py:0
+msgid "Plan: %(wc)s"
+msgstr "План: %(wc)s"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_planned_finish
+msgid "Planned End at Start"
+msgstr "Планиран край при старта"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "Planned after the end of the period %(date)s."
+msgstr "Планирана след края на периода %(date)s."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch_line__reason__dependency
+msgid "Pushed as a Dependency"
+msgstr "Избутана като зависима"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch_line__reason__chain
+msgid "Pushed by the Chain"
+msgstr "Избутана от веригата"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_controller.xml:0
+#: model:ir.actions.act_window,name:mrp_workcenter_crew_roster.mrp_workcenter_replan_wizard_action
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch__source__wizard
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_wizard_view_form
+msgid "Rearrange Plan"
+msgstr "Пренареди плана"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__reason
+msgid "Reason"
+msgstr "Причина"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter__crew_responsible_id
+msgid ""
+"Receives an activity when a started work order of the work center runs past "
+"its planned end for longer than the maximum stretch, and the notes about "
+"dependent work orders that the train did not move."
+msgstr ""
+"Получава дейност, когато започната работна поръчка на центъра продължава "
+"след планирания си край повече от максималното разтягане, и бележките за "
+"зависимите работни поръчки, които влакът не е преместил."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_controller.xml:0
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch__source__recompute
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_form
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_list
+msgid "Recompute"
+msgstr "Преизчисли"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_batch_view_form
+msgid "Replan Batch"
+msgstr "Партида на препланирането"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_batch_view_list
+msgid "Replan Batches"
+msgstr "Партиди на препланирането"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_controller.xml:0
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_form
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_list
+msgid ""
+"Replan the not started work orders of the work center from today, apply the "
+"crew rosters and split again the time of the finished work orders of the day"
+msgstr ""
+"Препланира незапочнатите работни поръчки на центъра от днес, прилага "
+"нарядите и разделя отново времето на приключените работни поръчки за деня"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_partner_id
+msgid "Replanning Customer"
+msgstr "Клиент за препланирането"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__report_html
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_batch_view_form
+msgid "Report"
+msgstr "Отчет"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model,name:mrp_workcenter_crew_roster.model_resource_calendar_leaves
+msgid "Resource Time Off Detail"
+msgstr "Подробности за отсъствие на ресурс"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter__crew_responsible_id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__user_id
+msgid "Responsible"
+msgstr "Отговорник"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__result
+msgid "Result"
+msgstr "Резултат"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model,name:mrp_workcenter_crew_roster.model_mrp_workcenter_plan_select
+msgid "Select Work Center to Plan"
+msgstr "Избор на център за планиране"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_roster.py:0
+msgid "Select a work center first (Plan Work Center)."
+msgstr "Първо изберете работен център (Планирай център)."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_lane_lock.py:0
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "Select a work center."
+msgstr "Изберете работен център."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+#: code:addons/mrp_workcenter_crew_roster/wizard/mrp_workcenter_replan_wizard.py:0
+msgid "Select at least one work center to replan."
+msgstr "Изберете поне един работен център за препланиране."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__sequence
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard_partner__sequence
+msgid "Sequence"
+msgstr "Последователност"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__shift_key
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_search
+msgid "Shift"
+msgstr "Смяна"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__shift_stop
+msgid "Shift End"
+msgstr "Край на смяната"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__shift_hours
+msgid "Shift Hours"
+msgstr "Часове на смяната"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__shift_missing
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_search
+msgid "Shift Missing"
+msgstr "Смяната липсва"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__shift_start
+msgid "Shift Start"
+msgstr "Начало на смяната"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_roster.py:0
+msgid ""
+"Shifts cannot be derived from the working schedule of the work center "
+"%(wc)s: it is missing, flexible or duration based."
+msgstr ""
+"Смените не могат да се извлекат от работния график на центъра %(wc)s: "
+"липсва, гъвкав е или е по продължителност."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_train_refused_since
+msgid ""
+"Since when the train cannot move this work order because its new dates are "
+"refused; it stays in place until the cause is removed."
+msgstr ""
+"От кога влакът не може да премести тази поръчка, защото новите ѝ дати се "
+"отказват; тя стои на мястото си, докато причината не бъде премахната."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch_line__result__skipped
+msgid "Skipped"
+msgstr "Пропусната"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "Skipped: the manufacturing order is done"
+msgstr "Пропусната: производствената поръчка е приключена"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "Skipped: the time is already posted"
+msgstr "Пропусната: времето вече е осчетоводено"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__is_overloaded
+msgid ""
+"Somebody in the crew has more planned work on the day than the hours of "
+"their shifts."
+msgstr ""
+"Някой от екипа има повече планирана работа за деня от часовете на смените "
+"си."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__source
+msgid "Source"
+msgstr "Източник"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "Split among the crew"
+msgstr "Разделено между наряда"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__shift_key
+msgid ""
+"Start time of the shift in the working schedule of the work center, e.g. "
+"08:00. The shift is a continuous block of working hours; the lunch break "
+"does not split it."
+msgstr ""
+"Час на началото на смяната в работния график на центъра, напр. 08:00. "
+"Смяната е непрекъснат блок работни часове; обедната почивка не я разделя."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_shift_key
+msgid ""
+"Start time of the shift of the work center in which the work order starts, "
+"e.g. 08:00."
+msgstr ""
+"Час на началото на смяната на центъра, в която започва работната поръчка, "
+"напр. 08:00."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__state
+msgid "State"
+msgstr "Състояние"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_stretch_hours
+msgid "Stretch (Hours)"
+msgstr "Разтягане (часове)"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_stretch_alert_level
+msgid "Stretch Alert Level"
+msgstr "Ниво на тревогата за разтягане"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__tab
+msgid "Tab"
+msgstr "Раздел"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_roster.py:0
+msgid "The crew roster %(roster)s must have at least one employee."
+msgstr "Нарядът %(roster)s трябва да има поне един служител."
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.actions.act_window,help:mrp_workcenter_crew_roster.mrp_workcenter_roster_action
+msgid ""
+"The crew roster is the only source of the crew of the work orders of the "
+"work center for the shift."
+msgstr ""
+"Нарядът е единственият източник на екипа на работните поръчки на центъра за "
+"смяната."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__roster_id
+msgid ""
+"The crew roster of the work center for the day and shift of the work order."
+msgstr "Нарядът на центъра за деня и смяната на работната поръчка."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_partner_id
+msgid ""
+"The customer of the manufacturing order (from the sales order), used to "
+"order and filter the replanning."
+msgstr ""
+"Клиентът на производствената поръчка (от поръчката за продажба), по който се"
+" подрежда и филтрира препланирането."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__production_snapshot
+msgid "The dates of the affected manufacturing orders before the replanning."
+msgstr "Датите на засегнатите производствени поръчки преди препланирането."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "The end of the period is before its start."
+msgstr "Краят на периода е преди началото му."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__params
+msgid "The input data of the replanning."
+msgstr "Входните данни на препланирането."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_lane
+msgid ""
+"The lane of the work center in which the work order runs. Work orders in the"
+" same lane never overlap."
+msgstr ""
+"Пистата на работния център, в която върви работната поръчка. Поръчките в "
+"една писта никога не се застъпват."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "The moves of the train cannot be undone."
+msgstr "Ходовете на влака не могат да се отменят."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_names
+msgid "The names of the people in the crew of the work order."
+msgstr "Имената на хората от екипа на работната поръчка."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_lanes.py:0
+msgid "The number of lanes of %(wc)s must be between 1 and %(max)s."
+msgstr "Броят писти на %(wc)s трябва да е между 1 и %(max)s."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "The plan is too long to compute."
+msgstr "Планът е твърде дълъг за изчисляване."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_planned_finish
+msgid ""
+"The planned end of the work order when it was started; the stretch is "
+"counted from it."
+msgstr ""
+"Планираният край на работната поръчка в момента на старта; разтягането се "
+"брои от него."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_renderer.js:0
+msgid "The push would move a started work order; it cannot be dropped here."
+msgstr ""
+"Избутването би преместило започната работна поръчка; тук не може да се "
+"пусне."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "The push would move the started work order %(wo)s."
+msgstr "Избутването би преместило започнатата работна поръчка %(wo)s."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_is_overstretched
+msgid ""
+"The started work order runs past its planned end for longer than the maximum"
+" stretch of the work center."
+msgstr ""
+"Започнатата работна поръчка продължава след планирания си край повече от "
+"максималното разтягане на центъра."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_time_original
+msgid ""
+"The time log of the work order before the first split of the time among the "
+"crew (audit)."
+msgstr ""
+"Отчетеното време на поръчката преди първото разделяне между екипа (за одит)."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/resource_calendar_leaves.py:0
+msgid ""
+"The time off %(leave)s (%(start)s – %(stop)s) overlaps work orders that are "
+"not started: %(wos)s."
+msgstr ""
+"Отсъствието %(leave)s (%(start)s – %(stop)s) застъпва незапочнати работни "
+"поръчки: %(wos)s."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_lanes.py:0
+msgid ""
+"The train could not move %(wo)s (%(error)s). It stays at %(start)s until the"
+" cause is removed."
+msgstr ""
+"Влакът не можа да премести %(wo)s (%(error)s). Тя стои в %(start)s, докато "
+"причината не бъде премахната."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "The work center %(wc)s belongs to another company."
+msgstr "Работният център %(wc)s е на друга фирма."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "The work order %(after)s is not in lane %(lane)s of %(wc)s."
+msgstr "Работната поръчка %(after)s не е в писта %(lane)s на %(wc)s."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "The work order has started."
+msgstr "Работната поръчка е започната."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__is_late
+msgid ""
+"The work order is open and its planned end is after the deadline of the "
+"manufacturing order, or the deadline has passed."
+msgstr ""
+"Работната поръчка е отворена и планираният ѝ край е след срока на "
+"производствената поръчка или срокът е минал."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "The work order was moved after the replanning."
+msgstr "Работната поръчка е преместена след препланирането."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "The work order was planned after the replanning."
+msgstr "Работната поръчка е планирана след препланирането."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_roster.py:0
+msgid ""
+"The working schedule of the work center %(wc)s has no shift starting at "
+"%(key)s on %(date)s."
+msgstr ""
+"Работният график на центъра %(wc)s няма смяна, която започва в %(key)s на "
+"%(date)s."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__shift_missing
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_form
+msgid ""
+"The working schedule of the work center no longer has a shift starting at "
+"this time on this day."
+msgstr ""
+"Работният график на центъра вече няма смяна, която започва в този час в този"
+" ден."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.constraint,message:mrp_workcenter_crew_roster.constraint_mrp_workcenter_roster_unique_shift
+msgid "There is already a crew roster for this work center, day and shift."
+msgstr "Вече има наряд за този работен център, ден и смяна."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "There is no working schedule on the work center %(wc)s."
+msgstr "Работният център %(wc)s няма работен график."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder.py:0
+msgid "This employee has no shift in this period. Work hours:"
+msgstr "Служителят няма смяна в този период. Работни часове:"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+msgid "This replanning is already undone."
+msgstr "Това препланиране вече е отменено."
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_search
+msgid "Today"
+msgstr "Днес"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch__source__train
+msgid "Train"
+msgstr "Влак"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_train_refused_since
+msgid "Train Refused Since"
+msgstr "Отказ на влака от"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch_line__result__unchanged
+msgid "Unchanged"
+msgstr "Без промяна"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_undo.js:0
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_batch_view_form
+msgid "Undo"
+msgstr "Отмени"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch__state__undone
+msgid "Undone"
+msgstr "Отменена"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__user_id
+msgid "User"
+msgstr "Потребител"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model,name:mrp_workcenter_crew_roster.model_mrp_workcenter
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__workcenter_id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__workcenter_id
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_roster_view_search
+msgid "Work Center"
+msgstr "Работен център"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model,name:mrp_workcenter_crew_roster.model_mrp_workcenter_roster
+msgid "Work Center Crew Roster"
+msgstr "Наряд по работен център"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model,name:mrp_workcenter_crew_roster.model_mrp_workcenter_lane_lock
+msgid "Work Center Lane Lock"
+msgstr "Ключалка на писта на работен център"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model,name:mrp_workcenter_crew_roster.model_mrp_workcenter_replan_batch
+msgid "Work Center Replan Batch"
+msgstr "Партида на препланирането на центрове"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model,name:mrp_workcenter_crew_roster.model_mrp_workcenter_replan_batch_line
+msgid "Work Center Replan Batch Line"
+msgstr "Ред от партидата на препланирането"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__workcenter_ids
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__workcenter_ids
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_plan_select__workcenter_ids
+msgid "Work Centers"
+msgstr "Работни центрове"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_replan_batch.py:0
+#: model:ir.model,name:mrp_workcenter_crew_roster.model_mrp_workorder
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_lane_lock__workorder_id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__workorder_id
+msgid "Work Order"
+msgstr "Работна поръчка"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__line_ids
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_batch_view_form
+msgid "Work Orders"
+msgstr "Работни поръчки"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.actions.act_window,name:mrp_workcenter_crew_roster.mrp_workorder_crew_gantt_employee_action
+#: model:ir.ui.menu,name:mrp_workcenter_crew_roster.menu_mrp_workorder_crew_gantt_employee
+msgid "Work Orders by Employee"
+msgstr "Работни поръчки по служител"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid ""
+"Work order %(wo)s is in lane %(lane)s, but %(wc)s has %(count)s lane(s)."
+msgstr ""
+"Работната поръчка %(wo)s е в писта %(lane)s, а %(wc)s има %(count)s "
+"писта(и)."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid ""
+"Work order %(wo)s would overlap %(other)s in lane %(lane)s of %(wc)s "
+"(%(start)s – %(stop)s). Two work orders in the same lane never overlap."
+msgstr ""
+"Работната поръчка %(wo)s би застъпила %(other)s в писта %(lane)s на %(wc)s "
+"(%(start)s – %(stop)s). Две работни поръчки в една писта никога не се "
+"застъпват."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_renderer.js:0
+msgid "Work order moved."
+msgstr "Работната поръчка е преместена."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__calendar_id
+msgid "Working Schedule"
+msgstr "Работен график"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__shift_hours
+msgid "Working hours of the shift without the breaks."
+msgstr "Работните часове на смяната без почивките."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_stretch_hours
+msgid ""
+"Working hours the started work order runs past its planned end at start."
+msgstr ""
+"Работните часове, с които започнатата работна поръчка продължава след "
+"планирания си край при старта."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_renderer.js:0
+msgid "a work order"
+msgstr "работна поръчка"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model,name:mrp_workcenter_crew_roster.model_ir_websocket
+msgid "websocket message handling"
+msgstr "обработка на съобщенията през websocket"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch__source__write
+msgid "Direct Edit"
+msgstr "Пряка редакция"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_batch_line__reason__write
+msgid "Edited Directly"
+msgstr "Редактирана пряко"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch_line__reason
+msgid ""
+"Why the work order moved: dropped by hand, pushed by the work order before "
+"it in the lane, pushed as a dependent operation, moved by the train of time,"
+" or edited directly outside the work center planning."
+msgstr ""
+"Защо работната поръчка е преместена: пусната ръчно, избутана от поръчката "
+"преди нея в пистата, избутана като зависима операция, преместена от влака на"
+" времето или редактирана пряко извън планирането по центрове."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "%(wo)s cannot start before %(date)s; it starts there."
+msgstr "%(wo)s не може да започне преди %(date)s; започва тогава."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid "Moving %(wo)s was refused: %(reason)s"
+msgstr "Преместването на %(wo)s е отказано: %(reason)s"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workorder_lanes.py:0
+msgid ""
+"%(succ)s now starts before %(pred)s ends. They are linked on different work "
+"centers; neither is moved and both are highlighted until the dates are "
+"fixed."
+msgstr ""
+"%(succ)s вече започва преди края на %(pred)s. Свързани са на различни "
+"работни центрове; никоя не се мести и двете са отбелязани, докато датите не "
+"се оправят."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_dep_conflict
+msgid "Dependency Conflict"
+msgstr "Конфликт по зависимост"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_dep_conflict
+msgid ""
+"The work order starts before a work order it depends on ends, or ends after "
+"a work order that depends on it starts. Both work orders are highlighted in "
+"the planning until the dates are fixed."
+msgstr ""
+"Работната поръчка започва преди края на поръчка, от която зависи, или "
+"свършва след началото на поръчка, която зависи от нея. Двете поръчки са "
+"отбелязани в планирането, докато датите не се оправят."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__use_alternatives
+msgid ""
+"Allow moving a work order to one of its alternative work centers. The "
+"alternative work centers must be among the selected ones."
+msgstr ""
+"Позволява поръчката да се премести на някой от алтернативните ѝ работни "
+"центрове. Алтернативните центрове трябва да са сред избраните."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__crew_can_undo
+msgid "Can Undo"
+msgstr "Може да се отмени"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_wizard__priority_key__create_date
+msgid "Creation Date"
+msgstr "Дата на създаване"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard_partner__partner_id
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_wizard__priority_key__partner
+msgid "Customer"
+msgstr "Клиент"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__partner_line_ids
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_wizard_view_form
+msgid "Customer Order"
+msgstr "Ред на клиентите"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__date_from
+msgid "From"
+msgstr "От"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_wizard__priority_key__mo_priority
+msgid "Manufacturing Order Priority"
+msgstr "Приоритет на производствената поръчка"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields.selection,name:mrp_workcenter_crew_roster.selection__mrp_workcenter_replan_wizard__scope__not_started
+msgid "Not Started"
+msgstr "Незапочнати"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__scope
+msgid ""
+"Not Started: all work orders that have not started yet. Late: only the not "
+"started work orders that are late. Started work orders are never moved."
+msgstr ""
+"Незапочнати: всички поръчки, които още не са започнати. Закъснява: само "
+"незапочнатите поръчки, които закъсняват. Започнатите поръчки никога не се "
+"местят."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__partner_filter_ids
+msgid "Only Customers"
+msgstr "Само клиентите"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_wizard_view_form
+msgid "Options"
+msgstr "Настройки"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_wizard_view_form
+msgid "Order"
+msgstr "Подредба"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__priority_key
+msgid "Order By"
+msgstr "Подреди по"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__respect_roster
+msgid ""
+"Plan only in the shifts that have a crew roster. A work center without any "
+"crew roster in the period stays open."
+msgstr ""
+"Планира само в смените, които имат наряд. Работен център без нито един наряд"
+" в периода остава отворен."
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_wizard_view_form
+msgid "Rearrange"
+msgstr "Пренареди"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model,name:mrp_workcenter_crew_roster.model_mrp_workcenter_replan_wizard
+msgid "Rearrange Work Center Plan"
+msgstr "Пренареждане на плана на работните центрове"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model,name:mrp_workcenter_crew_roster.model_mrp_workcenter_replan_wizard_partner
+msgid "Rearrange Work Center Plan: Customer Order"
+msgstr "Пренареждане на плана: ред на клиентите"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_wizard_view_form
+msgid ""
+"Rearrange the not started work orders of the selected work centers? You can "
+"undo it from the report."
+msgstr ""
+"Да се пренаредят ли незапочнатите поръчки на избраните работни центрове? "
+"Можете да го отмените от отчета."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__partner_filter_ids
+msgid ""
+"Replan only the work orders of these customers. Empty means all customers."
+msgstr ""
+"Препланира само поръчките на тези клиенти. Празно означава всички клиенти."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__respect_roster
+msgid "Respect Crew Rosters"
+msgstr "Спазвай нарядите"
+
+#. module: mrp_workcenter_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_batch_view_form
+msgid "Return the work orders to their places before this replanning?"
+msgstr "Да се върнат ли поръчките на местата им отпреди това препланиране?"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__scope
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_replan_wizard_view_form
+msgid "Scope"
+msgstr "Обхват"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/wizard/mrp_workcenter_replan_wizard.py:0
+msgid "Select work centers of one company."
+msgstr "Изберете работни центрове на една фирма."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_batch__crew_can_undo
+msgid ""
+"The current user can undo this replanning: it is applied, it is not a move "
+"of the train, the user is its author or a manufacturing manager and it moved"
+" at least one work order."
+msgstr ""
+"Текущият потребител може да отмени това препланиране: то е приложено, не е "
+"ход на влака, потребителят е авторът му или мениджър на производството и то "
+"е преместило поне една поръчка."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__partner_line_ids
+msgid ""
+"The customers in the order of their priority. Customers not in the list come"
+" after them, work orders without a customer come last."
+msgstr ""
+"Клиентите по реда на приоритета им. Клиентите извън списъка са след тях, "
+"поръчките без клиент са последни."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__date_from
+msgid ""
+"The first day of the period. It cannot be before today. Not started work "
+"orders planned between now and this day keep their places."
+msgstr ""
+"Първият ден на периода. Не може да е преди днес. Незапочнатите поръчки, "
+"планирани между сега и този ден, остават на местата си."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__date_to
+msgid "The last day of the period (included)."
+msgstr "Последният ден на периода (включително)."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__priority_key
+msgid ""
+"The order in which the work orders get their new places. A work order always"
+" comes after the work orders it depends on."
+msgstr ""
+"Редът, в който поръчките получават новите си места. Поръчката винаги е след "
+"поръчките, от които зависи."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/wizard/mrp_workcenter_replan_wizard.py:0
+msgid "The period cannot start before today."
+msgstr "Периодът не може да започва преди днес."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__workcenter_ids
+msgid "The work centers whose not started work orders are replanned."
+msgstr "Работните центрове, чиито незапочнати поръчки се препланират."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__date_to
+msgid "To"
+msgstr "До"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard__use_alternatives
+msgid "Use Alternative Work Centers"
+msgstr "Ползвай алтернативните центрове"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_replan_wizard_partner__wizard_id
+msgid "Wizard"
+msgstr "Съветник"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_controller.js:0
+msgid "Plan rearranged."
+msgstr "Планът е пренареден."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_controller.js:0
+msgid "Plan recomputed."
+msgstr "Планът е преизчислен."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_controller.xml:0
+msgid ""
+"Rearrange the not started work orders of the selected work centers in a "
+"period, by deadline, priority or customer"
+msgstr ""
+"Пренарежда незапочнатите поръчки на избраните работни центрове в период по "
+"срок, приоритет или клиент"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_undo.js:0
+msgid "Some work orders could not be returned; see the report."
+msgstr "Някои поръчки не можаха да се върнат; вижте отчета."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_plan_select__crew_expanded_ids
+msgid "Expanded Work Centers"
+msgstr "Разгънати работни центрове"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_plan_select__workcenter_ids
+msgid ""
+"The work centers to plan. A selected work center adds its alternative work "
+"centers, so that all of them are shown at once."
+msgstr ""
+"Работните центрове за планиране. Избран център добавя алтернативните си "
+"центрове, за да се виждат всички наведнъж."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_controller.xml:0
+msgid "Hide Non-Working Time"
+msgstr "Скрий неработното време"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_res_users__crew_gantt_show_off_time
+msgid ""
+"In the Plan Work Center Gantt, show the nights, breaks, weekends and "
+"holidays of the work centers instead of hiding them."
+msgstr ""
+"В Ганта „Планирай център“ показва нощите, почивките, уикендите и празниците "
+"на центровете, вместо да ги скрива."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_controller.xml:0
+msgid "Show Non-Working Time"
+msgstr "Покажи неработното време"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_res_users__crew_gantt_show_off_time
+msgid "Show non-working time in planning"
+msgstr "Неработното време в планирането"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/static/src/crew_gantt/crew_gantt_controller.xml:0
+msgid ""
+"Show or hide the nights, breaks, weekends and holidays of the work centers; "
+"your choice is remembered"
+msgstr ""
+"Показва или скрива нощите, почивките, уикендите и празниците на центровете; "
+"изборът ви се запомня"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__date_to
+msgid "Until"
+msgstr "До"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__date_to
+msgid "Fill to book the same crew for a period: a crew roster is made for every working day of the work center with the same shift, up to this date. Days that already have a crew roster for the shift are left as they are."
+msgstr "Попълнете, за да запишете същата бригада за период: прави се наряд за всеки работен ден на центъра със същата смяна до тази дата. Дните, които вече имат наряд за смяната, остават както са."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter_roster__allowed_employee_ids
+msgid "Allowed Employees"
+msgstr "Позволени служители"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_hr_employee__crew_roster_count
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter__crew_roster_count
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.hr_employee_view_form_inherit_crew_roster
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster.mrp_workcenter_view_inherit_crew_roster
+msgid "Crew Rosters"
+msgstr "Наряди"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_roster.py:0
+msgid "A crew roster period can be at most three months long."
+msgstr "Периодът на наряда може да е най-много три месеца."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter.py:0
+msgid "different crews"
+msgstr "различни бригади"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_routing_workcenter__crew_share
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_share
+msgid "Crew Share (%)"
+msgstr "Дял на бригадата (%)"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_no_crew
+msgid "No Crew"
+msgstr "Без бригада"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_person_minutes.py:0
+msgid "No crew"
+msgstr "Без бригада"
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter_person_minutes.py:0
+msgid "The crew share must be between 0% and 100%."
+msgstr "Делът на бригадата трябва да е между 0% и 100%."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_no_crew
+msgid ""
+"The crew shortens this work order, but its work center has no crew for the "
+"day: it is planned with its full duration."
+msgstr ""
+"Бригадата скъсява тази поръчка, но центърът ѝ няма наряд за деня: поръчката "
+"е планирана с пълната си продължителност."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_routing_workcenter__crew_share
+msgid ""
+"The part of the expected duration that the crew of the day divides: with "
+"100% two people finish in half the time, with 0% the crew does not shorten "
+"it (a machine). The duration stays in person-minutes for the load and the "
+"cost."
+msgstr ""
+"Частта от очакваната продължителност, която бригадата за деня дели: при 100%"
+" двама души свършват за половината време, при 0% бригадата не я скъсява "
+"(машина). Продължителността остава в човеко-минути за натоварването и "
+"себестойността."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_share
+msgid ""
+"The part of the expected duration that the crew of the day divides; taken "
+"from the operation."
+msgstr ""
+"Частта от очакваната продължителност, която бригадата за деня дели; взима се"
+" от операцията."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model,name:mrp_workcenter_crew_roster.model_mrp_routing_workcenter
+msgid "Work Center Usage"
+msgstr "Използване на работен център"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workcenter__crew_snap_head
+msgid "Attach to the Train"
+msgstr "Залепване за влака"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_center_durations
+msgid "Duration per Work Center"
+msgstr "Продължителност по работен център"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workcenter__crew_snap_head
+msgid ""
+"When a work order of the work center is moved, the first work order that has"
+" not started in the lane is pulled back to the train (now, or the end of the"
+" started work order before it), so the train can push the work orders behind"
+" it."
+msgstr ""
+"При преместване на работна поръчка на центъра първата незапочната поръчка в "
+"пистата се връща при влака (сега или краят на започнатата поръчка пред нея),"
+" за да може влакът да бута поръчките след нея."
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_center_durations
+msgid ""
+"Expected duration in minutes on the work center of the work order and on "
+"each of its alternatives, as the drop computes it."
+msgstr ""
+"Очакваната продължителност в минути на центъра на работната поръчка и на "
+"всяка от алтернативите му, както я смята пускането."
+
+#. module: mrp_workcenter_crew_roster
+#: code:addons/mrp_workcenter_crew_roster/models/mrp_workcenter.py:0
+#: model:ir.actions.server,name:mrp_workcenter_crew_roster.action_crew_plan_long_term
+#: model:ir.ui.menu,name:mrp_workcenter_crew_roster.menu_mrp_workcenter_plan_long_term
+msgid "Long-Term Planning"
+msgstr "Дългосрочно планиране"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_gantt_stop
+msgid "End in the Plan"
+msgstr "Край в плана"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_is_unplanned
+msgid "Not Planned"
+msgstr "Непланирана"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster.field_mrp_workorder__crew_gantt_start
+msgid "Start in the Plan"
+msgstr "Начало в плана"
+
+#. module: mrp_workcenter_crew_roster
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster.field_mrp_workorder__crew_gantt_start
+msgid ""
+"The start of the work order, or the start of its manufacturing order while "
+"it is not planned."
+msgstr ""
+"Началото на работната поръчка или, докато не е планирана — началото на "
+"производствената ѝ поръчка."

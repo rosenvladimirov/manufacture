@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_workcenter_roster_view_list_crew" model="ir.ui.view">
+        <field name="name">mrp.workcenter.roster.list.crew</field>
+        <field name="model">mrp.workcenter.roster</field>
+        <field name="inherit_id" ref="mrp_workcenter_crew_roster.mrp_workcenter_roster_view_list"/>
+        <field name="arch" type="xml">
+            <field name="shift_key" position="after">
+                <field name="crew_id" optional="show"/>
+                <field name="crew_manual" optional="hide"/>
+            </field>
+        </field>
+    </record>
+
+    <record id="mrp_workcenter_roster_view_form_crew" model="ir.ui.view">
+        <field name="name">mrp.workcenter.roster.form.crew</field>
+        <field name="model">mrp.workcenter.roster</field>
+        <field name="inherit_id" ref="mrp_workcenter_crew_roster.mrp_workcenter_roster_view_form"/>
+        <field name="arch" type="xml">
+            <field name="calendar_id" position="after">
+                <field name="crew_id" invisible="not crew_id"/>
+                <field name="crew_rotation_id" invisible="not crew_rotation_id"/>
+                <field name="crew_manual" invisible="not crew_rotation_id"/>
+            </field>
+        </field>
+    </record>
+</odoo>

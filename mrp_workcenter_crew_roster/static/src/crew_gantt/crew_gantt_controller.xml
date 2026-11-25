@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- Бутоните на Ганта „Планирай център“: „Recompute“ само при избран
+         център (crew_workcenter_id в контекста); „Rearrange Plan“ (съветникът,
+         фаза 2) винаги — центърът се избира в съветника. -->
+    <t t-name="mrp_workcenter_crew_roster.CrewGanttView.Buttons" t-inherit="web_gantt.GanttView.Buttons">
+        <xpath expr="." position="inside">
+            <button t-if="crewWorkcenterId"
+                class="o_crew_gantt_button_recompute btn btn-secondary"
+                title="Replan the not started work orders of the work center from today, apply the crew rosters and split again the time of the finished work orders of the day"
+                t-on-click="() => this.onClickCrewRecompute()"
+            >
+                Recompute
+            </button>
+            <button t-if="model.crewActive"
+                class="o_crew_gantt_button_off_time btn btn-secondary"
+                t-att-class="{ active: model.crewShowOffTime }"
+                title="Show or hide the nights, breaks, weekends and holidays of the work centers; your choice is remembered"
+                t-on-click="() => this.onClickCrewOffTime()"
+            >
+                <t t-if="model.crewShowOffTime">Hide Non-Working Time</t>
+                <t t-else="">Show Non-Working Time</t>
+            </button>
+            <button class="o_crew_gantt_button_replan btn btn-secondary"
+                title="Rearrange the not started work orders of the selected work centers in a period, by deadline, priority or customer"
+                t-on-click="() => this.onClickCrewReplan()"
+            >
+                Rearrange Plan
+            </button>
+        </xpath>
+    </t>
+
+</templates>

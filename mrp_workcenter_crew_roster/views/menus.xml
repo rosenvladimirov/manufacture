@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Производство → Планиране (TECH_DESIGN §4). Всички менюта минават през
+         избора на център, освен прегледа по служител; без default_* в
+         контекстите (Ф3). Пълен списък на нарядите по всички центрове няма (№5). -->
+    <menuitem id="menu_mrp_workcenter_plan_select"
+              name="Plan Work Center"
+              parent="mrp.mrp_planning_menu_root"
+              action="mrp_workcenter_plan_select_action"
+              groups="mrp.group_mrp_user"
+              sequence="50"/>
+    <!-- Дългосрочното планиране (Росен 14.10.2026): всички центрове, без
+         избора на център; краткосрочното („Plan Work Center“) показва само
+         планираните МО. -->
+    <record id="action_crew_plan_long_term" model="ir.actions.server">
+        <field name="name">Long-Term Planning</field>
+        <field name="model_id" ref="mrp.model_mrp_workcenter"/>
+        <field name="groups_id" eval="[Command.link(ref('mrp.group_mrp_user'))]"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_crew_plan_long_term()</field>
+    </record>
+    <menuitem id="menu_mrp_workcenter_plan_long_term"
+              name="Long-Term Planning"
+              parent="mrp.mrp_planning_menu_root"
+              action="action_crew_plan_long_term"
+              groups="mrp.group_mrp_user"
+              sequence="50"/>
+    <menuitem id="menu_mrp_workcenter_roster"
+              name="Crew Roster"
+              parent="mrp.mrp_planning_menu_root"
+              action="mrp_workcenter_plan_select_roster_action"
+              groups="mrp.group_mrp_user"
+              sequence="51"/>
+    <menuitem id="menu_mrp_workorder_crew_gantt_employee"
+              name="Work Orders by Employee"
+              parent="mrp.mrp_planning_menu_root"
+              action="mrp_workorder_crew_gantt_employee_action"
+              groups="mrp.group_mrp_user"
+              sequence="52"/>
+</odoo>

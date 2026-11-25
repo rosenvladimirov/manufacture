@@ -1,0 +1,11 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_planning_crew_rotation_user,planning.crew.rotation user,model_planning_crew_rotation,planning.group_planning_user,1,0,0,0
+access_planning_crew_rotation_manager,planning.crew.rotation manager,model_planning_crew_rotation,planning.group_planning_manager,1,1,1,1
+access_planning_crew_rotation_line_user,planning.crew.rotation.line user,model_planning_crew_rotation_line,planning.group_planning_user,1,0,0,0
+access_planning_crew_rotation_line_manager,planning.crew.rotation.line manager,model_planning_crew_rotation_line,planning.group_planning_manager,1,1,1,1
+access_planning_crew_user,planning.crew user,model_planning_crew,planning.group_planning_user,1,0,0,0
+access_planning_crew_manager,planning.crew manager,model_planning_crew,planning.group_planning_manager,1,1,1,1
+access_planning_crew_hr_user,planning.crew hr user,model_planning_crew,hr.group_hr_user,1,0,0,0
+access_planning_crew_membership_planning,planning.crew.membership planning,model_planning_crew_membership,planning.group_planning_manager,1,0,0,0
+access_planning_crew_membership_hr,planning.crew.membership hr,model_planning_crew_membership,hr.group_hr_user,1,1,1,1
+access_planning_crew_rotation_generate,planning.crew.rotation.generate,model_planning_crew_rotation_generate,planning.group_planning_manager,1,1,1,1

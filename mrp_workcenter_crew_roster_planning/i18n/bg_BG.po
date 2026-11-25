@@ -1,0 +1,418 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* mrp_workcenter_crew_roster_planning
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 19.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-14 17:20+0000\n"
+"PO-Revision-Date: 2026-10-14 17:20+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: bg_BG\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_mrp_workcenter_roster__crew_manual
+msgid "Changed by Hand"
+msgstr "Променен ръчно"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_mrp_workcenter_roster__crew_id
+msgid "Crew"
+msgstr "Бригада"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model,name:mrp_workcenter_crew_roster_planning.model_planning_crew_rotation
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_mrp_workcenter__crew_rotation_id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_mrp_workcenter_roster__crew_rotation_id
+msgid "Crew Rotation"
+msgstr "Ротация на бригади"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_mrp_workcenter__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_mrp_workcenter_roster__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_planning_crew_rotation__display_name
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_planning_crew_rotation_generate__display_name
+msgid "Display Name"
+msgstr "Име за показване"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model,name:mrp_workcenter_crew_roster_planning.model_planning_crew_rotation_generate
+msgid "Generate Crew Shifts"
+msgstr "Генериране на смените на бригадите"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_mrp_workcenter__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_mrp_workcenter_roster__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_planning_crew_rotation__id
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_planning_crew_rotation_generate__id
+msgid "ID"
+msgstr "ID"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_planning_crew_rotation_generate__count_rosters_manual
+msgid "Rosters Kept"
+msgstr "Запазени наряди"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster_planning.field_planning_crew_rotation_generate__count_rosters_manual
+msgid ""
+"Rosters changed by hand or made without the rotation; they are left as they "
+"are."
+msgstr ""
+"Наряди, променени ръчно или направени без ротацията; остават, както са."
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_planning_crew_rotation_generate__count_rosters_created
+msgid "Rosters to Create"
+msgstr "Наряди за създаване"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_planning_crew_rotation_generate__count_rosters_deleted
+msgid "Rosters to Delete"
+msgstr "Наряди за изтриване"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_planning_crew_rotation_generate__count_rosters_updated
+msgid "Rosters to Update"
+msgstr "Наряди за обновяване"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster_planning.field_mrp_workcenter_roster__crew_manual
+msgid ""
+"The crew of this roster was changed by hand after the crew rotation filled "
+"it; generating the shifts again does not touch it."
+msgstr ""
+"Екипът на наряда е променен ръчно, след като ротацията го е попълнила; "
+"повторното генериране на смените не го пипа."
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster_planning.field_mrp_workcenter__crew_rotation_id
+msgid ""
+"The work center works the shifts of this crew rotation: its working schedule"
+" becomes the schedule of the rotation and the crew on shift fills its roster"
+" when the shifts are generated."
+msgstr ""
+"Центърът работи по смените на тази ротация: работното му време става "
+"графикът на ротацията, а бригадата на смяна попълва наряда му при генериране"
+" на смените."
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model,name:mrp_workcenter_crew_roster_planning.model_mrp_workcenter
+msgid "Work Center"
+msgstr "Работен център"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model,name:mrp_workcenter_crew_roster_planning.model_mrp_workcenter_roster
+msgid "Work Center Crew Roster"
+msgstr "Наряд на работен център"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_planning_crew_rotation__workcenter_ids
+#: model_terms:ir.ui.view,arch_db:mrp_workcenter_crew_roster_planning.planning_crew_rotation_view_form_workcenters
+msgid "Work Centers"
+msgstr "Работни центрове"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster_planning.field_planning_crew_rotation__workcenter_ids
+msgid "Work centers that work the shifts of this rotation."
+msgstr "Работните центрове, които работят по смените на тази ротация."
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "%s will leave all work orders. Continue?"
+msgstr "%s ще напусне всички поръчки. Продължаване?"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Associate the people in the list to the shift of %s?"
+msgstr "Да асоциирам ли хората в списъка към смяната на %s?"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+msgid "Cancel"
+msgstr "Отказ"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+msgid "Choose a Crew"
+msgstr "Изберете бригада"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,field_description:mrp_workcenter_crew_roster_planning.field_planning_crew__leader_id
+msgid "Crew Leader"
+msgstr "Бригадир"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Leave All Work Orders?"
+msgstr "Да напусне ли всички поръчки?"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster_planning.field_planning_crew__leader_id
+msgid "Loads the crew in the Shop Floor with their PIN."
+msgstr "Зарежда бригадата в Shop Floor със своя ПИН."
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "No"
+msgstr "Не"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+msgid "No crews in an approved rotation."
+msgstr "Няма бригади в утвърдена ротация."
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.xml:0
+msgid "People"
+msgstr "Човеци"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Shift"
+msgstr "Смяна"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Shift loaded: %s"
+msgstr "Смяната е заредена: %s"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.xml:0
+msgid "Shift/Crew"
+msgstr "Смяна/Бригада"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "The crew %s has no crew leader."
+msgstr "Бригада %s няма бригадир."
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "The crew cannot be loaded."
+msgstr "Бригадата не може да се зареди."
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Wrong password!"
+msgstr "Грешна парола!"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Yes"
+msgstr "Да"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model,name:mrp_workcenter_crew_roster_planning.model_hr_employee
+msgid "Employee"
+msgstr "Служител"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model,name:mrp_workcenter_crew_roster_planning.model_mrp_workorder
+msgid "Work Order"
+msgstr "Работна поръчка"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.xml:0
+msgid "Crew leader"
+msgstr "Бригадир"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Crew leader of %(crew)s: %(name)s"
+msgstr "Бригадир на %(crew)s: %(name)s"
+
+#. module: mrp_workcenter_crew_roster_planning
+#: model:ir.model.fields,help:mrp_workcenter_crew_roster_planning.field_planning_crew__leader_id
+msgid "Adds the crew to the shift in the Shop Floor with their PIN."
+msgstr "Добавя бригадата към смяната в Shop Floor със своя ПИН."
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Crew on shift: %s"
+msgstr "На смяна: %s"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+msgid "Done"
+msgstr "Готово"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.xml:0
+msgid "Edit Crews"
+msgstr "Редактиране на бригади"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+msgid "Everyone"
+msgstr "Всички"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.xml:0
+msgid "Kick Out"
+msgstr "Изритай"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Kick Out of the Work Orders"
+msgstr "Изритване от поръчките"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Kick everyone out of the work orders?"
+msgstr "Да изритам ли всички от поръчките?"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.xml:0
+msgid "No crews on shift"
+msgstr "Няма бригади на смяна"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Stopped working: %s"
+msgstr "Спряха работа: %s"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+msgid "The Selected"
+msgstr "Избраните"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+msgid "The Selected:"
+msgstr "Избраните:"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "The crew cannot be added."
+msgstr "Бригадата не може да се добави."
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+msgid "Who stops working on the work orders? They stay in the list."
+msgstr "Кой спира работа по поръчките? Остават в списъка."
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+msgid "+ Group"
+msgstr "+ Група"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+msgid "Crew leader:"
+msgstr "Бригадир:"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Crew leader: %s"
+msgstr "Бригадир: %s"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.xml:0
+msgid "Edit Groups"
+msgstr "Редактиране на групи"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-python
+#: code:addons/mrp_workcenter_crew_roster_planning/models/shop_floor_shift.py:0
+msgid "Group %s"
+msgstr "Група %s"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.xml:0
+msgid "Groups"
+msgstr "Групи"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Groups: %s"
+msgstr "Групи: %s"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.xml:0
+msgid "No groups yet"
+msgstr "Още няма групи"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+msgid "No people in the list."
+msgstr "Няма хора в списъка."
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "The groups cannot be saved."
+msgstr "Групите не могат да се запишат."
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "There is no crew leader to divide the groups."
+msgstr "Няма бригадир, който да раздели групите."
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/crew_shift_dialog.xml:0
+msgid "Clear Groups"
+msgstr "Изчисти групите"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Remove Group"
+msgstr "Махане на група"
+
+#. module: mrp_workcenter_crew_roster_planning
+#. odoo-javascript
+#: code:addons/mrp_workcenter_crew_roster_planning/static/src/shop_floor/employees_panel_patch.js:0
+msgid "Remove %s? Its people stay in the list without a group."
+msgstr "Да се махне ли %s? Хората ѝ остават в списъка без група."

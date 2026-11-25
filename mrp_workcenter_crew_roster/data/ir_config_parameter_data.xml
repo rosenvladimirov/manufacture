@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- Праг на празнината между два работни реда в часове: до него
+             редовете са една смяна, над него — две (Т1, M1). -->
+        <record id="param_shift_gap_hours" model="ir.config_parameter">
+            <field name="key">mrp_workcenter_crew_roster.shift_gap_hours</field>
+            <field name="value">1.0</field>
+        </record>
+        <!-- Капацитет на човек в часове, когато няма нито наряд, нито
+             календар на центъра (M11; ползва се от стъпка 3 нататък). -->
+        <record id="param_default_capacity_hours" model="ir.config_parameter">
+            <field name="key">mrp_workcenter_crew_roster.default_capacity_hours</field>
+            <field name="value">8</field>
+        </record>
+        <!-- Стъпката на влака в минути (M18): T е „сега“, закръглено
+             надолу до нея — повторен пуск в същия интервал не мести нищо. -->
+        <record id="param_train_tick_minutes" model="ir.config_parameter">
+            <field name="key">mrp_workcenter_crew_roster.train_tick_minutes</field>
+            <field name="value">60</field>
+        </record>
+        <!-- Изтичането на ключалката на пистата в секунди от последния
+             сигнал (Р38, M20). -->
+        <record id="param_lane_lock_seconds" model="ir.config_parameter">
+            <field name="key">mrp_workcenter_crew_roster.lane_lock_seconds</field>
+            <field name="value">60</field>
+        </record>
+    </data>
+</odoo>

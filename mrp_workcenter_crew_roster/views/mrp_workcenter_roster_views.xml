@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Нарядът: списък. Центърът идва от контекста crew_workcenter_id
+         (избор през „Plan Work Center“, Р12) и тогава е само за четене. -->
+    <record id="mrp_workcenter_roster_view_list" model="ir.ui.view">
+        <field name="name">mrp.workcenter.roster.list</field>
+        <field name="model">mrp.workcenter.roster</field>
+        <field name="arch" type="xml">
+            <list string="Crew Roster" editable="top" decoration-warning="shift_missing">
+                <header>
+                    <button name="action_copy_from_yesterday" type="object"
+                            string="Copy from Yesterday" display="always"/>
+                    <button name="action_crew_recompute" type="object"
+                            string="Recompute" display="always"
+                            help="Replan the not started work orders of the work center from today, apply the crew rosters and split again the time of the finished work orders of the day"/>
+                </header>
+                <field name="date"/>
+                <!-- №146: „До“ разгръща реда за период. -->
+                <field name="date_to" optional="show"/>
+                <field name="workcenter_id" readonly="context.get('crew_workcenter_id')"
+                       options="{'no_create': True}"/>
+                <field name="shift_key"/>
+                <field name="shift_start" optional="hide"/>
+                <field name="shift_stop" optional="hide"/>
+                <field name="shift_hours" widget="float_time" optional="show"/>
+                <!-- №146: изборът — хората на центъра (ако е зададен). -->
+                <field name="allowed_employee_ids" column_invisible="True"/>
+                <field name="employee_ids" widget="many2many_tags"
+                       options="{'no_create': True}"
+                       domain="allowed_employee_ids and [('id', 'in', allowed_employee_ids)] or []"/>
+                <field name="crew_size" optional="show"/>
+                <field name="shift_missing" column_invisible="True"/>
+                <field name="company_id" groups="base.group_multi_company" optional="hide"/>
+                <field name="note" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- Нарядът: форма. -->
+    <record id="mrp_workcenter_roster_view_form" model="ir.ui.view">
+        <field name="name">mrp.workcenter.roster.form</field>
+        <field name="model">mrp.workcenter.roster</field>
+        <field name="arch" type="xml">
+            <form string="Crew Roster">
+                <header>
+                    <button name="action_crew_recompute_roster" type="object"
+                            string="Recompute" invisible="not id"
+                            help="Replan the not started work orders of the work center from today, apply the crew rosters and split again the time of the finished work orders of the day"/>
+                </header>
+                <sheet>
+                    <div class="alert alert-warning" role="alert" invisible="not shift_missing">
+                        The working schedule of the work center no longer has a shift starting at this time on this day.
+                    </div>
+                    <group>
+                        <group>
+                            <field name="workcenter_id" readonly="context.get('crew_workcenter_id')"
+                                   options="{'no_create': True}"/>
+                            <field name="date"/>
+                            <field name="date_to"/>
+                            <field name="shift_key"/>
+                            <field name="calendar_id"/>
+                        </group>
+                        <group>
+                            <field name="shift_start"/>
+                            <field name="shift_stop"/>
+                            <field name="shift_hours" widget="float_time"/>
+                            <field name="crew_size"/>
+                            <field name="shift_missing" invisible="1"/>
+                            <field name="company_id" groups="base.group_multi_company"/>
+                        </group>
+                    </group>
+                    <field name="allowed_employee_ids" invisible="1"/>
+                    <field name="employee_ids" widget="many2many_tags"
+                           options="{'no_create': True}"
+                           domain="allowed_employee_ids and [('id', 'in', allowed_employee_ids)] or []"/>
+                    <field name="note" placeholder="Note..."/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Нарядът: търсене. В 19 group е без expand/string. -->
+    <record id="mrp_workcenter_roster_view_search" model="ir.ui.view">
+        <field name="name">mrp.workcenter.roster.search</field>
+        <field name="model">mrp.workcenter.roster</field>
+        <field name="arch" type="xml">
+            <search string="Crew Roster">
+                <field name="workcenter_id"/>
+                <field name="employee_ids"/>
+                <field name="date"/>
+                <filter name="filter_today" string="Today"
+                        domain="[('date', '=', context_today().strftime('%Y-%m-%d'))]"/>
+                <filter name="filter_shift_missing" string="Shift Missing"
+                        domain="[('shift_missing', '=', True)]"/>
+                <group>
+                    <filter name="group_workcenter" string="Work Center"
+                            context="{'group_by': 'workcenter_id'}"/>
+                    <filter name="group_date" string="Day" context="{'group_by': 'date:day'}"/>
+                    <filter name="group_shift" string="Shift" context="{'group_by': 'shift_key'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Действието се отваря през избора на център (plan.select): той
+         добавя домейна и контекста crew_workcenter_id. -->
+    <record id="mrp_workcenter_roster_action" model="ir.actions.act_window">
+        <field name="name">Crew Roster</field>
+        <field name="res_model">mrp.workcenter.roster</field>
+        <field name="view_mode">list,form</field>
+        <field name="search_view_id" ref="mrp_workcenter_roster_view_search"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Define who works on the work center in each shift
+            </p>
+            <p>
+                The crew roster is the only source of the crew of the work orders of the work center for the shift.
+            </p>
+        </field>
+    </record>
+
+    <!-- №146 на Теолино (ADR-0071): нарядите се виждат от картата на
+         служителя. -->
+    <record id="hr_employee_view_form_inherit_crew_roster" model="ir.ui.view">
+        <field name="name">hr.employee.form.inherit.crew.roster</field>
+        <field name="model">hr.employee</field>
+        <field name="inherit_id" ref="hr.view_employee_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_crew_rosters" type="object"
+                        class="oe_stat_button" icon="fa-users"
+                        groups="mrp.group_mrp_user">
+                    <field name="crew_roster_count" widget="statinfo" string="Crew Rosters"/>
+                </button>
+            </xpath>
+        </field>
+    </record>
+</odoo>

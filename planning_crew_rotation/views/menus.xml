@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="planning_menu_schedule_by_crew" name="By Crew"
+              parent="planning.planning_menu_schedule"
+              action="planning_action_schedule_by_crew" sequence="30"/>
+    <menuitem id="planning_crew_rotation_menu" name="Crew Rotations"
+              parent="planning.planning_menu_settings"
+              action="planning_crew_rotation_action"
+              groups="planning.group_planning_manager" sequence="40"/>
+    <menuitem id="planning_crew_membership_menu" name="Crew Members"
+              parent="planning.planning_menu_settings"
+              action="planning_crew_membership_action"
+              groups="hr.group_hr_user" sequence="41"/>
+</odoo>

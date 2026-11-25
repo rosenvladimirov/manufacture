@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="planning_slot_view_form_crew" model="ir.ui.view">
+        <field name="name">planning.slot.form.crew</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='role_id']" position="after">
+                <field name="crew_id" invisible="not crew_id"/>
+                <field name="crew_substitute_for_id" invisible="not crew_substitute_for_id"/>
+                <field name="crew_manual" invisible="not crew_generated"/>
+                <field name="crew_warning" invisible="not crew_warning" class="text-warning"/>
+                <field name="crew_generated" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="planning_slot_view_search_crew" model="ir.ui.view">
+        <field name="name">planning.slot.search.crew</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <field name="crew_id"/>
+                <filter name="crew_generated" string="From Crew Rotation"
+                        domain="[('crew_generated', '=', True)]"/>
+                <filter name="crew_has_warning" string="Labour Code Warnings"
+                        domain="[('crew_has_warning', '=', True)]"/>
+                <filter name="group_crew" string="Crew" context="{'group_by': 'crew_id'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Разпределението по бригади: Гант, групиран по бригада и служител
+         (Росен 14.10.2026 — основа за планирането по бригада) -->
+    <record id="planning_view_gantt_group_by_crew" model="ir.ui.view">
+        <field name="name">planning.slot.gantt.group.crew</field>
+        <field name="model">planning.slot</field>
+        <field name="inherit_id" ref="planning.planning_view_gantt"/>
+        <field name="mode">primary</field>
+        <field name="arch" type="xml">
+            <gantt position="attributes">
+                <attribute name="default_group_by">crew_id,resource_id</attribute>
+            </gantt>
+        </field>
+    </record>
+
+    <record id="planning_action_schedule_by_crew" model="ir.actions.act_window">
+        <field name="name">Schedule by Crew</field>
+        <field name="path">planning-by-crew</field>
+        <field name="res_model">planning.slot</field>
+        <field name="view_mode">gantt,list,form</field>
+        <field name="context">{'search_default_crew_generated': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No crew shifts yet.</p>
+            <p>Generate the shifts from an approved crew rotation.</p>
+        </field>
+    </record>
+
+    <record id="planning_action_schedule_by_crew_view_gantt" model="ir.actions.act_window.view">
+        <field name="sequence" eval="1"/>
+        <field name="view_mode">gantt</field>
+        <field name="view_id" ref="planning_view_gantt_group_by_crew"/>
+        <field name="act_window_id" ref="planning_action_schedule_by_crew"/>
+    </record>
+</odoo>
