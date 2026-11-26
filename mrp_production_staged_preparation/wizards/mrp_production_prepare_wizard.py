@@ -16,13 +16,28 @@ class MrpProductionPrepareWizard(models.TransientModel):
     cutting_optimization_id = fields.Many2one(
         comodel_name="mrp.cutting.optimization", string="Cutting Run",
         compute="_compute_cutting_optimization_id")
+    # 🔴 Мерено на 26.11.2026: като `related` тези три полета караха базата да НЕ ТРЪГНЕ
+    # без mrp_cutting_optimization — `KeyError: Field total_bars_used referenced in related
+    # field definition ... does not exist`, още при зареждането на моделите. А модулът
+    # нарочно не зависи от него (виж бележката в models/stock_move.py). Затова: compute
+    # през проверка — числата излизат, щом разкроят го има, и са нули, щом го няма.
     cutting_bars = fields.Integer(
-        string="Bars", related="cutting_optimization_id.total_bars_used")
+        string="Bars", compute="_compute_cutting_figures")
     cutting_waste_pct = fields.Float(
-        string="Waste %", related="cutting_optimization_id.waste_percentage")
+        string="Waste %", compute="_compute_cutting_figures")
     cutting_pattern_count = fields.Integer(
-        string="Cutting Patterns",
-        related="cutting_optimization_id.pattern_count")
+        string="Cutting Patterns", compute="_compute_cutting_figures")
+
+    @api.depends("cutting_optimization_id")
+    def _compute_cutting_figures(self):
+        """Числата на разкроя, без модулът да зависи от mrp_cutting_optimization."""
+        ima = ("mrp.cutting.optimization" in self.env
+               and "total_bars_used" in self.env["mrp.cutting.optimization"]._fields)
+        for wizard in self:
+            run = wizard.cutting_optimization_id if ima else False
+            wizard.cutting_bars = run.total_bars_used if run else 0
+            wizard.cutting_waste_pct = run.waste_percentage if run else 0.0
+            wizard.cutting_pattern_count = run.pattern_count if run else 0
 
     # ADR-0099 (Любо 21.10, TG 173297): допълването на разкроя — предложение,
     # което човекът вижда и може да редактира преди „Да“.
